@@ -77,37 +77,52 @@ namespace MCCheatChecker
 
 		private static readonly string[] KnownCheatProcesses = new string[]
 		{
-			"cheatengine", "processhacker", "xenos", "extremeinjector", "injector", "autoclicker", "opautoclicker", "speedautoclicker", "mangoclicker", "tinytask",
-			"macrorecorder", "wireshark", "fiddler", "dnspy", "ilspy", "ghidra", "x64dbg", "x32dbg", "ollydbg", "systeminformer",
-			"reghax", "autohotkey", "celestial", "expensive", "akrien", "nurik", "deltaclient", "wildclient", "richclient", "fluger",
+			"cheatengine", "processhacker", "xenos", "extremeinjector", "injector",
+			"wireshark", "fiddler", "dnspy", "ilspy", "ghidra", "x64dbg", "x32dbg", "ollydbg", "systeminformer",
+			"reghax", "celestial", "expensive", "akrien", "nurik", "deltaclient", "wildclient", "richclient", "fluger",
 			"excellent", "impact", "wurstclient", "liquidbounce", "meteorclient", "aristois", "vape", "driplite", "entropy", "kura",
 			"doomsday", "bozeclient", "rusherhack", "futureclient", "nursultan", "neverhook", "zamorozka", "minced", "wexside", "deadcode",
 			"bebraware", "rynware", "neverware", "jigsaw", "salhack", "ares", "wolfram", "wwe", "bleachhack", "matix",
 			"pivoclient", "gish", "eternity", "richpremium", "boberware", "emortality", "dreampool", "clowdy", "rasty", "pyro",
-			"flauncher", "exloader", "vegaline", "koid", "journaltrace", "usnjrnl", "dmc", "mango", "mangoclicker", "opautoclicker",
-			"gsautoclicker", "fastclicker", "tgmacro", "macrorecorder", "tinytask", "murgee", "jitbit", "interception", "kmbox", "vjoy",
-			"thunderhack", "slinky", "seedcracker", "seedcrackerx", "dreamclient", "rockstarclient", "avalone", "kion", "xorek", "vulcanclicker",
+			"flauncher", "exloader", "vegaline", "koid", "journaltrace", "usnjrnl", "dmc", "mango",
+			"interception", "kmbox", "vjoy",
+			"thunderhack", "slinky", "seedcracker", "seedcrackerx", "dreamclient", "rockstarclient", "avalone", "kion", "xorek",
 			"raven", "ravenb4", "ravenbplus", "abyss", "whiterabbit", "flint", "catlavan", "cellent", "bape", "whiteout", "itami", "coffeeclient", "pandora", "archware", "exhibition", "cattyn", "spirthack", "memesense", "neverlose"
 		};
 
 		private static readonly string[] RamCheatSignatures = new string[]
 		{
 			"Celestial", "Expensive", "Akrien", "Nurik", "DeltaClient", "WildClient", "RichClient", "Fluger", "ExcellentClient", "LiquidBounce",
-			"WurstClient", "MeteorClient", "Aristois", "VapeClient", "DripLite", "EntropyClient", "KuraClient", "HitBox", "KillAura", "AutoClicker",
+			"WurstClient", "MeteorClient", "Aristois", "VapeClient", "DripLite", "EntropyClient", "KuraClient", "HitBox", "KillAura",
 			"TriggerBot", "ReachMod", "VelocityMod", "NoFallMod", "JesusMod", "SpeedHack", "FastPlace", "TimerMod", "ChestESP", "PlayerESP",
 			"TracersMod", "Baritone", "Nursultan", "NeverHook", "Zamorozka", "Minced", "Wexside", "DeadCode", "BebraWare", "RynWare",
 			"Neverware", "Jigsaw", "Salhack", "Ares", "Wolfram", "WWE", "BleachHack", "Matix", "PivoClient", "Cabaletta",
 			"Gish", "Eternity", "RichPremium", "R3D", "BoberWare", "Nurik", "Celka", "Ponos", "Emortality", "DreamPool",
 			"Clowdy", "Rasty", "DiamondSim", "AutoAttack", "TopkaAutoBuy", "AutoBuy", "ElytraSwap", "ArmorHotSwap", "GoProne", "Autofish",
 			"PYRO", "Impact", "RusherHack", "SquadClient", "Destroy", "ArchWare", "VegaLine", "SelfDistruct", "DekoClient", "Carbonara",
-			"Meriada", "Swaper", "ShiftTap", "AutoLeave", "CrystalOptimizer", "ClickPerl", "AttackAura", "CleanCut", "FreeCam", "AimBot",
-			"HitBoxes", "AutoTotem", "InvMove", "ThunderHack", "Boze", "Abyss", "VulcanClicker", "RavenB4", "RavenBPlus",
+			"Meriada", "Swaper", "ShiftTap", "AutoLeave", "ClickPerl", "AttackAura", "CleanCut", "FreeCam", "AimBot",
+			"HitBoxes", "AutoTotem", "InvMove", "ThunderHack", "Boze", "Abyss", "RavenB4", "RavenBPlus",
 			"Slinky", "DreamClient", "RockstarClient", "AvaloneClient", "KionClient", "ShitClient", "MERCU", "NIOBIUM", "XorekAutoBuy", "XorekAutoMyst",
 			"TopkaAutoSell", "TopkaCasino", "DiamondGen", "AutoAuction", "AuctionHelper", "AutoPearl", "AutoArmor", "FastBow", "AntiDebuff", "AutoPotion",
 			"MiddleClickPearl", "BowAimbot", "SilentAimbot", "TargetStrafe", "NoSlowDown", "FlyMod", "ThunderHack-Recode", "NursultanRecode",
 			"SeedCrackerX", "DoomsdayClient", "AutoAnchor", "AnchorAura", "Criticals", "TimerHack", "FastMine", "SilentAim", "PacketFly", "BoatFly", "NursultanClient", "CelestialPremium", "FlugerClient", "WildClientPremium", "ThunderHack-Recode", "NursultanRecode", "DeadCodeClient", "ExpensiveClient", "BoberWareClient", "AkrienAntiBot", "VapeV4", "VapeLite", "DripLiteV2", "SlinkyClient", "DreamClientV2", "RockstarClientV2", "AvaloneClientV2", "KionClientV2", "AutoTotemSlot", "SilentAimbotTarget", "MiddleClickPearlAction", "CriticalsPacket", "TargetStrafeRange", "TimerHackSpeed", "FastMineSpeed", "AnchorAuraTarget", "Catlavan", "Cellent", "FlintClient", "KuraClient", "ArchWare", "BoberWare", "Whiteout", "Itami", "CoffeeClient", "Exhibition", "Pandora", "Neverlose", "GameSense", "Desync", "TargetStrafe", "CustomHitbox", "AnchorAuraTarget",
 			"CatLavan", "ExLoader", "WhiteRabbit", "AimAssist", "AutoPot", "EagleMod", "InventoryMove", "FastEat", "AntiKnockback", "AutoGapple", "BedFucker", "FastBreak", "Scaffold", "SafeWalk", "NoSlowdown", "StepMod", "PhaseMod", "Trajectories", "TargetHUD", "XRay"
 		};
+
+		private static readonly string[] RamCheatSignaturesLower = InitializeRamCheatSignaturesLower();
+		private static string[] InitializeRamCheatSignaturesLower()
+		{
+			string[] arr = new string[RamCheatSignatures.Length];
+			for (int i = 0; i < RamCheatSignatures.Length; i++)
+			{
+				arr[i] = RamCheatSignatures[i].ToLowerInvariant();
+			}
+			return arr;
+		}
+
+		private static List<MemoryRegionHit> _cachedRamHits = null;
+		private static DateTime _lastRamScanTime = DateTime.MinValue;
+		private static readonly object _ramScanLock = new object();
 
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		private static extern bool GlobalMemoryStatusEx([In][Out] MEMORYSTATUSEX lpBuffer);
@@ -385,11 +400,11 @@ namespace MCCheatChecker
 			}
 			if (text.Contains("clicker") || text2.Contains("clicker") || text.Contains("macro"))
 			{
-				item.IsThreat = true;
-				item.Severity = CheckSeverity.Warning;
-				item.ThreatReason = "Автокликер или система макросов";
+				item.IsThreat = false;
+				item.Severity = CheckSeverity.Info;
+				item.ThreatReason = "Автокликер (разрешён регламентом сервера)";
 			}
-			else if ((text3.Contains("\\appdata\\local\\temp\\") || text3.Contains("\\downloads\\")) && !CheatDatabases.IsWhitelistedProcess(item.Name) && !text.Contains("installer") && !text.Contains("setup") && !text.Contains("update") && !text.Contains("discord") && !text.Contains("chrome") && !text.Contains("telegram") && !text.Contains("spotify") && !text.Contains("steam") && !text.Contains("mccheatchecker") && (text.EndsWith(".tmp") || text.Contains("loader") || text.Contains("cheat") || text.Contains("inject")))
+			else if ((text3.Contains("\\appdata\\local\\temp\\") || text3.Contains("\\downloads\\")) && !CheatDatabases.IsWhitelistedProcess(item.Name) && !text.Contains("installer") && !text.Contains("setup") && !text.Contains("update") && !text.Contains("discord") && !text.Contains("chrome") && !text.Contains("telegram") && !text.Contains("spotify") && !text.Contains("steam") && !text.Contains("mccheatchecker") && !text3.Contains("mccheat") && !text3.Contains("проги для проверки") && (text.EndsWith(".tmp") || text.Contains("loader") || text.Contains("cheat") || text.Contains("inject")))
 			{
 				item.IsThreat = true;
 				item.Severity = CheckSeverity.Warning;
@@ -478,7 +493,13 @@ namespace MCCheatChecker
 
 		public static List<MemoryRegionHit> ScanMinecraftRam(int specificPid)
 		{
-			List<MemoryRegionHit> list = new List<MemoryRegionHit>();
+			lock (_ramScanLock)
+			{
+				if (_cachedRamHits != null && (DateTime.UtcNow - _lastRamScanTime).TotalSeconds < 30.0)
+				{
+					return new List<MemoryRegionHit>(_cachedRamHits);
+				}
+				List<MemoryRegionHit> list = new List<MemoryRegionHit>();
 			List<Process> list2 = new List<Process>();
 			if (specificPid > 0)
 			{
@@ -615,12 +636,17 @@ namespace MCCheatChecker
 						});
 						continue;
 					}
+					Stopwatch sw = Stopwatch.StartNew();
 					ulong num = 65536uL;
 					ulong num2 = 140737488355327uL;
 					long num3 = 0L;
-					long num4 = 268435456L;
+					long num4 = 33554432L; // 32 MB max budget
 					while (num < num2 && num3 < num4)
 					{
+						if (sw.ElapsedMilliseconds > 2500)
+						{
+							break; // 2.5s hard timeout
+						}
 						int dwLength = Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION64));
 						MEMORY_BASIC_INFORMATION64 lpBuffer;
 						if (VirtualQueryEx(intPtr, (IntPtr)(long)num, out lpBuffer, (uint)dwLength) == 0)
@@ -644,12 +670,14 @@ namespace MCCheatChecker
 								});
 							}
 						}
-						if (lpBuffer.State == 4096 && lpBuffer.RegionSize != 0 && lpBuffer.RegionSize < 10485760)
+						bool isWritable = (lpBuffer.Protect == 4 || lpBuffer.Protect == 64);
+						if (lpBuffer.State == 4096 && isWritable && lpBuffer.Type != 16777216 && lpBuffer.RegionSize != 0 && lpBuffer.RegionSize <= 4194304)
 						{
 							ulong regOffset = 0;
-							ulong maxRegRead = Math.Min(lpBuffer.RegionSize, 2097152uL);
+							ulong maxRegRead = Math.Min(lpBuffer.RegionSize, 1048576uL);
 							while (regOffset < maxRegRead && num3 < num4)
 							{
+								if (sw.ElapsedMilliseconds > 2500) break;
 								int toRead = (int)Math.Min(65536uL, maxRegRead - regOffset);
 								byte[] array4 = new byte[toRead];
 								IntPtr lpNumberOfBytesRead2;
@@ -657,24 +685,22 @@ namespace MCCheatChecker
 								{
 									int bytesRead = lpNumberOfBytesRead2.ToInt32();
 									num3 += bytesRead;
-									string textAscii = Encoding.ASCII.GetString(array4, 0, bytesRead);
-									string textUnicode = Encoding.Unicode.GetString(array4, 0, bytesRead);
-									string textUtf8 = Encoding.UTF8.GetString(array4, 0, bytesRead);
-									string[] ramCheatSignatures = RamCheatSignatures;
+									string textAscii = Encoding.ASCII.GetString(array4, 0, bytesRead).ToLowerInvariant();
+									string textUnicode = Encoding.Unicode.GetString(array4, 0, bytesRead).ToLowerInvariant();
 									bool hitFound = false;
-									foreach (string text6 in ramCheatSignatures)
+									for (int sIdx = 0; sIdx < RamCheatSignaturesLower.Length; sIdx++)
 									{
-										if (textAscii.IndexOf(text6, StringComparison.OrdinalIgnoreCase) >= 0 ||
-											textUnicode.IndexOf(text6, StringComparison.OrdinalIgnoreCase) >= 0 ||
-											textUtf8.IndexOf(text6, StringComparison.OrdinalIgnoreCase) >= 0)
+										string sig = RamCheatSignaturesLower[sIdx];
+										if (textAscii.Contains(sig) || textUnicode.Contains(sig))
 										{
+											string origSig = RamCheatSignatures[sIdx];
 											list.Add(new MemoryRegionHit
 											{
 												Address = "0x" + (lpBuffer.BaseAddress + regOffset).ToString("X"),
 												Size = FormatMemory((long)lpBuffer.RegionSize),
 												Protection = "PAGE_COMMIT",
-												Type = "ЧИТ В ПАМЯТИ: " + text6,
-												Detail = "В адресном пространстве javaw (PID: " + item2.Id + ") найден строковый маркер чита: " + text6,
+												Type = "ЧИТ В ПАМЯТИ: " + origSig,
+												Detail = "В адресном пространстве javaw (PID: " + item2.Id + ") найден строковый маркер чита: " + origSig,
 												Severity = CheckSeverity.Critical
 											});
 											hitFound = true;
@@ -726,7 +752,10 @@ namespace MCCheatChecker
 					Severity = CheckSeverity.Info
 				});
 			}
-			return list;
+				_cachedRamHits = new List<MemoryRegionHit>(list);
+				_lastRamScanTime = DateTime.UtcNow;
+				return list;
+			}
 		}
 
 		public static List<MemoryRegionHit> CheckJavawLoadedModules(Process p)
@@ -738,13 +767,14 @@ namespace MCCheatChecker
 				{
 					"rename_me_please", "editme", "mc100", "dauntiblyat", "slinky", "vape", "driplite", "entropy",
 					"kura", "doomsday", "boze", "celestial", "expensive", "whiterabbit", "minced", "neverhook",
-					"rusherhack", "liquidbounce", "injector", "koid", "fastclicker", "autoclicker", "cheat", "hack",
+					"rusherhack", "liquidbounce", "injector", "koid", "cheat", "hack",
 					"interception", "kmbox", "ch340", "cp2102", "minhook", "detours", "xenos", "extreme",
 					"nursultan", "thunderhack", "dreamclient", "aimware", "neverlose", "drip", "catlavan",
 					"wexside", "deadcode", "richpremium", "delta", "flint", "rockstar", "boberware", "wild",
 					"celka", "akrien", "excellent", "fluger", "vegaline", "archware", "exloader", "cattyn",
 					"spirthack", "memesense", "itami", "bape", "whiteout", "raven", "coffee", "exhibition"
 				};
+
 				foreach (ProcessModule module in p.Modules)
 				{
 					string text = (module.ModuleName ?? "").ToLowerInvariant();

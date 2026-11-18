@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Management;
@@ -20,11 +20,11 @@ namespace MCCheatChecker
 
 		private static readonly string[] MacroHidSignatures = new string[]
 		{
-			"kmbox", "km-net", "kmbox net", "makcu", "cuda", "arduino", "arduino llc", "arduino sa", "leonardo",
-			"micro", "esp32", "esp8266", "ch9329", "ch9350", "usb2uart", "teensy", "pjrc", "wch", "qinheng",
-			"hid macro", "macro keyboard", "macro mouse", "auto click", "autoclick", "clicker", "fast click", "rp2040", "raspberry pi", "pico",
+			"kmbox", "km-net", "kmbox net", "makcu", "arduino", "arduino llc", "arduino sa", "leonardo",
+			"esp32", "esp8266", "ch9329", "ch9350", "teensy", "pjrc",
+			"macro keyboard", "macro mouse", "rp2040", "raspberry pi", "pico",
 			"stm32", "libretiny", "b按键", "кукла", "botmaker", "mouse jiggler", "jiggler",
-			"kmbox b", "kmbox-b", "kmbox pro", "ch340", "cp2102", "ft232", "pl2303", "interception", "vjoy", "vigem", "virtual bus", "usb serial", "silicon labs", "pro micro", "digispark", "attiny85", "cp210x", "ftdi"
+			"kmbox b", "kmbox-b", "kmbox pro", "interception"
 		};
 
 		private static readonly string[] SpooferServiceSignatures = new string[]
@@ -508,6 +508,14 @@ namespace MCCheatChecker
 				}
 				catch
 				{
+				}
+				if (networkInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
+				    networkInterface.NetworkInterfaceType == NetworkInterfaceType.Tunnel ||
+				    networkInterface.Name.IndexOf("loopback", StringComparison.OrdinalIgnoreCase) >= 0 ||
+				    networkInterface.Description.IndexOf("loopback", StringComparison.OrdinalIgnoreCase) >= 0 ||
+				    networkInterface.Description.IndexOf("pseudo", StringComparison.OrdinalIgnoreCase) >= 0)
+				{
+					continue;
 				}
 				if (text.Length >= 12)
 				{

@@ -309,6 +309,14 @@ namespace MCCheatChecker
 
 		private static void ScanBinaryOrScriptFile(string filePath, InternalStringHit hit)
 		{
+			string fn = hit.FileName.ToLowerInvariant();
+			if (fn.Contains("mccheat") || fn.Contains("checker") || fn.Contains("roblox") || fn.Contains("telegram") || fn.Contains("td-setup") || fn.Contains("vencord") || fn.Contains("discord") || fn.Contains("clash") || fn.Contains("tgws") || fn.Contains("evo") || fn.Contains("yandex") || fn.Contains("chrome") || fn.Contains("msi setup") || fn.Contains("driver") || fn.Contains("steam"))
+			{
+				hit.IsThreat = false;
+				hit.Severity = CheckSeverity.Info;
+				hit.ThreatTitle = "🟢 БЕЗОПАСЕН (Легитимное системное/пользовательское ПО)";
+				return;
+			}
 			HashSet<string> hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			try
 			{
@@ -481,15 +489,35 @@ namespace MCCheatChecker
 			}
 			else if (num2 >= 2)
 			{
-				hit.IsThreat = true;
-				hit.Severity = CheckSeverity.NeedsCheck;
-				hit.ThreatTitle = "\ud83d\udfe0 ВЫСОКАЯ ПОДОЗРИТЕЛЬНОСТЬ (Множественные чит-модули: " + num2 + ")";
+				bool isBinary = hit.FileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || hit.FileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
+				if (!isBinary)
+				{
+					hit.IsThreat = true;
+					hit.Severity = CheckSeverity.NeedsCheck;
+					hit.ThreatTitle = "\ud83d\udfe0 ВЫСОКАЯ ПОДОЗРИТЕЛЬНОСТЬ (Множественные чит-модули: " + num2 + ")";
+				}
+				else
+				{
+					hit.IsThreat = false;
+					hit.Severity = CheckSeverity.Info;
+					hit.ThreatTitle = "🟢 БЕЗОПАСЕН (Бинарный файл: стандартные подстроки C/C++ не являются чит-модулями)";
+				}
 			}
 			else if (num2 == 1 || num4 == 1)
 			{
-				hit.IsThreat = true;
-				hit.Severity = CheckSeverity.Warning;
-				hit.ThreatTitle = "\ud83d\udfe1 ТРЕБУЕТ ПРОВЕРКИ (Найден подозрительный метод / класс)";
+				bool isBinary = hit.FileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || hit.FileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
+				if (!isBinary)
+				{
+					hit.IsThreat = true;
+					hit.Severity = CheckSeverity.Warning;
+					hit.ThreatTitle = "\ud83d\udfe1 ТРЕБУЕТ ПРОВЕРКИ (Найден подозрительный метод / класс)";
+				}
+				else
+				{
+					hit.IsThreat = false;
+					hit.Severity = CheckSeverity.Info;
+					hit.ThreatTitle = "🟢 БЕЗОПАСЕН";
+				}
 			}
 			else
 			{
@@ -684,7 +712,7 @@ namespace MCCheatChecker
 			{
 				list2.Add(tempPath);
 			}
-			string[] array3 = new string[8] { "*.jar", "*.exe", "*.dll", "*.bat", "*.cmd", "*.ps1", "*.json", "*.toml" };
+			string[] array3 = new string[] { "*.jar", "*.zip" };
 			foreach (string item2 in list2)
 			{
 				if (!Directory.Exists(item2))

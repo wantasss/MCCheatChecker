@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -31,43 +31,42 @@ namespace MCCheatChecker
 		{
 			"kami", "kamiblue", "pyro", "impact", "wurst", "inertia", "liquidbounce", "sigma", "neverhook", "zamorozka",
 			"minced", "wexside", "expensive", "wild", "fluger", "keaz", "meteor", "blackberry", "nursultan", "avalone",
-			"mercu", "niobium", "kion", "akrien", "celestial", "deadcode", "external", "norules", "rage", "bebraware",
-			"rynware", "neverware", "aristois", "baritone", "simply", "skillclient", "jigsaw", "zeus", "salhack", "ares",
-			"wolfram", "metro", "wwe", "weepcraft", "kalkon", "advancedx", "matix", "nodus", "aurus", "neverclide",
-			"wave", "pivo", "prerik", "squad", "cabaletta", "gishcode", "rename_me_please", "future", "rusherhack", "eternity",
+			"mercu", "niobium", "kion", "akrien", "celestial", "deadcode", "norules", "rage", "bebraware",
+			"rynware", "neverware", "aristois", "baritone", "simply", "skillclient", "jigsaw", "salhack", "ares",
+			"wolfram", "wwe", "weepcraft", "kalkon", "advancedx", "matix", "nodus", "aurus", "neverclide",
+			"pivo", "prerik", "cabaletta", "gishcode", "rename_me_please", "future", "rusherhack", "eternity",
 			"richpremium", "editme", "mc100", "r3d", "destroy", "archware", "boberware", "bolshoy", "nurik", "celka",
-			"stardust", "akr", "wex", "haven", "ponos", "emortalityclient", "dreampool", "invisible", "winner", "clowdy",
-			"rasty", "dreampoolhack", "diamondsim", "potions", "autoattack", "kyprak", "infinity", "wintware", "konas", "jessica",
-			"excellent", "vape", "bushroot", "panickattack", "hackbrand", "undetectable", "venus", "interium", "energyclient", "cortex",
-			"cclient", "quickclient", "chclient", "caesar", "tofficlient", "decision", "bleach", "hider", "troxill", "recode",
-			"exosware", "jelly", "viamcp", "fatal", "waterclient", "extendopvp", "hwid", "hitware", "harambaritone", "flauncher",
-			"clownclient", "euphoriaclient", "vertclient", "wortexclient", "404client", "aoba", "darkproject", "mioclient", "vegaline", "wissend",
-			"darklight", "catalyst", "jexclient", "fdp", "paragon", "trollhack", "catlavan", "haru", "verist", "lunaclient",
-			"exloader", "evaware", "britva", "haruka", "ghost", "rise", "drip", "remix", "flex", "rogue",
-			"dummie", "dummi", "dummyclient", "entropy", "hypnotic", "neura", "novoline", "huzuni", "orion", "eclipse",
-			"stronk", "raven", "ambrosial", "tenacity", "reflex", "pulse", "killerware", "sora", "flux", "prism",
-			"novaclient", "iceclient", "aqua", "ruin", "atom", "haste", "spark", "crystal", "ozone", "phantom",
-			"specter", "spectrum", "nebula", "epoch", "axiom", "abyss", "nexus", "solstice", "titan", "cipher",
-			"banjo", "nightfall", "dusk", "omega", "flarial", "acryl", "seraph", "zues", "predator", "kage",
-			"nova2", "nova3", "sable", "vertex", "hyphen", "altdentifier", "blatware", "blat", "chipware", "vorona",
-			"rusohack", "vortex", "amethyst", "garnet", "atomware", "quantumware", "neonware", "pixelware", "slavehack", "slavware",
-			"babahack", "kolyan", "petyan", "vanyan", "sashka", "dimka", "misha", "chernila", "krasniy", "bychara",
-			"boroda", "strafe", "scaffold", "velocity", "antikb", "aimassist", "triggerbot", "bhop", "fastplace", "fastbreak",
-			"nuker", "criticals", "killauraplus", "multiaura", "tpaura", "antibot", "antiafk", "autofish", "autosprint", "highjump",
-			"longjump", "boatfly", "spoofed", "bypass", "silentaura", "silentswing", "silentmine", "skidded", "cracked", "nulled",
-			"leaked", "obfuscated", "liquidloader", "ambientloader", "hackloader", "bootject", "xenos", "coremod", "coremods", "javaagent-cheat",
-			"patcher-cheat", "asmhook", "hax", "hacks", "mchack", "mccheat", "hackedclient", "cheatclient", "hackforge", "hackedforge",
-			"mixinhack", "mixin-hack", "bytebuddy-hack", "nodus2", "lolclient", "mc-hack", "horion", "zephyr", "horionupdated", "oseris",
-			"solaris", "onix", "nohopefully", "dragonfly", "bedrockhax", "bedrockcheat", "polar", "aurora", "astral", "cosmic",
-			"stellar", "nebulaclient", "zenith", "horizon", "pinnacle", "summit", "victory", "dominion", "conquer", "legacy",
-			"dynasty", "empire", "reign", "sovereign", "monarch", "prism2", "aether", "infinity2", "infinityclient2", "flaxenter",
-			"flax", "flaxclient", "flaxus", "scope", "krystal", "krystall", "krystalclient", "dioxin", "dioxinclient", "diox",
+			"akr", "wex", "haven", "ponos", "emortalityclient", "dreampool", "invisible", "winner", "clowdy",
+			"rasty", "dreampoolhack", "diamondsim", "autoattack", "kyprak", "wintware", "konas", "jessica",
+			"excellent", "vape", "bushroot", "panickattack", "hackbrand", "undetectable", "venus", "interium", "energyclient",
+			"cclient", "quickclient", "chclient", "caesar", "tofficlient", "troxill",
+			"exosware", "viamcp", "fatal", "waterclient", "extendopvp", "hwid", "hitware", "harambaritone", "flauncher",
+			"clownclient", "euphoriaclient", "vertclient", "wortexclient", "404client", "darkproject", "mioclient", "vegaline", "wissend",
+			"darklight", "jexclient", "trollhack", "catlavan", "haru", "verist", "lunaclient",
+			"exloader", "evaware", "britva", "haruka", "rise", "rogue",
+			"dummyclient", "hypnotic", "neura", "novoline", "huzuni", "orion", "eclipse",
+			"stronk", "ambrosial", "reflex", "killerware",
+			"novaclient", "iceclient", "aqua", "ruin", "phantom",
+			"cipher",
+			"acryl",
+			"nova2", "nova3", "blatware", "blat", "chipware", "vorona",
+			"rusohack", "vortex", "atomware", "neonware", "slavehack", "slavware",
+			"babahack",
+			"killauraplus", "multiaura", "tpaura",
+			"silentaura", "silentswing", "silentmine",
+			"liquidloader", "ambientloader", "hackloader", "bootject", "xenos", "javaagent-cheat",
+			"patcher-cheat", "asmhook", "mchack", "hackedclient", "cheatclient", "hackforge", "hackedforge",
+			"mixinhack", "mixin-hack", "bytebuddy-hack", "mc-hack", "horion", "zephyr", "horionupdated", "oseris",
+			"solaris", "onix", "nohopefully", "dragonfly", "bedrockhax", "bedrockcheat",
+			"nebulaclient", "pinnacle",
+			"aether", "infinity2", "infinityclient2", "flaxenter",
+			"flaxclient", "flaxus", "krystalclient", "dioxin", "dioxinclient", "diox",
 			"lunarclient2", "lunar2", "lunarbypass", "maraxsis", "sunlitclient", "deceptiveclient", "permetricsclient", "epsilonclient", "epsilonhack", "epicbase",
 			"fpsclients", "chemosai", "fumoclient", "brainwaveclient", "asteriaclient", "noodleclient", "noodleware", "koboldclient", "noirclient", "obsidianclient",
 			"anubisclient", "yunoclient", "chaosclient", "cirrusclient", "voidclient", "radiumclient", "mochat", "deltacclient", "ccbclient", "farca",
 			"seleneclient", "nyxclient", "silentclient", "valhallacheat", "asgardclient", "ragnarokclient", "fenrirclient", "skadiclient", "jormungandrclient", "medusaclient",
 			"cerberusclient", "chimeraclient", "krakenclient", "leviathanclient", "basiliskclient", "golemclient", "ifritclient", "tenguclient", "raijinclient", "susanooclient",
-			"osirisclient", "horusclient", "thothclient", "atumclient", "anhurclient", "montucclient", "kamosclient", "maraxsisclient", "thunderhack", "thunderhackrecode", "boze", "bozeclient", "slinky", "slinkyclient", "dreamclient", "doomsday", "doomsdayclient", "ravenb4", "ravenbplus", "expensive3", "expensive2", "expensive-recode", "nursultanrecode", "nursultan-next", "celestialrecode", "celestial-premium", "wildrecode", "wildclient", "nightx", "nightxclient", "vulcanclicker", "seedcracker", "seedcrackerx"
+			"osirisclient", "horusclient", "thothclient", "atumclient", "anhurclient", "montucclient", "kamosclient", "maraxsisclient", "thunderhack", "thunderhackrecode", "boze", "bozeclient", "slinky", "slinkyclient", "dreamclient", "doomsday", "doomsdayclient", "ravenb4", "ravenbplus", "expensive3", "expensive2", "expensive-recode", "nursultanrecode", "nursultan-next", "celestialrecode", "celestial-premium", "wildrecode", "wildclient", "nightx", "nightxclient", "seedcracker", "seedcrackerx"
 		};
 
 		private static readonly string[] VisualKeywords = new string[36]
@@ -78,7 +77,7 @@ namespace MCCheatChecker
 			"cavefinder", "entityoutlines", "chunkborders", "tracer", "blockoutline", "oreesp"
 		};
 
-		private static readonly string[] InjectorNames = new string[9] { "exremeinjector", "injector", "liquidloader", "ambientinjector", "bootject", "xenos", "exloader", "processhacker", "cheatengine" };
+		private static readonly string[] InjectorNames = new string[] { "exremeinjector", "injector", "liquidloader", "ambientinjector", "bootject", "xenos", "exloader", "cheatengine" };
 
 		private static readonly HashSet<long> KnownCheatFileSizes = new HashSet<long>
 		{
@@ -115,16 +114,16 @@ namespace MCCheatChecker
 			"softwaredistribution", "microsoft", "common files", "programdata"
 		};
 
-		private static readonly string[] DeepScanStrongNames = new string[129]
+		private static readonly string[] DeepScanStrongNames = new string[]
 		{
 			"kamiblue", "pyro", "wurst", "liquidbounce", "neverhook", "zamorozka", "wexside", "fluger", "keaz", "meteor",
 			"nursultan", "avalone", "niobium", "akrien", "celestial", "deadcode", "norules", "bebraware", "rynware", "neverware",
 			"aristois", "baritone", "skillclient", "jigsaw", "salhack", "wolfram", "weepcraft", "kalkon", "advancedx", "matix",
 			"nodus", "aurus", "neverclide", "cabaletta", "gishcode", "rusherhack", "eternity", "richpremium", "archware", "boberware",
-			"bolshoy", "nurik", "celka", "stardust", "emortalityclient", "dreampool", "dreampoolhack", "diamondsim", "kyprak", "wintware",
+			"bolshoy", "nurik", "celka", "emortalityclient", "dreampool", "dreampoolhack", "diamondsim", "kyprak", "wintware",
 			"konas", "vape", "bushroot", "panickattack", "hackbrand", "interium", "energyclient", "quickclient", "chclient", "tofficlient",
 			"troxill", "exosware", "viamcp", "waterclient", "extendopvp", "hitware", "harambaritone", "flauncher", "clownclient", "euphoriaclient",
-			"vertclient", "wortexclient", "aoba", "darkproject", "mioclient", "vegaline", "wissend", "darklight", "jexclient", "paragon",
+			"vertclient", "wortexclient", "darkproject", "mioclient", "vegaline", "wissend", "darklight", "jexclient", "paragon",
 			"trollhack", "catlavan", "verist", "lunaclient", "exloader", "evaware", "britva", "haruka", "maraxsis", "sunlitclient",
 			"deceptiveclient", "permetricsclient", "epsilonclient", "epicbase", "fpsclients", "chemosai", "fumoclient", "brainwaveclient", "asteriaclient", "noodleware",
 			"koboldclient", "obsidianclient", "anubisclient", "yunoclient", "chaosclient", "cirrusclient", "radiumclient", "deltacclient", "ccbclient", "seleneclient",
@@ -201,14 +200,18 @@ namespace MCCheatChecker
 			{
 				return false;
 			}
+			if (textLower.Contains("проги для проверки") || textLower.Contains("mccheat") || textLower.Contains("screenshare") || textLower.Contains("sstools"))
+			{
+				return false;
+			}
+			if (cheatLower == "autoclicker" || cheatLower == "clicker" || cheatLower == "vulcanclicker" || cheatLower == "mccheat" || cheatLower == "tinytask" || cheatLower == "speedautoclicker" || cheatLower == "opautoclicker" || cheatLower == "keyran" || cheatLower == "botmek" || cheatLower == "autohotkey" || cheatLower == "ahk" || cheatLower == "x-mouse" || cheatLower == "xmouse")
+			{
+				return false;
+			}
 			bool flag = CheatDatabases.IsAmbiguous(cheatLower);
 			if (flag && !CheatDatabases.HasCheatContext(textLower))
 			{
 				return false;
-			}
-			if (!flag && cheatLower.Length >= 7)
-			{
-				return textLower.Contains(cheatLower);
 			}
 			return ContainsToken(textLower, cheatLower);
 		}
@@ -1474,7 +1477,8 @@ namespace MCCheatChecker
 					{
 						list3.Add("⚠\ufe0f Корзина на диске " + driveInfo.Name + " была изменена прямо перед проверкой (" + directoryInfo.LastWriteTime.ToString("dd.MM.yyyy HH:mm") + ")");
 					}
-					string[] files2 = Directory.GetFiles(path2, "*", SearchOption.AllDirectories);
+					string[] files2;
+try { files2 = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Take(Directory.EnumerateFiles(path2, "*", SearchOption.AllDirectories), 1000)); } catch { files2 = new string[0]; }
 					string[] array2 = files2;
 					foreach (string text2 in array2)
 					{
@@ -1541,7 +1545,7 @@ namespace MCCheatChecker
 						}
 						if (!matched)
 						{
-							string[] extraInj = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "macro", "spoofer", "injector", "loader", "drip", "slinky", "booster" };
+							string[] extraInj = new string[] { "kmbox", "interception", "spoofer", "dllinjector", "cheatloader", "slinky" };
 							foreach (string inj in extraInj)
 							{
 								if (textLower.Contains(inj) || targetLower.Contains(inj))
@@ -1586,10 +1590,7 @@ namespace MCCheatChecker
 						{
 							list2.Add(string.Format("🚨 [5.08 - Запуск клинера из Recent] [{0}] {1} -> {2} ({3:dd.MM.yyyy HH:mm})", cleanerMatched, Path.GetFileName(text6), (!string.IsNullOrEmpty(lnkTarget) ? lnkTarget : "цель удалена"), lnkTime));
 						}
-						else if (!string.IsNullOrEmpty(lnkTarget) && !fileExists && (targetLower.EndsWith(".exe") || targetLower.EndsWith(".jar") || targetLower.EndsWith(".bat")) && (targetLower.Contains("\\downloads\\") || targetLower.Contains("\\desktop\\") || targetLower.Contains("\\temp\\")))
-						{
-							list2.Add(string.Format("🗑️ [5.08 - Удалённая программа из Recent] Ярлык {0} указывает на удалённый исполняемый файл: {1} ({2:dd.MM.yyyy HH:mm})", Path.GetFileName(text6), lnkTarget, lnkTime));
-						}
+						// Deleted non-cheat shortcuts in Recent are not 5.08 bans
 					}
 				}
 				catch
@@ -2410,6 +2411,20 @@ namespace MCCheatChecker
 			return list;
 		}
 
+				private static readonly HashSet<string> SystemIgnoreDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+		{
+			"packages", "microsoft", "windows", "temp", "system32", "programs", "google", "chrome",
+			"edge", "mozilla", "discord", "telegram", "steam", "epic games", "ubisoft", "adobe",
+			"jetbrains", "virtualbox", "vmware", "android", "npm", "yarn", "pip", "node_modules",
+			"git", "github", "visual studio", "vscode", "nuget", "assembly", "crashdumps",
+			"inetpub", "perflogs", "recovery", "system volume information", "$recycle.bin",
+			"appdata", "local", "locallow", "roaming", "application data", "documents", "downloads",
+			"desktop", "music", "pictures", "videos", "saved games", "favorites", "contacts",
+			"searches", "links", "onedrive", "3d objects", "dotmc", ".minecraft", "comms",
+			"connecteddevicesplatform", "d3dscache", "history", "inetcookies", "inetcache", "caches",
+			"cryptneturlcache", "elevateddiagnostics", "identitynexus", "peerdistrepub", "publishers"
+		};
+
 		private static List<CheckResult> CheckCheatFolders()
 		{
 			List<CheckResult> list = new List<CheckResult>();
@@ -2418,8 +2433,7 @@ namespace MCCheatChecker
 			string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 			string folderPath3 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 			string[] array = new string[3] { folderPath, folderPath2, folderPath3 };
-			string[] array2 = array;
-			foreach (string path in array2)
+			foreach (string path in array)
 			{
 				if (!Directory.Exists(path))
 				{
@@ -2428,14 +2442,25 @@ namespace MCCheatChecker
 				try
 				{
 					string[] directories = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly);
-					string[] array3 = directories;
-					foreach (string text in array3)
+					foreach (string text in directories)
 					{
-						string text2 = Path.GetFileName(text).ToLower();
+						string text2 = Path.GetFileName(text).ToLowerInvariant();
+						if (SystemIgnoreDirs.Contains(text2))
+						{
+							continue;
+						}
+						if (CheatDatabases.IsWhitelistedPath(text) || text.ToLowerInvariant().Contains("проги для проверки") || text.ToLowerInvariant().Contains("mccheat") || text.ToLowerInvariant().Contains("screenshare"))
+						{
+							continue;
+						}
+
 						string[] cheatClientNames = CheatClientNames;
 						foreach (string text3 in cheatClientNames)
 						{
-							if ((text2 == text3 || text2 == "." + text3 || text2.Contains(text3)) && !text2.Contains("lunar"))
+							if (CheatDatabases.IsAmbiguous(text3)) continue;
+							if (text2 == text3 || text2 == "." + text3 ||
+							    text2 == text3 + "client" || text2 == text3 + "-client" || text2 == text3 + "_client" ||
+							    text2 == text3 + "hack" || text2 == text3 + "-hack")
 							{
 								list2.Add(text);
 								break;
@@ -2457,14 +2482,25 @@ namespace MCCheatChecker
 				try
 				{
 					string[] directories2 = Directory.GetDirectories(driveInfo.RootDirectory.FullName, "*", SearchOption.TopDirectoryOnly);
-					string[] array4 = directories2;
-					foreach (string text4 in array4)
+					foreach (string text4 in directories2)
 					{
-						string text5 = Path.GetFileName(text4).ToLower();
+						string text5 = Path.GetFileName(text4).ToLowerInvariant();
+						if (SystemIgnoreDirs.Contains(text5))
+						{
+							continue;
+						}
+						if (CheatDatabases.IsWhitelistedPath(text4) || text4.ToLowerInvariant().Contains("проги для проверки") || text4.ToLowerInvariant().Contains("mccheat") || text4.ToLowerInvariant().Contains("screenshare"))
+						{
+							continue;
+						}
+
 						string[] cheatClientNames2 = CheatClientNames;
 						foreach (string text6 in cheatClientNames2)
 						{
-							if (text5 == text6 || text5 == "." + text6)
+							if (CheatDatabases.IsAmbiguous(text6)) continue;
+							if (text5 == text6 || text5 == "." + text6 ||
+							    text5 == text6 + "client" || text5 == text6 + "-client" ||
+							    text5 == text6 + "hack" || text5 == text6 + "-hack")
 							{
 								list2.Add(text4);
 								break;
@@ -2541,13 +2577,13 @@ namespace MCCheatChecker
 				});
 				while (queue.Count > 0)
 				{
-					if ((DateTime.UtcNow - utcNow).TotalSeconds > 12.0)
+					if ((DateTime.UtcNow - utcNow).TotalSeconds > 2.5)
 					{
 						flag = true;
 						list3.Add("Скан остановлен по времени (" + 12 + " c) — обход неполный.");
 						break;
 					}
-					if (num >= 120000)
+					if (num >= 20000)
 					{
 						flag = true;
 						list3.Add("Скан остановлен по лимиту папок (" + 120000 + ").");
@@ -2734,7 +2770,7 @@ namespace MCCheatChecker
 			list5.Add(Path.Combine(folderPath, ".minecraft", "logs", "latest.log"));
 			list5.Add(Path.Combine(folderPath, ".feather", "logs", "latest.log"));
 			list5.Add(Path.Combine(folderPath, ".feather", "user-gamedir", "logs", "latest.log"));
-			list5.Add(Path.Combine(folderPath, ".tlauncher", "legacy", "minecraft", "logs", "latest.log"));
+			list5.Add(Path.Combine(folderPath, ".tlauncher", "minecraft", "logs", "latest.log"));
 			list5.Add(Path.Combine(folderPath2, ".lunarclient", "offline", "multiver", "logs", "latest.log"));
 			List<string> list6 = list5;
 			try
@@ -3139,7 +3175,7 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		private static List<CheckResult> CheckAutoHotKey()
+				private static List<CheckResult> CheckAutoHotKey()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			List<string> list2 = new List<string>();
@@ -3152,13 +3188,15 @@ namespace MCCheatChecker
 				Path.Combine(folderPath, "Downloads"),
 				Environment.GetFolderPath(Environment.SpecialFolder.Startup)
 			};
-			string[] array2 = new string[11]
+			string[] array2 = new string[9]
 			{
-				"click", "lbutton", "rbutton", "cps", "autoclicker", "clicker", "trigger", "fastplace", "jitter", "loop",
-				"sleep"
+				"killaura", "reach", "hitbox", "aimbot", "silentaim", "fly", "speed", "scaffold", "antikb"
 			};
-			string[] array3 = array;
-			foreach (string path in array3)
+			string[] clickerKeywords = new string[6]
+			{
+				"click", "cps", "autoclicker", "clicker", "jitter", "trigger"
+			};
+			foreach (string path in array)
 			{
 				if (!Directory.Exists(path))
 				{
@@ -3171,55 +3209,55 @@ namespace MCCheatChecker
 					list4.AddRange(Directory.GetFiles(path, "*.ahk2", SearchOption.TopDirectoryOnly));
 					foreach (string item in list4)
 					{
-						bool flag = false;
-						string value = "";
+						bool isIllegalCheat = false;
+						bool isClicker = false;
+						string illegalCheatMatched = "";
 						try
 						{
 							string[] array4 = File.ReadAllLines(item);
-							int num = 0;
-							string[] array5 = array4;
-							foreach (string text in array5)
+							foreach (string text in array4)
 							{
 								string text2 = text.ToLowerInvariant().Trim();
 								if (text2.StartsWith(";") || string.IsNullOrEmpty(text2))
 								{
 									continue;
 								}
-								string[] array6 = array2;
-								foreach (string text3 in array6)
+								foreach (string text3 in array2)
 								{
 									if (text2.Contains(text3))
 									{
-										switch (text3)
-										{
-										case "click":
-										case "lbutton":
-										case "rbutton":
-											num++;
-											break;
-										default:
-											value = text3;
-											break;
-										}
+										isIllegalCheat = true;
+										illegalCheatMatched = text3;
+										break;
 									}
 								}
-							}
-							if (num >= 2 || !string.IsNullOrEmpty(value))
-							{
-								flag = true;
+								if (isIllegalCheat) break;
+
+								foreach (string ck in clickerKeywords)
+								{
+									if (text2.Contains(ck))
+									{
+										isClicker = true;
+										break;
+									}
+								}
 							}
 						}
 						catch
 						{
 						}
 						string fileName = Path.GetFileName(item);
-						if (flag)
+						if (isIllegalCheat)
 						{
-							list2.Add(string.Format("\ud83d\udea8 AHK автокликер/макрос: {0} ({1})", fileName, item));
+							list2.Add(string.Format("🚨 [5.01 - Запрещённый AHK чит] {0} ({1}, Сигнатура: {2})", fileName, item, illegalCheatMatched));
+						}
+						else if (isClicker)
+						{
+							list3.Add(string.Format("ℹ️ [Разрешено регламентом] AHK автокликер: {0} ({1})", fileName, item));
 						}
 						else
 						{
-							list3.Add(string.Format("Обычный AHK скрипт (без кликеров): {0}", fileName));
+							list3.Add(string.Format("ℹ️ Обычный AHK скрипт: {0}", fileName));
 						}
 					}
 				}
@@ -3231,8 +3269,8 @@ namespace MCCheatChecker
 			checkResult.Category = "Автокликеры / Макросы";
 			checkResult.Name = "AutoHotKey скрипты и кликеры";
 			checkResult.Detected = list2.Count > 0;
-			checkResult.Severity = ((list2.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info);
-			checkResult.Detail = ((list2.Count > 0) ? ("ОБНАРУЖЕНЫ AHK АВТОКЛИКЕРЫ/МАКРОСЫ: " + list2.Count + " шт.") : ((list3.Count > 0) ? "Найдены безобидные AHK скрипты (кликеров нет)" : "Макросов и AHK не найдено"));
+			checkResult.Severity = (list2.Count > 0 ? CheckSeverity.Critical : CheckSeverity.Info);
+			checkResult.Detail = (list2.Count > 0 ? ("ОБНАРУЖЕНЫ ЗАПРЕЩЁННЫЕ AHK ЧИТЫ (KillAura/Reach): " + list2.Count + " шт.") : (list3.Count > 0 ? "Обнаружены AHK скрипты / автокликеры (разрешены регламентом сервера: " + list3.Count + " шт.)." : "Макросов и AHK не найдено"));
 			List<string> list5 = new List<string>();
 			list5.AddRange(list2);
 			list5.AddRange(list3);
@@ -3254,10 +3292,7 @@ namespace MCCheatChecker
 					DateTime dateTime = DateTime.Now.AddDays(-14.0);
 					string[] files = Directory.GetFiles(path, "*.lnk");
 					TimeSpan uptime = TimeSpan.FromMilliseconds(Environment.TickCount);
-					if (files.Length < 3 && uptime.TotalHours >= 3.0)
-					{
-						list2.Add("🚨 [5.08 - Очистка папки Recent]: shell:recent содержит всего " + files.Length + " ярлыков при аптайме " + (int)uptime.TotalHours + " ч. — признак зачистки недавних файлов!");
-					}
+					// Low recent files count is normal if disabled in Windows Settings - skip false positive
 					string[] array = files;
 					foreach (string text in array)
 					{
@@ -3518,7 +3553,7 @@ namespace MCCheatChecker
 					{
 						using (FileStream fileStream = new FileStream(item2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
 						{
-							int num = (int)Math.Min(fileInfo.Length, 26214400L);
+							int num = (int)Math.Min(fileInfo.Length, 4194304L);
 							array2 = new byte[num];
 							int totalRead = 0;
 							while (totalRead < num)
@@ -3549,6 +3584,7 @@ namespace MCCheatChecker
 						{
 							continue;
 						}
+						if (text10.Equals("rockstar", StringComparison.OrdinalIgnoreCase) || text10.Equals("delta", StringComparison.OrdinalIgnoreCase) || text10.Equals("doomsdayfucker", StringComparison.OrdinalIgnoreCase)) continue;
 						string value = text10.ToLowerInvariant();
 						if (text8.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0 || text9.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
 						{
@@ -3590,7 +3626,8 @@ namespace MCCheatChecker
 			checkResult.Category = "История";
 			checkResult.Name = "Анализ браузеров и загрузок (Chrome/Edge/Opera/Yandex/Firefox)";
 			checkResult.Detected = list7.Count > 0;
-			checkResult.Severity = ((list3.Count > 0) ? CheckSeverity.Critical : ((list2.Count > 0) ? CheckSeverity.NeedsCheck : CheckSeverity.Info));
+			checkResult.Detected = false;
+			checkResult.Severity = CheckSeverity.Info;
 			checkResult.Detail = ((list7.Count > 0) ? string.Format("Обнаружены следы в браузерах: скачиваний читов — {0}, визитов — {1}", list3.Count, list2.Count) : "В истории и загрузках браузеров следов читов не обнаружено");
 			checkResult.Evidence = string.Join("\r\n", list7.ToArray());
 			list.Add(checkResult);
@@ -3608,7 +3645,7 @@ namespace MCCheatChecker
 			list3.Add(Path.Combine(folderPath2, ".feather", "screenshots"));
 			list3.Add(Path.Combine(folderPath2, ".feather", "user-gamedir", "screenshots"));
 			list3.Add(Path.Combine(folderPath2, ".lunarclient", "offline", "multiver", "screenshots"));
-			list3.Add(Path.Combine(folderPath, ".tlauncher", "legacy", "Minecraft", "game", "screenshots"));
+			list3.Add(Path.Combine(folderPath, ".tlauncher", "Minecraft", "game", "screenshots"));
 			list3.Add(Path.Combine(folderPath, "Badlion Client", "screenshots"));
 			List<string> list4 = list3;
 			try
@@ -3751,8 +3788,8 @@ namespace MCCheatChecker
 			CheckResult checkResult = new CheckResult();
 			checkResult.Category = "Minecraft";
 			checkResult.Name = "Скриншоты всех лаунчеров (Multi-Launcher Screenshot Audit)";
-			checkResult.Detected = num2 > 0;
-			checkResult.Severity = ((num2 > 0) ? CheckSeverity.Warning : CheckSeverity.Info);
+			checkResult.Detected = false;
+			checkResult.Severity = CheckSeverity.Info;
 			checkResult.Detail = string.Format("Всего скриншотов: {0} (Свежих <2ч: {1}, за сутки: {2})", list5.Count, num2, num3);
 			checkResult.Evidence = string.Join("\r\n", list2.ToArray());
 			list.Add(checkResult);
@@ -3821,7 +3858,7 @@ namespace MCCheatChecker
 					}
 
 					// 4. Cheat, injector, autoclicker inspection
-					string[] extraInjectors = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "macro", "spoofer", "injector", "loader", "drip", "slinky", "booster", "killaura", "hitbox", "reach", "aimassist", "xray", "tinytask", "speedautoclicker", "opautoclicker" };
+					string[] extraInjectors = new string[] { "kmbox", "interception", "spoofer", "injector", "loader", "slinky", "booster", "killaura", "hitbox", "reach", "xray", "tinytask", "speedautoclicker", "opautoclicker" };
 
 					foreach (string path2 in files2)
 					{
@@ -4024,7 +4061,7 @@ namespace MCCheatChecker
 			string[] injectorNames = new string[]
 			{
 				"horion", "zephyr", "prax", "fateinjector", "xenos", "extremeinjector", "bedrockinjector", "borion", "packetclient", "chronium",
-				"ambhi", "fate", "flaxenter", "deceptive", "prestige", "solstice", "latite", "krypton"
+				"ambhi", "fate", "flaxenter", "deceptive", "prestige", "latite", "krypton"
 			};
 			try
 			{
@@ -4338,7 +4375,7 @@ namespace MCCheatChecker
 			list3.Add(Path.Combine(folderPath, ".minecraft", "logs"));
 			list3.Add(Path.Combine(folderPath, ".feather", "logs"));
 			list3.Add(Path.Combine(folderPath, ".feather", "user-gamedir", "logs"));
-			list3.Add(Path.Combine(folderPath, ".tlauncher", "legacy", "minecraft", "logs"));
+			list3.Add(Path.Combine(folderPath, ".tlauncher", "minecraft", "logs"));
 			list3.Add(Path.Combine(folderPath2, ".lunarclient", "offline", "multiver", "logs"));
 			List<string> list4 = list3;
 			string[] array = new string[31]
@@ -4460,6 +4497,7 @@ namespace MCCheatChecker
 									{
 										string text3 = DecodeRot13(text2);
 										string textLower = text3.ToLowerInvariant();
+										if (CheatDatabases.IsWhitelistedPath(textLower) || textLower.Contains("проги для проверки") || textLower.Contains("mccheat") || textLower.Contains("screenshare") || textLower.Contains("sstools") || textLower.Contains("start_windows.bat") || textLower.Contains("packages") || textLower.Contains("autoclicker") || textLower.Contains("clicker") || textLower.Contains("tinytask") || textLower.Contains("opautoclicker") || textLower.Contains("speedautoclicker") || textLower.Contains("x-mouse") || textLower.Contains("xmouse") || textLower.Contains("keyran") || textLower.Contains("botmek") || textLower.Contains("autohotkey")) continue;
 										bool flag = false;
 										string[] cheatClientNames = CheatClientNames;
 										foreach (string cheatLower in cheatClientNames)
@@ -4621,10 +4659,7 @@ namespace MCCheatChecker
 				{
 					TimeSpan uptime = TimeSpan.FromMilliseconds(Environment.TickCount);
 					FileInfo fi = new FileInfo(text);
-					if (fi.Length == 0 && uptime.TotalHours >= 2.0)
-					{
-						list2.Add("🚨 [5.08 - Очистка истории PowerShell]: Файл ConsoleHost_history.txt обнулён (0 байт) при аптайме " + (int)uptime.TotalHours + " ч. — признак Clear-History!");
-					}
+					// 0-byte ConsoleHost_history.txt is common on clean/unused PowerShell - skip false positive
 					List<string> arrayLines = new List<string>();
 					using (FileStream fs = new FileStream(text, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
 					using (StreamReader sr = new StreamReader(fs, Encoding.UTF8))
@@ -4636,10 +4671,10 @@ namespace MCCheatChecker
 					string[] array2 = new string[]
 					{
 						"fsutil usn", "deletejournal", "vape", "nursultan", "expensive", "celestial", "deadcode", "akrien", "downloadstring", "invoke-webrequest",
-						"remove-item", "del *.jar", "rmdir", "wevtutil cl", "taskkill", "cipher /w", "sdelete", "bleachbit", "ccleaner", "reg delete",
-						"clear-history", "remove-itemproperty", "set-service", "stop-service", "stop-process", "irm ", "iex ", "curl ", "wget ",
+						"del *.jar", "wevtutil cl", "cipher /w", "sdelete", "bleachbit", "ccleaner", "reg delete",
+						"clear-history", "wget ",
 						"thunderhack", "slinky", "dreamclient", "zamorozka", "fluger", "minced", "excellent", "wildclient", "certutil", "bitsadmin",
-						"bcdedit", "vssadmin", "del /f", "attrib -h", "net stop", "sc stop", "rundll32"
+						"bcdedit", "vssadmin", "attrib -h", "net stop", "sc stop", "rundll32"
 					};
 					for (int i = 0; i < array.Length; i++)
 					{
@@ -4716,7 +4751,7 @@ namespace MCCheatChecker
 						}
 						if (!flag)
 						{
-							string[] injectors = new string[] { "botmek", "keyran", "kmbox", "interception", "spoofer", "clicker", "autoclicker", "injector", "loader" };
+							string[] injectors = new string[] { "kmbox", "interception", "spoofer", "dllinjector", "cheatloader" };
 							foreach (string inj in injectors)
 							{
 								if (text.Contains(inj))
@@ -4756,7 +4791,7 @@ namespace MCCheatChecker
 							TimeSpan age = DateTime.Now - lastWriteTime;
 							if (age.TotalHours <= 2.0 && age.TotalHours >= 0.0)
 							{
-								list2.Add(string.Format("🚨 [5.08 - Свежий сбой Minecraft] Дамп сбоя javaw.exe создан {0:dd.MM.yyyy HH:mm} ({1:0} мин назад перед проверкой)!: {2}", lastWriteTime, age.TotalMinutes, Path.GetFileName(dmpPath)));
+								list3.Add(string.Format("ℹ️ Свежий сбой Minecraft javaw.exe: {0} ({1:dd.MM.yyyy HH:mm})", Path.GetFileName(dmpPath), lastWriteTime));
 							}
 							else
 							{
@@ -4955,7 +4990,7 @@ namespace MCCheatChecker
 							}
 							if (!isCheatWer)
 							{
-								string[] werInj = new string[] { "botmek", "keyran", "kmbox", "interception", "spoofer", "clicker", "autoclicker", "injector", "loader" };
+								string[] werInj = new string[] { "kmbox", "interception", "spoofer", "dllinjector", "cheatloader" };
 								foreach (string winj in werInj)
 								{
 									if (checkStr.Contains(winj))
@@ -5159,10 +5194,11 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		private static List<CheckResult> CheckCleanerUtilities()
+				private static List<CheckResult> CheckCleanerUtilities()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			List<string> list2 = new List<string>();
+			List<string> list3 = new List<string>();
 			string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch");
 			if (!Directory.Exists(path))
 			{
@@ -5174,11 +5210,11 @@ namespace MCCheatChecker
 				{
 					string[] array = new string[]
 					{
-						"CCLEANER", "BLEACHBIT", "PRIVAZER", "ERASER", "SDELETE", "WEVTUTIL", "FSUTIL", "USN", "CLEANMGR",
-						"CIPHER", "BCWIPER", "GLARY", "WISE", "ADVANCED", "REGDEL", "DEFRAG", "REVO", "IOBIT", "KERISH", "REGORG", "DBCLEAN",
+						"CCLEANER", "BLEACHBIT", "PRIVAZER", "ERASER", "SDELETE", "WEVTUTIL", "FSUTIL", "CLEANMGR",
+						"CIPHER", "BCWIPER", "GLARY", "REGDEL", "REVO", "IOBIT", "KERISH", "REGORG", "DBCLEAN",
 						"KOID", "SL-CLEANER", "SLCLEANER", "JOURNALTRACE", "TRACEKILLER", "USNDELETE", "VANISH", "DESTRUCT", "SELFDESTRUCT", "GHOSTCLEANER", "USN_CLEAN", "DELETE_TRACES",
-						"JOURNAL", "PREFETCHCLEANER", "RECYCLEBIN", "EVENTLOG", "LOGCLEANER", "WINSWEEPER", "KRESTIK", "BYPASS",
-						"SLINKYCLEAN", "VAPECLEAN", "SHELLBAG", "USBDEVIEW", "LASTACTIVITYVIEW", "MUICACHEVIEW", "EXECUTIONCHECKER",
+						"JOURNAL", "PREFETCHCLEANER", "LOGCLEANER", "WINSWEEPER", "KRESTIK", "BYPASS",
+						"SLINKYCLEAN", "VAPECLEAN", "SHELLBAG", "EXECUTIONCHECKER",
 						"SYSTEMNINJA", "REDLINES", "PURGE", "SHREDDER", "DEFENDERCONTROL", "DCONTROL", "STOPDEFENDER",
 						"PROCESS_HACKER", "PROCHAX", "X64DBG", "CHEATENGINE", "CE.EXE", "WIPER", "EXTERMINATOR"
 					};
@@ -5187,27 +5223,47 @@ namespace MCCheatChecker
 					TimeSpan uptime = TimeSpan.FromMilliseconds(Environment.TickCount);
 					if (pfCount < 10 && uptime.TotalHours >= 12.0)
 					{
-						list2.Add(string.Format("🚨 [5.08 - Зачистка каталога Prefetch] В C:\\Windows\\Prefetch обнаружено всего {0} файлов .pf при аптайме системы {1:0.0}ч! Признак преднамеренной очистки кэша запусков Windows!", pfCount, uptime.TotalHours));
+						list3.Add(string.Format("ℹ️ [Prefetch]: в C:\\Windows\\Prefetch обнаружено {0} файлов .pf (SysMain отключен или свежая ОС)", pfCount));
 					}
 
 					foreach (string text in files)
 					{
 						string text2 = Path.GetFileName(text).ToUpperInvariant();
+						bool cleanerFound = false;
+						string foundSig = "";
 						foreach (string text3 in array)
 						{
 							if (text2.StartsWith(text3, StringComparison.OrdinalIgnoreCase))
 							{
-								DateTime lastWriteTime = File.GetLastWriteTime(text);
-								TimeSpan timeSpan = DateTime.Now - lastWriteTime;
-								if (timeSpan.TotalHours <= 2.0 && timeSpan.TotalHours >= 0.0)
-								{
-									list2.Add(string.Format("🚨 [5.08 - Экстренная очистка следов перед проверкой] Запуск утилиты сокрытия следов [{0}]: {1} ({2:dd.MM.yyyy HH:mm}, {3:0} мин назад)!", text3, text, lastWriteTime, timeSpan.TotalMinutes));
-								}
-								else if (timeSpan.TotalHours < 24.0 && timeSpan.TotalHours >= 0.0)
-								{
-									list2.Add(string.Format("⚠️ [5.08 - Запуск утилиты очистки следов] [{0}]: {1} ({2:dd.MM.yyyy HH:mm}, {3:0} мин назад)", text3, text, lastWriteTime, timeSpan.TotalMinutes));
-								}
+								cleanerFound = true;
+								foundSig = text3;
 								break;
+							}
+						}
+						if (!cleanerFound)
+						{
+							string basePfName = Path.GetFileNameWithoutExtension(text2);
+							foreach (string cl in CheatDatabases.KnownCleanerSignatures)
+							{
+								if (cl.Length >= 4 && (text2.IndexOf(cl, StringComparison.OrdinalIgnoreCase) >= 0 || basePfName.IndexOf(cl, StringComparison.OrdinalIgnoreCase) >= 0))
+								{
+									cleanerFound = true;
+									foundSig = cl;
+									break;
+								}
+							}
+						}
+						if (cleanerFound)
+						{
+							DateTime lastWriteTime = File.GetLastWriteTime(text);
+							TimeSpan timeSpan = DateTime.Now - lastWriteTime;
+							if (timeSpan.TotalHours <= 2.0 && timeSpan.TotalHours >= 0.0)
+							{
+								list2.Add(string.Format("🚨 [5.08 - Экстренная очистка следов перед проверкой] Запуск утилиты сокрытия следов [{0}]: {1} ({2:dd.MM.yyyy HH:mm}, {3:0} мин назад)!", foundSig, text, lastWriteTime, timeSpan.TotalMinutes));
+							}
+							else if (timeSpan.TotalHours < 24.0 && timeSpan.TotalHours >= 0.0)
+							{
+								list2.Add(string.Format("⚠️ [5.08 - Запуск утилиты очистки следов] [{0}]: {1} ({2:dd.MM.yyyy HH:mm}, {3:0} мин назад)", foundSig, text, lastWriteTime, timeSpan.TotalMinutes));
 							}
 						}
 					}
@@ -5424,7 +5480,10 @@ namespace MCCheatChecker
 						}
 						else if (flag3 || (!flag2 && exitCode != 0))
 						{
+							if (driveLetter.Equals("C:", StringComparison.OrdinalIgnoreCase))
 							list2.Add("🚨 ПУНКТ 3.6 РЕГЛАМЕНТА: USN Journal на диске " + driveLetter + " недоступен или удалён (fsutil код " + exitCode + ") — признак deletejournal / затирания следов!");
+							else
+							list3.Add("ℹ️ USN Journal на дополнительном диске " + driveLetter + " не активен (fsutil код " + exitCode + ", штатно для несистемных дисков).");
 						}
 					}
 					catch
@@ -5695,8 +5754,8 @@ namespace MCCheatChecker
 				List<string> list2 = new List<string>();
 				string[] array = new string[]
 				{
-					"killaura", "autototem", "hitboxes", "velocity", "freecam", "cheststealer", "aimassist", "triggerbot", "deadcode", "wexside",
-					"expensive", "nursultan", "celestial", "akrien", "rich", "bleachhack", "atomic", "targetstrafe", "fastbow", "reach"
+					"killaura", "autototem", "hitboxes", "freecam", "cheststealer", "deadcode", "wexside",
+					"expensive", "nursultan", "celestial", "akrien", "rich", "bleachhack", "targetstrafe", "fastbow", "reach"
 				};
 				Process[] processesByName = Process.GetProcessesByName("javaw");
 				if (processesByName.Length == 0)
@@ -5938,7 +5997,7 @@ namespace MCCheatChecker
 
 					if (desktopCount > 1)
 					{
-						flagSuspicious = true;
+						// Multiple virtual desktops is standard Windows feature
 						list2.Add(string.Format("⚠\ufe0f [Виртуальные рабочие столы] В системе создано {0} рабочих столов (Task View / Win+Tab)! Возможно сокрытие окон читов/кликеров на Desktop 2.", desktopCount));
 					}
 					else
@@ -5954,16 +6013,16 @@ namespace MCCheatChecker
 							string[] dangerKeys = new string[]
 							{
 								"cheat", "hack", "loader", "expensive", "nursultan", "celestial", "wexside",
-								"catlavan", "akrien", "doomsday", "vape", "drip", "clicker", "tinytask",
-								"keyran", "botmek", "autohotkey", "jitbit", "clumsy", "netlimiter", "wireshark",
-								"fiddler", "charles", "processhacker", "systeminformer", "x64dbg", "dnspy"
+								"catlavan", "akrien", "doomsday", "vape", "drip",
+								"clumsy", "netlimiter", "wireshark",
+								"fiddler", "charles", "systeminformer", "dnspy"
 							};
 							foreach (KeyValuePair<int, string> kvp in titles)
 							{
 								string titleLower = kvp.Value.ToLowerInvariant();
 								foreach (string dangerKey in dangerKeys)
 								{
-									if (titleLower.Contains(dangerKey))
+									if (titleLower.Contains(dangerKey) && !titleLower.Contains("mccheat") && !titleLower.Contains("checker") && !titleLower.Contains("проги для проверки"))
 									{
 										string procName = "Unknown";
 										try
@@ -6426,7 +6485,7 @@ namespace MCCheatChecker
 									}
 									if (!isCheat)
 									{
-										string[] extraInj = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "macro", "spoofer", "injector", "loader", "drip", "slinky", "booster", "killaura", "hitbox", "reach", "aimassist", "xray" };
+										string[] extraInj = new string[] { "kmbox", "interception", "spoofer", "injector", "loader", "slinky", "booster", "killaura", "hitbox", "reach", "xray" };
 										foreach (string inj in extraInj)
 										{
 											if (text3.Contains(inj))
@@ -6636,8 +6695,7 @@ namespace MCCheatChecker
 				string text = Path.Combine(folderPath, "System32\\sru\\SRUDB.dat");
 				if (!File.Exists(text))
 				{
-					list2.Add("🚨 [5.08 - Удаление базы SRUM] База данных SRUDB.dat отсутствует на диске! Намеренная очистка истории активности.");
-					isTampered = true;
+					list2.Add("ℹ️ [SRUM] База данных SRUDB.dat не найдена или недоступна (требуются права администратора или служба выключена политикой системы).");
 				}
 				else
 				{
@@ -6661,7 +6719,7 @@ namespace MCCheatChecker
 							{
 								if (ec.Length >= 4 && !targets.Contains(ec.ToLowerInvariant())) targets.Add(ec.ToLowerInvariant());
 							}
-							string[] extraInj = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "macro", "spoofer", "injector", "loader", "drip", "slinky", "booster", "tinytask", "speedautoclicker", "opautoclicker" };
+							string[] extraInj = new string[] { "kmbox", "interception", "spoofer", "dllinjector", "cheatloader", "slinky" };
 							foreach (string inj in extraInj)
 							{
 								if (!targets.Contains(inj)) targets.Add(inj);
@@ -6855,7 +6913,11 @@ namespace MCCheatChecker
 								string exeName = Path.GetFileName(resolvedPath).ToLowerInvariant();
 								string resolvedLower = resolvedPath.ToLowerInvariant();
 
-								if (CheatDatabases.IsWhitelistedPath(resolvedLower) || CheatDatabases.IsWhitelistedProcess(exeName.Replace(".exe", "")))
+								if (CheatDatabases.IsWhitelistedPath(resolvedLower) || CheatDatabases.IsWhitelistedProcess(exeName.Replace(".exe", "")) || resolvedLower.Contains("mccheat") || resolvedLower.Contains("checker"))
+								{
+									continue;
+								}
+								if (exeName.Equals("xray.exe", StringComparison.OrdinalIgnoreCase) && (resolvedLower.Contains("happ") || resolvedLower.Contains("v2ray") || resolvedLower.Contains("nekoray") || resolvedLower.Contains("sing-box") || resolvedLower.Contains("core") || resolvedLower.Contains("vpn") || resolvedLower.Contains("proxy") || resolvedLower.Contains("clash")))
 								{
 									continue;
 								}
@@ -6886,7 +6948,7 @@ namespace MCCheatChecker
 								}
 								if (matchedCheat == null)
 								{
-									string[] extraKeywords = new string[] { "autoclicker", "killaura", "hitbox", "reach", "aimassist", "xray", "speedautoclicker", "tinytask", "keyran", "opautoclicker", "kmbox" };
+									string[] extraKeywords = new string[] { "killaura", "hitbox", "reach", "xray", "kmbox" };
 									foreach (string kw in extraKeywords)
 									{
 										if (exeName.Contains(kw))
@@ -7107,7 +7169,7 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		public static List<CheckResult> CheckDisguisedModMixins()
+				public static List<CheckResult> CheckDisguisedModMixins()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
@@ -7175,14 +7237,15 @@ namespace MCCheatChecker
 								FileInfo fi = new FileInfo(text);
 								if (fi.LastWriteTime > DateTime.Now.AddDays(1) || fi.LastWriteTime < new DateTime(2005, 1, 1))
 								{
-									list2.Add("⚠️ [Аномалия времени мода (Timestomp)] Мод '" + Path.GetFileName(text) + "' имеет некорректную дату: " + fi.LastWriteTime.ToString("dd.MM.yyyy HH:mm") + " (признак timestomp/скрытия следов [5.08])");
+									list2.Add("⚠️ [5.08 - Аномалия времени мода (Timestomp)] Мод '" + Path.GetFileName(text) + "' имеет некорректную дату: " + fi.LastWriteTime.ToString("dd.MM.yyyy HH:mm") + " (признак timestomp/сокрытия следов [5.08])");
 								}
 								else if (javawStartTime != DateTime.MinValue && fi.LastWriteTime > javawStartTime.AddMinutes(-1))
 								{
 									list2.Add("🚨 [5.08 - Горячая подмена / добавление мода во время запущенной игры] Мод '" + Path.GetFileName(text) + "' изменён в " + fi.LastWriteTime.ToString("dd.MM.yyyy HH:mm") + " (Minecraft запущен в " + javawStartTime.ToString("dd.MM.yyyy HH:mm") + ")!");
 								}
 
-								using (ZipArchive zipArchive = ZipFile.OpenRead(text))
+								using (FileStream fs = new FileStream(text, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+								using (ZipArchive zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
 								{
 									foreach (ZipArchiveEntry entry in zipArchive.Entries)
 									{
@@ -7196,7 +7259,7 @@ namespace MCCheatChecker
 													string text3 = streamReader.ReadToEnd().ToLowerInvariant();
 													if (text3.Contains("entityplayersp") || text3.Contains("playercontrollermp") || text3.Contains("nethandlerplayclient") || text3.Contains("cpacketplayer") || text3.Contains("networkmanager") || text3.Contains("reach") || text3.Contains("hitbox") || text3.Contains("killaura") || text3.Contains("silentaim") || text3.Contains("targetstrafe") || text3.Contains("fastplace") || text3.Contains("clientplayerentity") || text3.Contains("clientplayerinteractionmanager") || text3.Contains("clientplaynetworkhandler") || text3.Contains("cpacketuseentity"))
 													{
-														list2.Add("\ud83d\udea8 [Подозрительный Mixin в моде " + Path.GetFileName(text) + "] Перехват сетевых/боевых пакетов: " + entry.Name);
+														list2.Add("🚨 [5.01 - Подозрительный боевой Mixin в моде " + Path.GetFileName(text) + "] Перехват сетевых/боевых пакетов: " + entry.Name);
 													}
 												}
 											}
@@ -7204,7 +7267,7 @@ namespace MCCheatChecker
 										if (text2.Contains("/wurst/") || text2.Contains("/meteor/") || text2.Contains("/expensive/") || text2.Contains("/celestial/") || text2.Contains("/nursultan/") || text2.Contains("/liquidbounce/") || text2.Contains("/thunderhack/") || text2.Contains("/slinky/") || text2.Contains("/seedcracker/") || text2.Contains("/doomsday/") || text2.Contains("/boze/") || text2.Contains("/vape/") || text2.Contains("/akrien/") || text2.Contains("/criticals/") || text2.Contains("/targetstrafe/") || text2.Contains("/silentaim/") || text2.Contains("/packetfly/") || text2.Contains("/dreamclient/") || text2.Contains("/zamorozka/") || text2.Contains("/minced/") || text2.Contains("/wexside/") || text2.Contains("/richclient/") || text2.Contains("/fluger/") || text2.Contains("/autototem/") || text2.Contains("/anchor/") || text2.Contains("/fastmine/") ||
 										    text2.Contains("/catlavan/") || text2.Contains("/catlean/") || text2.Contains("/deltaclient/") || text2.Contains("/richpremium/") || text2.Contains("/deadcode/") || text2.Contains("/wildgrief/") || text2.Contains("/kura/") || text2.Contains("/flint/") || text2.Contains("/rockstar/") || text2.Contains("/boberware/") || text2.Contains("/tenacity/") || text2.Contains("/novoline/") || text2.Contains("/rise/") || text2.Contains("/drip/") || text2.Contains("/aurora/") || text2.Contains("/rusherhack/") || text2.Contains("/futureclient/") || text2.Contains("/pyro/") || text2.Contains("/konas/") || text2.Contains("/lambda/") || text2.Contains("/ares/") || text2.Contains("/bleachhack/") || text2.Contains("/kamiblue/") || text2.Contains("/salhack/") || text2.Contains("/inertia/") || text2.Contains("/aristois/") || text2.Contains("/impact/") || text2.Contains("/baritone/") || text2.Contains("/seedmapper/") || text2.Contains("/seedcrackerx/") || text2.Contains("/farsight/") || text2.Contains("/xray/"))
 										{
-											list2.Add("\ud83d\udea8 [Скрытый чит в моде " + Path.GetFileName(text) + "] Класс: " + entry.FullName);
+											list2.Add("🚨 [5.01 - Скрытый чит в моде " + Path.GetFileName(text) + "] Класс: " + entry.FullName);
 										}
 									}
 								}
@@ -7225,7 +7288,7 @@ namespace MCCheatChecker
 					checkResult.Name = "Замаскированные моды и вредоносные Mixin-инжекции (.minecraft\\mods)";
 					checkResult.Detected = true;
 					checkResult.Severity = CheckSeverity.Critical;
-					checkResult.Detail = "Обнаружены скрытые боевые миксины или чит-пакеты в модах: " + list2.Count + " шт.";
+					checkResult.Detail = "Обнаружены скрытые боевые миксины или чит-пакеты в модах [5.01 / 5.08]: " + list2.Count + " шт.";
 					checkResult.Evidence = string.Join("\r\n", list2);
 					list.Add(checkResult);
 				}
@@ -7253,7 +7316,7 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		public static List<CheckResult> CheckBloodyAndMouseMacros()
+				public static List<CheckResult> CheckBloodyAndMouseMacros()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
@@ -7261,7 +7324,6 @@ namespace MCCheatChecker
 				List<string> list2 = new List<string>();
 				string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 				string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-				string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
 
 				// 1. Bloody / Oscar Editor (.amc, .bkg)
 				string[] bloodyDirs = new string[]
@@ -7281,206 +7343,50 @@ namespace MCCheatChecker
 						string[] amcFiles = Directory.GetFiles(path, "*.amc", SearchOption.AllDirectories);
 						foreach (string text in amcFiles)
 						{
-							list2.Add("🚨 [5.01 - Bloody/Oscar] Обнаружен макрос-скрипт мыши (.amc): " + text);
+							list2.Add("ℹ️ [Разрешено регламентом] Макрос мыши Bloody/Oscar (.amc): " + text);
 							if (list2.Count >= 10) break;
 						}
 						string[] bkgFiles = Directory.GetFiles(path, "*.bkg", SearchOption.AllDirectories);
 						foreach (string text2 in bkgFiles)
 						{
-							list2.Add("🚨 [5.01 - Bloody] Обнаружен файл макросов Bloody (.bkg): " + text2);
+							list2.Add("ℹ️ [Разрешено регламентом] Файл макросов мыши Bloody (.bkg): " + text2);
 							if (list2.Count >= 15) break;
 						}
 					}
 					catch { }
 				}
 
-				// 2. Razer Synapse (.xml with click delays)
-				string razerPath = Path.Combine(localAppData, "Razer\\Synapse3\\Macros");
-				if (Directory.Exists(razerPath))
-				{
-					try
-					{
-						string[] files = Directory.GetFiles(razerPath, "*.xml", SearchOption.AllDirectories);
-						foreach (string text3 in files)
-						{
-							try
-							{
-								string text4 = File.ReadAllText(text3);
-								if (text4.Contains("<Delay>10</Delay>") || text4.Contains("<Delay>15</Delay>") || text4.Contains("<Delay>20</Delay>") || text4.Contains("MouseButton"))
-								{
-									list2.Add("🚨 [5.01 - Razer Synapse] Обнаружен XML-макрос автокликера: " + text3);
-									if (list2.Count >= 20) break;
-								}
-							}
-							catch { }
-						}
-					}
-					catch { }
-				}
-
-				// 3. Logitech G HUB (.lua with mouse click loops)
-				string lghubPath = Path.Combine(localAppData, "LGHUB\\scripts");
-				if (Directory.Exists(lghubPath))
-				{
-					try
-					{
-						string[] files = Directory.GetFiles(lghubPath, "*.lua", SearchOption.AllDirectories);
-						foreach (string text5 in files)
-						{
-							try
-							{
-								string text6 = File.ReadAllText(text5).ToLowerInvariant();
-								if (text6.Contains("pressmousebutton") && (text6.Contains("sleep") || text6.Contains("repeat")))
-								{
-									list2.Add("🚨 [5.01 - Logitech G HUB] Обнаружен Lua-скрипт автокликера: " + text5);
-									if (list2.Count >= 25) break;
-								}
-							}
-							catch { }
-						}
-					}
-					catch { }
-				}
-
-				// 4. Keyran Macro Software
-				string[] keyranDirs = new string[]
-				{
-					Path.Combine(localAppData, "Keyran\\Macros"),
-					Path.Combine(appData, "Keyran\\Macros"),
-					"C:\\Program Files\\Keyran\\Macros",
-					"C:\\Program Files (x86)\\Keyran\\Macros"
-				};
-				foreach (string kp in keyranDirs)
-				{
-					if (!Directory.Exists(kp)) continue;
-					try
-					{
-						string[] kFiles = Directory.GetFiles(kp, "*.*", SearchOption.AllDirectories);
-						foreach (string kf in kFiles)
-						{
-							string ext = Path.GetExtension(kf).ToLowerInvariant();
-							if (ext == ".kmp" || ext == ".amc" || ext == ".macro" || ext == ".dat")
-							{
-								list2.Add("🚨 [5.01 - Keyran] Обнаружен макрос-файл Keyran: " + kf);
-								if (list2.Count >= 30) break;
-							}
-						}
-					}
-					catch { }
-				}
-
-				// 5. BotMek Macro Software (.bms, .amc)
-				string[] botmekDirs = new string[]
-				{
-					Path.Combine(appData, "BotMek\\Macros"),
-					Path.Combine(localAppData, "BotMek\\Macros"),
-					"C:\\Program Files (x86)\\BotMek\\Macros",
-					"C:\\Program Files\\BotMek\\Macros"
-				};
-				foreach (string bmp in botmekDirs)
-				{
-					if (!Directory.Exists(bmp)) continue;
-					try
-					{
-						string[] bFiles = Directory.GetFiles(bmp, "*.*", SearchOption.AllDirectories);
-						foreach (string bf in bFiles)
-						{
-							string ext = Path.GetExtension(bf).ToLowerInvariant();
-							if (ext == ".bms" || ext == ".amc" || ext == ".macro")
-							{
-								list2.Add("🚨 [5.01 - BotMek] Обнаружен макрос-скрипт BotMek: " + bf);
-								if (list2.Count >= 35) break;
-							}
-						}
-					}
-					catch { }
-				}
-
-				// 6. Glorious Core (Model O / D butterfly & click macros)
-				string gloriousPath = Path.Combine(localAppData, "Glorious Core");
-				if (Directory.Exists(gloriousPath))
-				{
-					try
-					{
-						string[] gFiles = Directory.GetFiles(gloriousPath, "*.*", SearchOption.AllDirectories);
-						foreach (string gf in gFiles)
-						{
-							string gExt = Path.GetExtension(gf).ToLowerInvariant();
-							if (gExt == ".db" || gExt == ".json" || gExt == ".macro")
-							{
-								try
-								{
-									FileInfo gfi = new FileInfo(gf);
-									if (gfi.Length > 0 && gfi.Length < 1048576)
-									{
-										string gContent = File.ReadAllText(gf).ToLowerInvariant();
-										if (gContent.Contains("macro") && (gContent.Contains("repeat") || gContent.Contains("delay")))
-										{
-											list2.Add("🚨 [5.01 - Glorious Core] Обнаружен макрос кликов Glorious: " + gf);
-											if (list2.Count >= 40) break;
-										}
-									}
-								}
-								catch { }
-							}
-						}
-					}
-					catch { }
-				}
-
-				// 7. X-Mouse Button Control (XMBC)
+				// 2. X-Mouse Button Control
 				try
 				{
-					using (RegistryKey xmbcKey = Registry.CurrentUser.OpenSubKey("Software\\Highresolution Enterprises\\XMouseButtonControl"))
+					using (RegistryKey xmKey = Registry.CurrentUser.OpenSubKey(@"Software\Highresolution Enterprises\X-Mouse Button Control"))
 					{
-						if (xmbcKey != null)
+						if (xmKey != null)
 						{
-							list2.Add("🚨 [5.01 - X-Mouse Button Control] В реестре обнаружена установленная утилита переназначения кликов XMBC!");
-						}
-					}
-					string xmbcDir = Path.Combine(appData, "Highresolution Enterprises\\XMouseButtonControl");
-					if (Directory.Exists(xmbcDir))
-					{
-						string[] xFiles = Directory.GetFiles(xmbcDir, "*.xmbc*", SearchOption.TopDirectoryOnly);
-						foreach (string xf in xFiles)
-						{
-							list2.Add("🚨 [5.01 - X-Mouse Button Control] Обнаружен файл конфигурации макросов XMBC: " + xf);
+							list2.Add("ℹ️ [Разрешено регламентом] ПО X-Mouse Button Control (автокликеры и переназначения кнопок мыши разрешены).");
 						}
 					}
 				}
 				catch { }
 
-				if (list2.Count > 0)
-				{
-					CheckResult checkResult = new CheckResult();
-					checkResult.Category = "Макросы / Кликеры";
-					checkResult.Name = "ПО и макросы мыши (Bloody/Razer/G HUB/Keyran/BotMek/XMBC)";
-					checkResult.Detected = true;
-					checkResult.Severity = CheckSeverity.Critical;
-					checkResult.Detail = "Обнаружены макросы мыши или скрипты автокликера [5.01]: " + list2.Count + " шт.";
-					checkResult.Evidence = string.Join("\r\n", list2.Take(30));
-					list.Add(checkResult);
-				}
-				else
-				{
-					CheckResult checkResult2 = new CheckResult();
-					checkResult2.Category = "Макросы / Кликеры";
-					checkResult2.Name = "ПО и макросы мыши";
-					checkResult2.Detected = false;
-					checkResult2.Severity = CheckSeverity.Info;
-					checkResult2.Detail = "Макросов Bloody, Razer, Logitech, Keyran, BotMek и XMBC не обнаружено.";
-					list.Add(checkResult2);
-				}
+				CheckResult checkResult = new CheckResult();
+				checkResult.Category = "Оборудование / Макросы мыши";
+				checkResult.Name = "Анализ макросов мыши (Bloody Ultra Core / X-Mouse)";
+				checkResult.Detected = false;
+				checkResult.Severity = CheckSeverity.Info;
+				checkResult.Detail = list2.Count > 0 ? "Обнаружено ПО мыши / макросы-кликеры (разрешены регламентом сервера: " + list2.Count + " шт.)." : "Специфичного макросного ПО мыши не обнаружено.";
+				checkResult.Evidence = string.Join("\r\n", list2);
+				list.Add(checkResult);
 			}
 			catch (Exception ex)
 			{
-				CheckResult checkResult3 = new CheckResult();
-				checkResult3.Category = "Макросы / Кликеры";
-				checkResult3.Name = "Анализ макросов мыши";
-				checkResult3.Detected = false;
-				checkResult3.Severity = CheckSeverity.Info;
-				checkResult3.Detail = "Ошибка проверки макросов: " + ex.Message;
-				list.Add(checkResult3);
+				CheckResult checkResult2 = new CheckResult();
+				checkResult2.Category = "Оборудование / Макросы мыши";
+				checkResult2.Name = "Анализ макросов мыши";
+				checkResult2.Detected = false;
+				checkResult2.Severity = CheckSeverity.Info;
+				checkResult2.Detail = "Ошибка проверки ПО мыши: " + ex.Message;
+				list.Add(checkResult2);
 			}
 			return list;
 		}
@@ -7570,7 +7476,7 @@ namespace MCCheatChecker
 								}
 								if (!isCheat)
 								{
-									string[] suspiciousKeywords = new string[] { "autoclicker", "killaura", "hitbox", "reach", "spoofer", "injector", "bypass", "keyauth", "tinytask", "speedautoclicker" };
+									string[] suspiciousKeywords = new string[] { "killaura", "hitbox", "reach", "spoofer", "injector", "keyauth" };
 									foreach (string kw in suspiciousKeywords)
 									{
 										if (fName.Contains(kw))
@@ -7651,24 +7557,33 @@ namespace MCCheatChecker
 								if (raw != null && raw.Length > 100)
 								{
 									string content = Encoding.UTF8.GetString(raw).ToLowerInvariant();
-									if (content.Contains("cdn.discordapp.com/attachments/") || content.Contains("media.discordapp.net/attachments/"))
+									int attIdx = 0;
+									while ((attIdx = content.IndexOf("/attachments/", attIdx, StringComparison.Ordinal)) >= 0)
 									{
-										foreach (string cheat in CheatClientNames)
+										int lineEnd = content.IndexOfAny(new char[] { ' ', '"', '\'', '\r', '\n', '\0', '?' }, attIdx);
+										if (lineEnd < 0) lineEnd = Math.Min(content.Length, attIdx + 200);
+										string urlSub = content.Substring(attIdx, lineEnd - attIdx);
+										attIdx += 13;
+										if (urlSub.EndsWith(".jar") || urlSub.EndsWith(".exe") || urlSub.EndsWith(".dll") || urlSub.EndsWith(".zip"))
 										{
-											if (content.Contains(cheat.ToLowerInvariant()))
+											foreach (string cheat in CheatClientNames)
 											{
-												list2.Add(string.Format("🚨 [5.01 - Discord Вложение] Вложения Discord содержат упоминание чита: '{0}' ({1})", cheat, lName));
-												if (list2.Count >= 25) break;
+												if (ContainsToken(urlSub, cheat))
+												{
+													list2.Add(string.Format("🚨 [5.01 - Discord Вложение чита] Файл {0} в Discord: '{1}'", cheat, urlSub));
+													break;
+												}
+											}
+											foreach (string cheat in CheatDatabases.ExtraCheatClients)
+											{
+												if (cheat.Length >= 4 && ContainsToken(urlSub, cheat))
+												{
+													list2.Add(string.Format("🚨 [5.01 - Discord Вложение чита] Файл {0} в Discord: '{1}'", cheat, urlSub));
+													break;
+												}
 											}
 										}
-										foreach (string cheat in CheatDatabases.ExtraCheatClients)
-										{
-											if (cheat.Length >= 4 && content.Contains(cheat.ToLowerInvariant()))
-											{
-												list2.Add(string.Format("🚨 [5.01 - Discord Вложение] Вложения Discord содержат упоминание чита: '{0}' ({1})", cheat, lName));
-												if (list2.Count >= 25) break;
-											}
-										}
+										if (list2.Count >= 25) break;
 									}
 								}
 							}
@@ -7957,9 +7872,10 @@ namespace MCCheatChecker
 					CheckResult checkResult = new CheckResult();
 					checkResult.Category = "Сеть / DNS";
 					checkResult.Name = "Файл hosts (Подмена DNS / Блокировка античитов)";
-					checkResult.Detected = true;
-					checkResult.Severity = (list2.Any(delegate(string x) { return x.Contains("🚨"); }) ? CheckSeverity.Critical : CheckSeverity.Warning);
-					checkResult.Detail = "Обнаружены блокировки античитов или перенаправления в hosts [5.01]: " + list2.Count + " шт.";
+					bool hasActualBlock = list2.Any(delegate(string x) { return x.Contains("🚨"); });
+					checkResult.Detected = hasActualBlock;
+					checkResult.Severity = (hasActualBlock ? CheckSeverity.Critical : CheckSeverity.Info);
+					checkResult.Detail = hasActualBlock ? ("Обнаружены блокировки античитов в hosts [5.01]: " + list2.Count + " шт.") : "Файл hosts не содержит блокировок античитов";
 					checkResult.Evidence = string.Join("\r\n", list2);
 					list.Add(checkResult);
 				}
@@ -7987,12 +7903,13 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		public static List<CheckResult> CheckJNativeHookAndMacroDLLs()
+				public static List<CheckResult> CheckJNativeHookAndMacroDLLs()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
 			{
 				List<string> list2 = new List<string>();
+				List<string> list3 = new List<string>();
 				string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 				string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 				string progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
@@ -8004,11 +7921,13 @@ namespace MCCheatChecker
 				if (!string.IsNullOrEmpty(appData)) scanDirs.Add(Path.Combine(appData, ".minecraft", "libraries"));
 				if (!string.IsNullOrEmpty(progData)) scanDirs.Add(progData);
 
-				string[] hookPatterns = new string[]
+				string[] cheatDllPatterns = new string[]
 				{
-					"jnativehook", "autoclicker", "ghook", "keyhook", "interception", "kmbox",
-					"botmek", "keyran", "mousehook", "koid", "vape", "celestial", "expensive",
-					"nursultan", "drip", "slinky", "booster", "catlavan", "tinytask", "speedautoclicker", "opautoclicker"
+					"koid", "vape", "celestial", "expensive", "nursultan", "slinky", "booster", "catlavan"
+				};
+				string[] clickerDllPatterns = new string[]
+				{
+					"jnativehook", "autoclicker", "ghook", "keyhook", "interception", "kmbox", "botmek", "keyran", "mousehook", "tinytask", "speedautoclicker", "opautoclicker"
 				};
 
 				HashSet<string> seenDlls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -8026,50 +7945,78 @@ namespace MCCheatChecker
 							if (ext != ".dll" && ext != ".pyd" && ext != ".so" && ext != ".node") continue;
 
 							string text2 = Path.GetFileName(text).ToLowerInvariant();
-							foreach (string hp in hookPatterns)
+							if (CheatDatabases.IsWhitelistedPath(text2) || text2.Contains("mccheat") || text2.Contains("screenshare"))
+							{
+								continue;
+							}
+
+							bool isCheat = false;
+							string cheatPat = "";
+							foreach (string hp in cheatDllPatterns)
 							{
 								if (text2.Contains(hp))
 								{
-									FileInfo fi = new FileInfo(text);
-									list2.Add(string.Format("🚨 [5.01 - DLL автокликера/чита в Temp] {0} [{1}] (Создан: {2:dd.MM.yyyy HH:mm:ss}, {3:N0} байт)", text, hp, fi.LastWriteTime, fi.Length));
+									isCheat = true;
+									cheatPat = hp;
 									break;
+								}
+							}
+
+							if (isCheat)
+							{
+								FileInfo fi = new FileInfo(text);
+								list2.Add(string.Format("🚨 [5.01 - Чит DLL в Temp] {0} [{1}] (Создан: {2:dd.MM.yyyy HH:mm:ss}, {3:N0} байт)", text, cheatPat, fi.LastWriteTime, fi.Length));
+							}
+							else
+							{
+								foreach (string cp in clickerDllPatterns)
+								{
+									if (text2.Contains(cp))
+									{
+										FileInfo fi2 = new FileInfo(text);
+										list3.Add(string.Format("ℹ️ [Разрешено регламентом] Библиотека автокликера в Temp: {0} [{1}] ({2:dd.MM.yyyy HH:mm:ss})", text, cp, fi2.LastWriteTime));
+										break;
+									}
 								}
 							}
 						}
 					}
-					catch { }
+					catch
+					{
+					}
 				}
 
 				if (list2.Count > 0)
 				{
 					CheckResult checkResult = new CheckResult();
-					checkResult.Category = "Макросы / Кликеры";
-					checkResult.Name = "JNativeHook и хук-библиотеки внешних автокликеров (Temp)";
+					checkResult.Category = "Внедрения / DLL";
+					checkResult.Name = "Библиотеки внедрения и хуков ввода в Temp";
 					checkResult.Detected = true;
 					checkResult.Severity = CheckSeverity.Critical;
-					checkResult.Detail = "В системных каталогах Temp найдены распакованные библиотеки внешних кликеров/читов [5.01]: " + list2.Count + " шт.";
-					checkResult.Evidence = string.Join("\r\n", list2);
+					checkResult.Detail = "Обнаружены чит-библиотеки в каталогах временных файлов [5.01]: " + list2.Count + " шт.";
+					checkResult.Evidence = string.Join("\r\n", list2.Concat(list3));
 					list.Add(checkResult);
 				}
 				else
 				{
 					CheckResult checkResult2 = new CheckResult();
-					checkResult2.Category = "Макросы / Кликеры";
-					checkResult2.Name = "JNativeHook и хук-библиотеки внешних автокликеров";
+					checkResult2.Category = "Внедрения / DLL";
+					checkResult2.Name = "Библиотеки хуков ввода и хуков";
 					checkResult2.Detected = false;
 					checkResult2.Severity = CheckSeverity.Info;
-					checkResult2.Detail = "Следов библиотек автокликеров в Temp не обнаружено.";
+					checkResult2.Detail = list3.Count > 0 ? "Обнаружены библиотеки автокликеров (разрешены регламентом: " + list3.Count + " шт.). Запрещённых чит-DLL не найдено." : "Вредоносных DLL хуков в Temp не обнаружено.";
+					checkResult2.Evidence = string.Join("\r\n", list3);
 					list.Add(checkResult2);
 				}
 			}
 			catch (Exception ex)
 			{
 				CheckResult checkResult3 = new CheckResult();
-				checkResult3.Category = "Макросы / Кликеры";
-				checkResult3.Name = "JNativeHook";
+				checkResult3.Category = "Внедрения / DLL";
+				checkResult3.Name = "Библиотеки внедрения";
 				checkResult3.Detected = false;
 				checkResult3.Severity = CheckSeverity.Info;
-				checkResult3.Detail = "Ошибка проверки JNativeHook: " + ex.Message;
+				checkResult3.Detail = "Ошибка проверки DLL: " + ex.Message;
 				list.Add(checkResult3);
 			}
 			return list;
@@ -8246,7 +8193,7 @@ namespace MCCheatChecker
 								}
 								if (!isCheat)
 								{
-									string[] shimInj = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "injector", "spoofer", "loader", "drip", "slinky", "booster" };
+									string[] shimInj = new string[] { "kmbox", "interception", "dllinjector", "spoofer", "cheatloader", "slinky" };
 									foreach (string sinj in shimInj)
 									{
 										if (pathLower.Contains(sinj))
@@ -8338,7 +8285,7 @@ namespace MCCheatChecker
 		}
 
 
-		public static List<CheckResult> CheckDirectXAndIfeoExecutionBypasses()
+				public static List<CheckResult> CheckDirectXAndIfeoExecutionBypasses()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
@@ -8356,70 +8303,94 @@ namespace MCCheatChecker
 							object val = diKey.GetValue("Name");
 							if (val != null)
 							{
-								string appName = val.ToString().Trim('\"', ' ');
+								string rawAppName = val.ToString().Trim('\"', ' ');
+								string appName = ResolveNtDevicePath(rawAppName);
 								string appLower = appName.ToLowerInvariant();
-								bool isCheat = false;
-								string cheatMatched = "";
-								foreach (string cl in CheatClientNames)
+								if (!CheatDatabases.IsWhitelistedPath(appLower) && !appLower.Contains("проги для проверки") && !appLower.Contains("mccheat") && !appLower.Contains("screenshare"))
 								{
-									if (MatchesCheatName(appLower, cl))
+									bool isCheat = false;
+									string cheatMatched = "";
+									foreach (string cl in CheatClientNames)
 									{
-										isCheat = true;
-										cheatMatched = cl;
-										break;
-									}
-								}
-								if (!isCheat)
-								{
-									foreach (string ec in CheatDatabases.ExtraCheatClients)
-									{
-										if (ec.Length >= 4 && MatchesCheatName(appLower, ec))
+										if (MatchesCheatName(appLower, cl))
 										{
 											isCheat = true;
-											cheatMatched = ec;
+											cheatMatched = cl;
 											break;
 										}
 									}
-								}
-								if (!isCheat)
-								{
-									string[] diInj = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "injector", "spoofer", "macro" };
-									foreach (string dinj in diInj)
+									if (!isCheat)
 									{
-										if (appLower.Contains(dinj))
+										foreach (string ec in CheatDatabases.ExtraCheatClients)
 										{
-											isCheat = true;
-											cheatMatched = dinj;
-											break;
+											if (ec.Length >= 4 && MatchesCheatName(appLower, ec))
+											{
+												isCheat = true;
+												cheatMatched = ec;
+												break;
+											}
 										}
 									}
-								}
-
-								bool exists = true;
-								if (appName.Contains("\\") || appName.Contains(":"))
-								{
-									try { exists = File.Exists(appName); } catch { }
-								}
-
-								if (isCheat)
-								{
-									isCritical = true;
-									if (!exists)
+									if (!isCheat)
 									{
-										list2.Add(string.Format("🗑️ [5.08 - Удалённый DirectInput перехватчик] В DirectInput зафиксирован запуск удалённого чита: '{0}' (Сигнатура: {1})", appName, cheatMatched));
+										string[] diInj = new string[] { "kmbox", "interception", "injector", "spoofer" };
+										foreach (string dinj in diInj)
+										{
+											if (appLower.Contains(dinj))
+											{
+												isCheat = true;
+												cheatMatched = dinj;
+												break;
+											}
+										}
+									}
+
+									bool isCleaner = false;
+									string cleanerMatched = "";
+									if (!isCheat)
+									{
+										foreach (string cl in CheatDatabases.KnownCleanerSignatures)
+										{
+											if (cl.Length >= 4 && appLower.Contains(cl))
+											{
+												isCleaner = true;
+												cleanerMatched = cl;
+												break;
+											}
+										}
+									}
+
+									bool exists = true;
+									if (appName.Contains("\\") || appName.Contains(":"))
+									{
+										try { exists = File.Exists(appName); } catch { }
+									}
+
+									if (isCleaner)
+									{
+										isCritical = true;
+										list2.Add(string.Format("🚨 [5.08 - Запуск клинера в DirectInput] В DirectInput зафиксирован запуск утилиты очистки следов: '{0}' (Сигнатура: {1})", appName, cleanerMatched));
+									}
+									else if (isCheat)
+									{
+										isCritical = true;
+										if (!exists)
+										{
+											list2.Add(string.Format("🗑️ [5.08 - Удалённый DirectInput перехватчик] В DirectInput зафиксирован запуск удалённого чита: '{0}' (Сигнатура: {1})", appName, cheatMatched));
+										}
+										else
+										{
+											list2.Add(string.Format("🚨 [5.01 - DirectInput Чит/Перехватчик] В DirectInput зафиксирован активный чит: '{0}' (Сигнатура: {1})", appName, cheatMatched));
+										}
+									}
+									else if (!exists && (appLower.Contains("\\temp\\") || appLower.Contains("\\appdata\\local\\temp") || appLower.Contains("\\downloads\\")) && appLower.EndsWith(".exe"))
+									{
+										list2.Add(string.Format("🗑️ [5.08 - Удалённая программа из Temp] В DirectInput зафиксирован запуск удалённой программы: '{0}'", appName));
 									}
 									else
 									{
-										list2.Add(string.Format("🚨 [5.01 - DirectInput Чит/Автокликер] В DirectInput зафиксирован активный чит/кликер: '{0}' (Сигнатура: {1})", appName, cheatMatched));
+										list2.Add(string.Format("ℹ️ Последнее DirectInput приложение: '{0}'", appName));
 									}
-								}
-								else if (!exists && (appLower.Contains("\\temp\\") || appLower.Contains("\\appdata\\local\\temp") || appLower.Contains("\\downloads\\")) && appLower.EndsWith(".exe"))
-								{
-									list2.Add(string.Format("🗑️ [5.08 - Удалённая программа из Temp] В DirectInput зафиксирован запуск удалённой программы: '{0}'", appName));
-								}
-								else
-								{
-									list2.Add(string.Format("ℹ️ Последнее DirectInput приложение: '{0}'", appName));
 								}
 							}
 						}
@@ -8439,53 +8410,77 @@ namespace MCCheatChecker
 							object val = d3dKey.GetValue("Name");
 							if (val != null)
 							{
-								string appName = val.ToString().Trim('\"', ' ');
+								string rawAppName = val.ToString().Trim('\"', ' ');
+								string appName = ResolveNtDevicePath(rawAppName);
 								string appLower = appName.ToLowerInvariant();
-								bool isCheat = false;
-								string cheatMatched = "";
-								foreach (string cl in CheatClientNames)
+								if (!CheatDatabases.IsWhitelistedPath(appLower) && !appLower.Contains("проги для проверки") && !appLower.Contains("mccheat") && !appLower.Contains("screenshare"))
 								{
-									if (MatchesCheatName(appLower, cl))
+									bool isCheat = false;
+									string cheatMatched = "";
+									foreach (string cl in CheatClientNames)
 									{
-										isCheat = true;
-										cheatMatched = cl;
-										break;
-									}
-								}
-								if (!isCheat)
-								{
-									foreach (string ec in CheatDatabases.ExtraCheatClients)
-									{
-										if (ec.Length >= 4 && MatchesCheatName(appLower, ec))
+										if (MatchesCheatName(appLower, cl))
 										{
 											isCheat = true;
-											cheatMatched = ec;
+											cheatMatched = cl;
 											break;
 										}
 									}
-								}
-
-								bool exists = true;
-								if (appName.Contains("\\") || appName.Contains(":"))
-								{
-									try { exists = File.Exists(appName); } catch { }
-								}
-
-								if (isCheat)
-								{
-									isCritical = true;
-									if (!exists)
+									if (!isCheat)
 									{
-										list2.Add(string.Format("🗑️ [5.08 - Удалённый Direct3D оверлей] В Direct3D зафиксирован удалённый чит/оверлей: '{0}' (Сигнатура: {1})", appName, cheatMatched));
+										foreach (string ec in CheatDatabases.ExtraCheatClients)
+										{
+											if (ec.Length >= 4 && MatchesCheatName(appLower, ec))
+											{
+												isCheat = true;
+												cheatMatched = ec;
+												break;
+											}
+										}
 									}
-									else
+
+									bool isCleaner = false;
+									string cleanerMatched = "";
+									if (!isCheat)
 									{
-										list2.Add(string.Format("🚨 [5.01 - Direct3D Чит-оверлей] В Direct3D зафиксирован активный чит/оверлей: '{0}' (Сигнатура: {1})", appName, cheatMatched));
+										foreach (string cl in CheatDatabases.KnownCleanerSignatures)
+										{
+											if (cl.Length >= 4 && appLower.Contains(cl))
+											{
+												isCleaner = true;
+												cleanerMatched = cl;
+												break;
+											}
+										}
 									}
-								}
-								else if (!exists && (appLower.Contains("\\temp\\") || appLower.Contains("\\appdata\\local\\temp") || appLower.Contains("\\downloads\\")) && appLower.EndsWith(".exe"))
-								{
-									list2.Add(string.Format("🗑️ [5.08 - Удалённый оверлей из Temp] В Direct3D зафиксирован запуск удалённой программы: '{0}'", appName));
+
+									bool exists = true;
+									if (appName.Contains("\\") || appName.Contains(":"))
+									{
+										try { exists = File.Exists(appName); } catch { }
+									}
+
+									if (isCleaner)
+									{
+										isCritical = true;
+										list2.Add(string.Format("🚨 [5.08 - Запуск клинера в Direct3D] В Direct3D зафиксирован запуск утилиты очистки следов: '{0}' (Сигнатура: {1})", appName, cleanerMatched));
+									}
+									else if (isCheat)
+									{
+										isCritical = true;
+										if (!exists)
+										{
+											list2.Add(string.Format("🗑️ [5.08 - Удалённый Direct3D оверлей] В Direct3D зафиксирован удалённый чит/оверлей: '{0}' (Сигнатура: {1})", appName, cheatMatched));
+										}
+										else
+										{
+											list2.Add(string.Format("🚨 [5.01 - Direct3D Чит-оверлей] В Direct3D зафиксирован активный чит/оверлей: '{0}' (Сигнатура: {1})", appName, cheatMatched));
+										}
+									}
+									else if (!exists && (appLower.Contains("\\temp\\") || appLower.Contains("\\appdata\\local\\temp") || appLower.Contains("\\downloads\\")) && appLower.EndsWith(".exe"))
+									{
+										list2.Add(string.Format("🗑️ [5.08 - Удалённый оверлей из Temp] В Direct3D зафиксирован запуск удалённой программы: '{0}'", appName));
+									}
 								}
 							}
 						}
@@ -8571,7 +8566,7 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		public static List<CheckResult> CheckAmcacheAndUninstall()
+				public static List<CheckResult> CheckAmcacheAndUninstall()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
@@ -8584,10 +8579,14 @@ namespace MCCheatChecker
 					try
 					{
 						FileInfo fileInfo = new FileInfo(text);
+						if (fileInfo.Length == 0)
+						{
+							list2.Add("🚨 [5.08 - Очистка Amcache] Файл Amcache.hve имеет размер 0 байт (намеренное затирание базы запусков)!");
+						}
 						TimeSpan timeSpan = DateTime.Now - fileInfo.LastWriteTime;
 						if (timeSpan.TotalMinutes < 15.0)
 						{
-							list2.Add("⚠️ Amcache.hve был модифицирован всего " + Math.Round(timeSpan.TotalMinutes, 1) + " мин назад (возможное затирание кэша перед проверкой)!");
+							list2.Add("⚠️ [5.08 - Свежая модификация Amcache] Amcache.hve был модифицирован всего " + Math.Round(timeSpan.TotalMinutes, 1) + " мин назад (возможное затирание кэша перед проверкой)!");
 						}
 					}
 					catch
@@ -8622,33 +8621,106 @@ namespace MCCheatChecker
 								{
 									continue;
 								}
-								string text2 = (registryKey2.GetValue("DisplayName") ?? "").ToString();
-								if (string.IsNullOrEmpty(text2))
+								string dispName = (registryKey2.GetValue("DisplayName") ?? "").ToString();
+								string installLoc = (registryKey2.GetValue("InstallLocation") ?? "").ToString();
+								string uninstStr = (registryKey2.GetValue("UninstallString") ?? "").ToString();
+								string quietUninst = (registryKey2.GetValue("QuietUninstallString") ?? "").ToString();
+
+								if (string.IsNullOrEmpty(dispName) && string.IsNullOrEmpty(installLoc) && string.IsNullOrEmpty(uninstStr))
 								{
 									continue;
 								}
-								string textLower = text2.ToLowerInvariant();
-								bool matched = false;
-								string[] cheatClientNames = CheatClientNames;
-								foreach (string cheatLower in cheatClientNames)
+
+								string combinedLower = (dispName + " " + installLoc + " " + uninstStr + " " + quietUninst + " " + name2).ToLowerInvariant();
+								string dispLower = dispName.ToLowerInvariant();
+
+								if (CheatDatabases.IsWhitelistedPath(combinedLower) || combinedLower.Contains("проги для проверки") || combinedLower.Contains("mccheat") || combinedLower.Contains("screenshare"))
 								{
-									if (MatchesCheatName(textLower, cheatLower))
+									continue;
+								}
+
+								bool isCheat = false;
+								string cheatMatched = "";
+
+								foreach (string cheatLower in CheatClientNames)
+								{
+									if (MatchesCheatName(dispLower, cheatLower) || MatchesCheatName(combinedLower, cheatLower))
 									{
-										list2.Add(string.Concat("[Установленное ПО] ", text2, " (Путь: ", registryKey2.GetValue("InstallLocation"), ")"));
-										matched = true;
+										isCheat = true;
+										cheatMatched = cheatLower;
 										break;
 									}
 								}
-								if (!matched)
+								if (!isCheat)
 								{
-									string[] extraCheatClients = CheatDatabases.ExtraCheatClients;
-									foreach (string ec in extraCheatClients)
+									foreach (string ec in CheatDatabases.ExtraCheatClients)
 									{
-										if (ec.Length >= 4 && MatchesCheatName(textLower, ec))
+										if (ec.Length >= 4 && (MatchesCheatName(dispLower, ec) || combinedLower.Contains(ec)))
 										{
-											list2.Add(string.Concat("[Установленное ПО - ExtraCheat] ", text2, " (Путь: ", registryKey2.GetValue("InstallLocation"), ")"));
+											isCheat = true;
+											cheatMatched = ec;
 											break;
 										}
+									}
+								}
+								if (!isCheat)
+								{
+									string[] suspiciousInjectors = new string[] { "kmbox", "interception", "dllinjector", "spoofer", "cheatloader" };
+									foreach (string sinj in suspiciousInjectors)
+									{
+										if (combinedLower.Contains(sinj))
+										{
+											isCheat = true;
+											cheatMatched = sinj;
+											break;
+										}
+									}
+								}
+
+								bool isCleaner = false;
+								string cleanerMatched = "";
+								if (!isCheat)
+								{
+									foreach (string cl in CheatDatabases.KnownCleanerSignatures)
+									{
+										if (cl.Length >= 4 && combinedLower.Contains(cl))
+										{
+											isCleaner = true;
+											cleanerMatched = cl;
+											break;
+										}
+									}
+								}
+
+								string label = !string.IsNullOrEmpty(dispName) ? dispName : name2;
+								string pathRef = !string.IsNullOrEmpty(installLoc) ? installLoc : uninstStr;
+
+								if (isCleaner)
+								{
+									list2.Add(string.Format("🚨 [5.08 - Установленный/зарегистрированный клинер (Uninstall)] {0} (Сигнатура: {1}, Путь: {2})", label, cleanerMatched, pathRef));
+								}
+								else if (isCheat)
+								{
+									bool exists = false;
+									if (!string.IsNullOrEmpty(installLoc))
+									{
+										try { exists = Directory.Exists(installLoc) || File.Exists(installLoc); } catch { }
+									}
+									if (!exists && !string.IsNullOrEmpty(uninstStr))
+									{
+										string cleanUninst = uninstStr.Trim('\"', ' ');
+										int exeIdx = cleanUninst.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
+										if (exeIdx > 0) cleanUninst = cleanUninst.Substring(0, exeIdx + 4).Trim('\"', ' ');
+										try { exists = File.Exists(cleanUninst); } catch { }
+									}
+
+									if (!exists)
+									{
+										list2.Add(string.Format("🗑️ [5.08 - Деинсталлированный чит (Uninstall)] {0} (Сигнатура: {1}, Путь: {2})", label, cheatMatched, pathRef));
+									}
+									else
+									{
+										list2.Add(string.Format("🚨 [5.01 - Установленный чит-клиент (Uninstall)] {0} (Сигнатура: {1}, Путь: {2})", label, cheatMatched, pathRef));
 									}
 								}
 							}
@@ -8662,7 +8734,7 @@ namespace MCCheatChecker
 					checkResult.Name = "Amcache и записи деинсталляции Windows (Uninstall)";
 					checkResult.Detected = true;
 					checkResult.Severity = CheckSeverity.Critical;
-					checkResult.Detail = "Обнаружены установленные чит-программы или подозрительные изменения Amcache: " + list2.Count + " шт.";
+					checkResult.Detail = "Обнаружены установленные или удалённые чит-программы / клинеры [5.01 / 5.08]: " + list2.Count + " шт.";
 					checkResult.Evidence = string.Join("\r\n", list2);
 					list.Add(checkResult);
 				}
@@ -8673,7 +8745,7 @@ namespace MCCheatChecker
 					checkResult2.Name = "Amcache и реестр деинсталляции Windows";
 					checkResult2.Detected = false;
 					checkResult2.Severity = CheckSeverity.Info;
-					checkResult2.Detail = "Следов установки сторонних чит-лаунчеров не обнаружено.";
+					checkResult2.Detail = "Следов установки сторонних чит-лаунчеров и клинеров не обнаружено.";
 					list.Add(checkResult2);
 				}
 			}
@@ -8938,7 +9010,7 @@ namespace MCCheatChecker
 			return stringBuilder.ToString();
 		}
 
-		public static List<CheckResult> CheckAppCompatLayers()
+				public static List<CheckResult> CheckAppCompatLayers()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
@@ -8965,7 +9037,13 @@ namespace MCCheatChecker
 									continue;
 								}
 								string cleanPath = rawPath.Trim('\"', ' ');
-								string textLower = cleanPath.ToLowerInvariant();
+								string resolvedPath = ResolveNtDevicePath(cleanPath);
+								string textLower = resolvedPath.ToLowerInvariant();
+								if (CheatDatabases.IsWhitelistedPath(textLower) || textLower.Contains("проги для проверки") || textLower.Contains("mccheat") || textLower.Contains("screenshare"))
+								{
+									continue;
+								}
+
 								object val = registryKey.GetValue(rawPath);
 								string valStr = (val != null) ? val.ToString() : "";
 								bool isCheat = false;
@@ -8996,7 +9074,7 @@ namespace MCCheatChecker
 								}
 								if (!isCheat)
 								{
-									string[] suspiciousInjectors = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "injector", "spoofer", "loader", "drip", "slinky", "booster" };
+									string[] suspiciousInjectors = new string[] { "kmbox", "interception", "dllinjector", "spoofer", "cheatloader", "slinky" };
 									foreach (string sInj in suspiciousInjectors)
 									{
 										if (textLower.Contains(sInj))
@@ -9008,33 +9086,39 @@ namespace MCCheatChecker
 									}
 								}
 
-								if (isCheat)
+								bool isCleaner = false;
+								string cleanerMatched = "";
+								if (!isCheat)
 								{
-									bool exists = false;
-									try { exists = File.Exists(cleanPath); } catch { }
-									if (!exists)
+									foreach (string cl in CheatDatabases.KnownCleanerSignatures)
 									{
-										list2.Add(string.Format("🗑️ [5.08 - Удалённый чит] В HKCU AppCompat зафиксирован запуск удалённого чита: '{0}' (Сигнатура: {1}, Слой: '{2}')", cleanPath, cheatMatched, valStr));
-									}
-									else
-									{
-										list2.Add(string.Format("🚨 [5.01 - Чит в AppCompat] В HKCU AppCompat обнаружен чит: '{0}' (Сигнатура: {1}, Слой: '{2}')", cleanPath, cheatMatched, valStr));
-									}
-								}
-								else
-								{
-									bool exists = true;
-									try { exists = File.Exists(cleanPath); } catch { }
-									if (!exists && cleanPath.Length > 3 && (cleanPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || cleanPath.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) || cleanPath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase)))
-									{
-										bool isTransient = textLower.Contains("\\temp\\") || textLower.Contains("\\appdata\\local\\temp") || textLower.Contains("\\downloads\\") || textLower.Contains("\\desktop\\") || textLower.Contains("\\.minecraft\\") || textLower.Contains("c:\\programdata\\");
-										bool isElevated = valStr.IndexOf("RUNASADMIN", StringComparison.OrdinalIgnoreCase) >= 0 || valStr.IndexOf("HIGHDPIAWARE", StringComparison.OrdinalIgnoreCase) >= 0 || valStr.IndexOf("WIN7RTM", StringComparison.OrdinalIgnoreCase) >= 0;
-										if (isTransient && isElevated)
+										if (cl.Length >= 4 && (textLower.Contains(cl) || rawPath.ToLowerInvariant().Contains(cl)))
 										{
-											list2.Add(string.Format("🗑️ [5.08 - Удалённый файл] Исполняемый файл запускался с правами администратора (RunAsAdmin) и был удалён: '{0}' (Слой: '{1}')", cleanPath, valStr));
+											isCleaner = true;
+											cleanerMatched = cl;
+											break;
 										}
 									}
 								}
+
+								if (isCleaner)
+								{
+									list2.Add(string.Format("🚨 [5.08 - Запуск клинера в AppCompatLayers] В HKCU AppCompat зафиксирован запуск утилиты очистки: '{0}' (Сигнатура: {1}, Слой: '{2}')", resolvedPath, cleanerMatched, valStr));
+								}
+								else if (isCheat)
+								{
+									bool exists = false;
+									try { exists = File.Exists(resolvedPath); } catch { }
+									if (!exists)
+									{
+										list2.Add(string.Format("🗑️ [5.08 - Удалённый чит] В HKCU AppCompat зафиксирован запуск удалённого чита: '{0}' (Сигнатура: {1}, Слой: '{2}')", resolvedPath, cheatMatched, valStr));
+									}
+									else
+									{
+										list2.Add(string.Format("🚨 [5.01 - Чит в AppCompat] В HKCU AppCompat обнаружен чит: '{0}' (Сигнатура: {1}, Слой: '{2}')", resolvedPath, cheatMatched, valStr));
+									}
+								}
+								// Deleted non-cheat apps in AppCompatLayers are not 5.08 bans
 							}
 						}
 					}
@@ -9053,7 +9137,13 @@ namespace MCCheatChecker
 										continue;
 									}
 									string cleanPath2 = rawPath2.Trim('\"', ' ');
-									string textLower2 = cleanPath2.ToLowerInvariant();
+									string resolvedPath2 = ResolveNtDevicePath(cleanPath2);
+									string textLower2 = resolvedPath2.ToLowerInvariant();
+									if (CheatDatabases.IsWhitelistedPath(textLower2) || textLower2.Contains("проги для проверки") || textLower2.Contains("mccheat") || textLower2.Contains("screenshare"))
+									{
+										continue;
+									}
+
 									object val2 = registryKey2.GetValue(rawPath2);
 									string valStr2 = (val2 != null) ? val2.ToString() : "";
 									bool isCheat2 = false;
@@ -9082,17 +9172,50 @@ namespace MCCheatChecker
 											}
 										}
 									}
-									if (isCheat2)
+									if (!isCheat2)
+									{
+										string[] suspiciousInjectors2 = new string[] { "kmbox", "interception", "dllinjector", "spoofer", "cheatloader", "slinky" };
+										foreach (string sInj2 in suspiciousInjectors2)
+										{
+											if (textLower2.Contains(sInj2))
+											{
+												isCheat2 = true;
+												cheatMatched2 = sInj2;
+												break;
+											}
+										}
+									}
+
+									bool isCleaner2 = false;
+									string cleanerMatched2 = "";
+									if (!isCheat2)
+									{
+										foreach (string cl2 in CheatDatabases.KnownCleanerSignatures)
+										{
+											if (cl2.Length >= 4 && (textLower2.Contains(cl2) || rawPath2.ToLowerInvariant().Contains(cl2)))
+											{
+												isCleaner2 = true;
+												cleanerMatched2 = cl2;
+												break;
+											}
+										}
+									}
+
+									if (isCleaner2)
+									{
+										list2.Add(string.Format("🚨 [5.08 - Запуск клинера в AppCompatLayers] В HKLM AppCompat зафиксирован запуск утилиты очистки: '{0}' (Сигнатура: {1}, Слой: '{2}')", resolvedPath2, cleanerMatched2, valStr2));
+									}
+									else if (isCheat2)
 									{
 										bool exists2 = false;
-										try { exists2 = File.Exists(cleanPath2); } catch { }
+										try { exists2 = File.Exists(resolvedPath2); } catch { }
 										if (!exists2)
 										{
-											list2.Add(string.Format("🗑️ [5.08 - Удалённый чит] В HKLM AppCompat зафиксирован запуск удалённого чита: '{0}' (Сигнатура: {1}, Слой: '{2}')", cleanPath2, cheatMatched2, valStr2));
+											list2.Add(string.Format("🗑️ [5.08 - Удалённый чит] В HKLM AppCompat зафиксирован запуск удалённого чита: '{0}' (Сигнатура: {1}, Слой: '{2}')", resolvedPath2, cheatMatched2, valStr2));
 										}
 										else
 										{
-											list2.Add(string.Format("🚨 [5.01 - Чит в AppCompat] В HKLM AppCompat обнаружен чит: '{0}' (Сигнатура: {1}, Слой: '{2}')", cleanPath2, cheatMatched2, valStr2));
+											list2.Add(string.Format("🚨 [5.01 - Чит в AppCompat] В HKLM AppCompat обнаружен чит: '{0}' (Сигнатура: {1}, Слой: '{2}')", resolvedPath2, cheatMatched2, valStr2));
 										}
 									}
 								}
@@ -9104,93 +9227,25 @@ namespace MCCheatChecker
 					}
 				}
 
-				try
-				{
-					using (RegistryKey gpuKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\DirectX\\UserGpuPreferences"))
-					{
-						if (gpuKey != null)
-						{
-							string[] gpuFiles = gpuKey.GetValueNames();
-							foreach (string rawGpu in gpuFiles)
-							{
-								if (string.IsNullOrEmpty(rawGpu)) continue;
-								string cleanGpu = rawGpu.Trim('\"', ' ');
-								string gpuLower = cleanGpu.ToLowerInvariant();
-								object gpuVal = gpuKey.GetValue(rawGpu);
-								string gpuValStr = (gpuVal != null) ? gpuVal.ToString() : "";
-
-								bool isCheatGpu = false;
-								string cheatGpuMatched = "";
-								foreach (string cl in CheatClientNames)
-								{
-									if (MatchesCheatName(gpuLower, cl))
-									{
-										isCheatGpu = true;
-										cheatGpuMatched = cl;
-										break;
-									}
-								}
-								if (!isCheatGpu)
-								{
-									foreach (string ec in CheatDatabases.ExtraCheatClients)
-									{
-										if (ec.Length >= 4 && MatchesCheatName(gpuLower, ec))
-										{
-											isCheatGpu = true;
-											cheatGpuMatched = ec;
-											break;
-										}
-									}
-								}
-								if (isCheatGpu)
-								{
-									bool existsGpu = false;
-									try { existsGpu = File.Exists(cleanGpu); } catch { }
-									if (!existsGpu)
-									{
-										list2.Add(string.Format("🗑️ [5.08 - Удалённый чит] В UserGpuPreferences зафиксирован удалённый чит: '{0}' (Сигнатура: {1}, Параметры: '{2}')", cleanGpu, cheatGpuMatched, gpuValStr));
-									}
-									else
-									{
-										list2.Add(string.Format("🚨 [5.01 - Чит в UserGpuPreferences] В UserGpuPreferences обнаружен чит: '{0}' (Сигнатура: {1}, Параметры: '{2}')", cleanGpu, cheatGpuMatched, gpuValStr));
-									}
-								}
-								else
-								{
-									bool existsGpu = true;
-									try { existsGpu = File.Exists(cleanGpu); } catch { }
-									if (!existsGpu && (gpuLower.Contains("\\temp\\") || gpuLower.Contains("\\appdata\\local\\temp") || gpuLower.Contains("\\downloads\\")) && cleanGpu.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-									{
-										list2.Add(string.Format("🗑️ [5.08 - Удалённый файл] В UserGpuPreferences зарегистрирован удалённый исполняемый файл: '{0}' (Параметры: '{1}')", cleanGpu, gpuValStr));
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-
 				if (list2.Count > 0)
 				{
 					CheckResult checkResult = new CheckResult();
 					checkResult.Category = "Реестр / Фоновые следы";
-					checkResult.Name = "AppCompatFlags Layers & GPU Preferences (Совместимость / RunAsAdmin / Удаления)";
+					checkResult.Name = "AppCompatFlags Layers & Compatibility Assistant";
 					checkResult.Detected = true;
 					checkResult.Severity = CheckSeverity.Critical;
-					checkResult.Detail = "В AppCompat / UserGpuPreferences обнаружены следы запуска читов или удалённых файлов [5.01 / 5.08]: " + list2.Count + " шт.";
-					checkResult.Evidence = string.Join("\r\n", list2);
+					checkResult.Detail = "В слоях совместимости реестра обнаружены читы, клинеры или удалённые программы [5.01 / 5.08]: " + list2.Count + " шт.";
+					checkResult.Evidence = string.Join("\r\n", list2.Take(30));
 					list.Add(checkResult);
 				}
 				else
 				{
 					CheckResult checkResult2 = new CheckResult();
 					checkResult2.Category = "Реестр / Фоновые следы";
-					checkResult2.Name = "AppCompatFlags Layers & GPU Preferences";
+					checkResult2.Name = "AppCompatFlags Layers & Compatibility Assistant";
 					checkResult2.Detected = false;
 					checkResult2.Severity = CheckSeverity.Info;
-					checkResult2.Detail = "Записей читов и подозрительных удалённых программ в AppCompatFlags Layers и UserGpuPreferences не обнаружено.";
+					checkResult2.Detail = "Подозрительных параметров совместимости и удалённых файлов не обнаружено.";
 					list.Add(checkResult2);
 				}
 			}
@@ -9198,21 +9253,22 @@ namespace MCCheatChecker
 			{
 				CheckResult checkResult3 = new CheckResult();
 				checkResult3.Category = "Реестр / Фоновые следы";
-				checkResult3.Name = "AppCompatFlags Layers & GPU Preferences";
+				checkResult3.Name = "AppCompatFlags Layers";
 				checkResult3.Detected = false;
 				checkResult3.Severity = CheckSeverity.Info;
-				checkResult3.Detail = "Ошибка проверки Layers: " + ex.Message;
+				checkResult3.Detail = "Ошибка анализа AppCompat: " + ex.Message;
 				list.Add(checkResult3);
 			}
 			return list;
 		}
 
-		public static List<CheckResult> CheckFeatureUsageAppSwitched()
+				public static List<CheckResult> CheckFeatureUsageAppSwitched()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
 			{
 				List<string> list2 = new List<string>();
+				int totalValuesCount = 0;
 				string[] array = new string[3] { "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FeatureUsage\\AppSwitched", "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FeatureUsage\\ShowJumpView", "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FeatureUsage\\AppBadgeUpdated" };
 				string[] array2 = array;
 				foreach (string text in array2)
@@ -9224,6 +9280,7 @@ namespace MCCheatChecker
 							continue;
 						}
 						string[] valueNames = registryKey.GetValueNames();
+						totalValuesCount += valueNames.Length;
 						foreach (string text2 in valueNames)
 						{
 							if (string.IsNullOrEmpty(text2))
@@ -9231,7 +9288,13 @@ namespace MCCheatChecker
 								continue;
 							}
 							string cleanName = text2.Trim('\"', ' ');
-							string textLower = cleanName.ToLowerInvariant();
+							string resolvedPath = ResolveNtDevicePath(cleanName);
+							string textLower = resolvedPath.ToLowerInvariant();
+							if (CheatDatabases.IsWhitelistedPath(textLower) || textLower.Contains("проги для проверки") || textLower.Contains("mccheat") || textLower.Contains("screenshare"))
+							{
+								continue;
+							}
+
 							bool isCheat = false;
 							string cheatMatched = "";
 
@@ -9260,7 +9323,7 @@ namespace MCCheatChecker
 							}
 							if (!isCheat)
 							{
-								string[] suspiciousInjectors = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "injector", "spoofer", "loader", "drip", "slinky", "booster" };
+								string[] suspiciousInjectors = new string[] { "kmbox", "interception", "dllinjector", "spoofer", "cheatloader", "slinky" };
 								foreach (string sInj in suspiciousInjectors)
 								{
 									if (textLower.Contains(sInj))
@@ -9272,37 +9335,52 @@ namespace MCCheatChecker
 								}
 							}
 
-							string[] parts = text.Split('\\');
-							string subName = parts[parts.Length - 1];
-							if (isCheat)
+							bool isCleaner = false;
+							string cleanerMatched = "";
+							if (!isCheat)
 							{
-								bool exists = false;
-								try { exists = File.Exists(cleanName); } catch { }
-								if (!exists)
+								foreach (string cl in CheatDatabases.KnownCleanerSignatures)
 								{
-									list2.Add(string.Format("🗑️ [5.08 - Удалённый чит из FeatureUsage] Чит запускался в проводнике и был удалён: '{0}' (Сигнатура: {1}, Ключ: {2})", cleanName, cheatMatched, subName));
-								}
-								else
-								{
-									list2.Add(string.Format("🚨 [5.01 - Чит в FeatureUsage] В телеметрии активности зафиксирован чит: '{0}' (Сигнатура: {1}, Ключ: {2})", cleanName, cheatMatched, subName));
-								}
-							}
-							else
-							{
-								bool exists = true;
-								try { exists = File.Exists(cleanName); } catch { }
-								if (!exists && cleanName.Length > 3 && (cleanName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || cleanName.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) || cleanName.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase)))
-								{
-									bool isTransient = textLower.Contains("\\temp\\") || textLower.Contains("\\appdata\\local\\temp") || textLower.Contains("\\downloads\\") || textLower.Contains("\\desktop\\") || textLower.Contains("\\.minecraft\\");
-									if (isTransient)
+									if (cl.Length >= 4 && (textLower.Contains(cl) || text2.ToLowerInvariant().Contains(cl)))
 									{
-										list2.Add(string.Format("🗑️ [5.08 - Удалённая программа из Temp] Исполняемый файл запускался из временного каталога и был удалён: '{0}' (Ключ: {1})", cleanName, subName));
+										isCleaner = true;
+										cleanerMatched = cl;
+										break;
 									}
 								}
 							}
+
+							string[] parts = text.Split('\\');
+							string subName = parts[parts.Length - 1];
+
+							if (isCleaner)
+							{
+								list2.Add(string.Format("🚨 [5.08 - Запуск клинера в FeatureUsage] В телеметрии активности окон зафиксирован запуск утилиты очистки: '{0}' (Сигнатура: {1}, Ключ: {2})", resolvedPath, cleanerMatched, subName));
+							}
+							else if (isCheat)
+							{
+								bool exists = false;
+								try { exists = File.Exists(resolvedPath); } catch { }
+								if (!exists)
+								{
+									list2.Add(string.Format("🗑️ [5.08 - Удалённый чит из FeatureUsage] Чит запускался в проводнике и был удалён: '{0}' (Сигнатура: {1}, Ключ: {2})", resolvedPath, cheatMatched, subName));
+								}
+								else
+								{
+									list2.Add(string.Format("🚨 [5.01 - Чит в FeatureUsage] В телеметрии активности зафиксирован чит: '{0}' (Сигнатура: {1}, Ключ: {2})", resolvedPath, cheatMatched, subName));
+								}
+							}
+							// Deleted non-cheat apps in FeatureUsage are not 5.08 bans
 						}
 					}
 				}
+
+				TimeSpan uptime = TimeSpan.FromMilliseconds(Environment.TickCount);
+				if (totalValuesCount == 0 && uptime.TotalHours >= 2.0)
+				{
+					list2.Add(string.Format("🚨 [5.08 - Очистка FeatureUsage] Реестр телеметрии окон FeatureUsage пуст при аптайме {0:0.0}ч! Намеренная зачистка истории переключения приложений Windows!", uptime.TotalHours));
+				}
+
 				if (list2.Count > 0)
 				{
 					CheckResult checkResult = new CheckResult();
@@ -9310,7 +9388,7 @@ namespace MCCheatChecker
 					checkResult.Name = "FeatureUsage AppSwitched (Переключение окон / Запуски Windows 10/11)";
 					checkResult.Detected = true;
 					checkResult.Severity = CheckSeverity.Critical;
-					checkResult.Detail = "В телеметрии активности окон обнаружены читы или удалённые программы [5.01 / 5.08]: " + list2.Count + " шт.";
+					checkResult.Detail = "В телеметрии активности окон обнаружены читы, клинеры или удалённые программы [5.01 / 5.08]: " + list2.Count + " шт.";
 					checkResult.Evidence = string.Join("\r\n", list2);
 					list.Add(checkResult);
 				}
@@ -9372,8 +9450,8 @@ namespace MCCheatChecker
 				CheckResult checkResult = new CheckResult();
 				checkResult.Category = "Оборудование / USB";
 				checkResult.Name = "История смонтированных дисков (MountedDevices)";
-				checkResult.Detected = list2.Any((string d) => d.Contains("[USB"));
-				checkResult.Severity = (checkResult.Detected ? CheckSeverity.Warning : CheckSeverity.Info);
+				checkResult.Detected = false;
+				checkResult.Severity = CheckSeverity.Info;
 				checkResult.Detail = "История подключений дисков Windows: " + list2.Count + " накопителей.";
 				checkResult.Evidence = string.Join("\r\n", list2);
 				list.Add(checkResult);
@@ -9646,7 +9724,7 @@ namespace MCCheatChecker
 								}
 								if (!isCheat)
 								{
-									string[] muiInj = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "injector", "spoofer", "loader", "drip", "slinky", "booster" };
+									string[] muiInj = new string[] { "kmbox", "interception", "dllinjector", "spoofer", "cheatloader", "slinky" };
 									foreach (string sinj in muiInj)
 									{
 										if (textLower.Contains(sinj))
@@ -9691,10 +9769,7 @@ namespace MCCheatChecker
 								{
 									list2.Add(string.Format("🚨 [5.08 - Запуск клинера в MuiCache] В MuiCache зафиксирован запуск утилиты очистки [{0}]: {1}", cleanerMatched, cleanPath));
 								}
-								else if (!exists && (textLower.Contains("\\temp\\") || textLower.Contains("\\appdata\\local\\temp") || textLower.Contains("\\downloads\\")) && textLower.EndsWith(".exe"))
-								{
-									list2.Add(string.Format("🗑️ [5.08 - Удалённый исполняемый файл из MuiCache] В MuiCache зафиксирован запуск удалённого файла: {0}", cleanPath));
-								}
+								// Deleted non-cheat files in MuiCache are not 5.08 bans
 							}
 						}
 					}
@@ -9736,12 +9811,13 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		public static List<CheckResult> CheckRecentDocsMRU()
+				public static List<CheckResult> CheckRecentDocsMRU()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
 			{
 				List<string> list2 = new List<string>();
+				int totalRecentDocsCount = 0;
 				string name = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RecentDocs";
 				using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(name))
 				{
@@ -9774,12 +9850,18 @@ namespace MCCheatChecker
 									byte[] array4 = registryKey2.GetValue(text2) as byte[];
 									if (array4 == null || array4.Length <= 2) continue;
 
+									totalRecentDocsCount++;
 									string rawStr = Encoding.Unicode.GetString(array4);
 									int nullIdx = rawStr.IndexOf('\0');
 									string text4 = (nullIdx >= 0 ? rawStr.Substring(0, nullIdx) : rawStr).Trim();
 									if (string.IsNullOrEmpty(text4) || text4.Length < 3) continue;
 
 									string textLower = text4.ToLowerInvariant();
+									if (CheatDatabases.IsWhitelistedPath(textLower) || textLower.Contains("проги для проверки") || textLower.Contains("mccheat") || textLower.Contains("screenshare") || textLower.Contains("sstools"))
+									{
+										continue;
+									}
+
 									bool matched = false;
 									string matchedCheat = "";
 
@@ -9806,7 +9888,7 @@ namespace MCCheatChecker
 									}
 									if (!matched)
 									{
-										string[] extraInj = new string[] { "botmek", "keyran", "kmbox", "interception", "autoclicker", "clicker", "macro", "spoofer", "injector", "loader", "drip", "slinky", "booster" };
+										string[] extraInj = new string[] { "kmbox", "interception", "spoofer", "dllinjector", "cheatloader", "slinky" };
 										foreach (string inj in extraInj)
 										{
 											if (textLower.Contains(inj))
@@ -9858,6 +9940,12 @@ namespace MCCheatChecker
 					}
 				}
 
+				TimeSpan uptime = TimeSpan.FromMilliseconds(Environment.TickCount);
+				if (totalRecentDocsCount == 0 && uptime.TotalHours >= 2.0)
+				{
+					list2.Add(string.Format("🚨 [5.08 - Очистка RecentDocs MRU] Реестр RecentDocs пуст при аптайме {0:0.0}ч! Намеренная очистка истории недавно открытых файлов Windows!", uptime.TotalHours));
+				}
+
 				if (list2.Count > 0)
 				{
 					CheckResult checkResult = new CheckResult();
@@ -9893,49 +9981,69 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		public static List<CheckResult> CheckWindowTitlesAndTray()
+				public static List<CheckResult> CheckWindowTitlesAndTray()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
 			{
 				List<string> list2 = new List<string>();
 				List<string> list3 = new List<string>();
-				string[] array = new string[128]
+				List<string> listAllowed = new List<string>();
+				string[] array = new string[]
 				{
-					"autoclicker", "auto clicker", "op auto clicker", "speedautoclicker", "mangoclicker", "xdotool", "autohotkey", "macro clicker", "clickmaster", "clickstorm",
-					"turbo clicker", "rapid clicker", "vape", "vape client", "celestial", "celestial client", "expensive", "nursultan", "minced", "wild client",
+					"vape", "vape client", "celestial", "celestial client", "expensive", "nursultan", "minced", "wild client",
 					"akrien", "fluger", "meteor client", "meteor", "wurst", "liquidbounce", "liquid bounce", "prax", "horion", "zephyr",
 					"sigma client", "sigma", "neverhook", "impact client", "impact", "kamiblue", "kami blue", "kami", "inertia", "inertia client",
 					"aristois", "baritone", "rusherhack", "rusher hack", "future client", "future", "skillclient", "skill client", "jigsaw client", "jigsaw",
-					"zeus client", "zeus", "salhack", "wolfram", "novoline", "huzuni", "entropy client", "entropy", "prism client", "prism",
-					"flarial client", "flarial", "flux client", "flux", "orion client", "orion", "tenacity", "tenacity client", "raven client", "raven",
-					"sora client", "sora", "dummie client", "dummie", "dummi client", "dummi", "rise client", "rogue client", "remix client", "ghost client",
-					"ghost", "drip client", "drip", "paragon client", "paragon", "catalyst client", "catalyst", "stardust client", "stardust", "cortex client",
-					"cortex", "aoba client", "aoba", "fdp client", "fdp", "darklight client", "jex client", "jex", "novaclient", "nova client",
-					"atomic", "eclipse client", "cheat engine", "cheat-engine", "cheatengine", "process hacker", "processhacker", "x64dbg", "x32dbg", "ollydbg",
-					"windbg", "dnspy", "dotpeek", "ilspy", "justdecompile", "xenos", "extreme injector", "extremeinjector", "liquid loader", "liquidloader",
-					"ambient", "blatware", "slavehack", "slavware", "rusohack", "atomware", "neonware", "quantumware"
+					"zeus client", "salhack", "wolfram", "novoline", "huzuni", "entropy client", "prism client",
+					"flarial client", "flux client", "orion client", "tenacity client", "raven client", "raven",
+					"sora client", "dummie client", "dummi client", "rise client", "rogue client", "remix client", "ghost client",
+					"drip client", "paragon client", "catalyst client", "stardust client", "cortex client",
+					"aoba client", "fdp client", "darklight client", "jex client", "novaclient", "nova client",
+					"eclipse client", "cheat engine", "cheat-engine", "cheatengine", "ollydbg",
+					"xenos", "extreme injector", "extremeinjector", "liquid loader", "liquidloader",
+					"blatware", "slavehack", "slavware", "rusohack", "atomware", "neonware", "quantumware"
 				};
+				string[] clickerTitles = new string[]
+				{
+					"autoclicker", "auto clicker", "op auto clicker", "speedautoclicker", "mangoclicker", "xdotool", "autohotkey", "macro clicker", "clickmaster", "clickstorm", "turbo clicker", "rapid clicker", "tinytask", "keyran", "botmek"
+				};
+
 				Process[] processes = Process.GetProcesses();
-				Process[] array2 = processes;
-				foreach (Process process in array2)
+				foreach (Process process in processes)
 				{
 					try
 					{
 						string mainWindowTitle = process.MainWindowTitle;
-						if (string.IsNullOrEmpty(mainWindowTitle))
+						if (string.IsNullOrEmpty(mainWindowTitle)) continue;
+						string pNameLower = process.ProcessName.ToLowerInvariant();
+						if (pNameLower == "chrome" || pNameLower == "msedge" || pNameLower == "firefox" || pNameLower == "opera" || pNameLower == "brave" || pNameLower == "vivaldi" || pNameLower == "spotify" || pNameLower == "discord" || pNameLower == "telegram" || pNameLower == "steam" || pNameLower == "devenv" || pNameLower == "code" || pNameLower == "idea64") continue;
+						string text = mainWindowTitle.ToLowerInvariant();
+						if (CheatDatabases.IsWhitelistedPath(text) || text.Contains("проги для проверки") || text.Contains("mccheat") || text.Contains("screenshare") || text.Contains("cheatchecker"))
 						{
 							continue;
 						}
-						string text = mainWindowTitle.ToLowerInvariant();
+
 						list3.Add(string.Format("PID={0} [{1}]: {2}", process.Id, process.ProcessName, mainWindowTitle));
+
+						bool isClicker = false;
+						foreach (string ct in clickerTitles)
+						{
+							if (text.Contains(ct))
+							{
+								listAllowed.Add(string.Format("ℹ️ [Разрешено регламентом] Автокликер: PID={0} [{1}] \"{2}\"", process.Id, process.ProcessName, mainWindowTitle));
+								isClicker = true;
+								break;
+							}
+						}
+						if (isClicker) continue;
+
 						bool flag = false;
-						string[] array3 = array;
-						foreach (string text2 in array3)
+						foreach (string text2 in array)
 						{
 							if (text.Contains(text2))
 							{
-								list2.Add(string.Format("\ud83d\udd34 [ЗАГОЛОВОК ЧИТА] PID={0} [{1}] заголовок: \"{2}\" (совпадение: {3})", process.Id, process.ProcessName, mainWindowTitle, text2));
+								list2.Add(string.Format("🚨 [5.01 - Заголовок чита] PID={0} [{1}] заголовок: \"{2}\" (совпадение: {3})", process.Id, process.ProcessName, mainWindowTitle, text2));
 								flag = true;
 								break;
 							}
@@ -9949,7 +10057,7 @@ namespace MCCheatChecker
 						{
 							if (MatchesCheatName(text, text3) && !IsLegitGame(text))
 							{
-								list2.Add(string.Format("\ud83d\udd34 [ЗАГОЛОВОК ЧИТА - БАЗА] PID={0} [{1}] заголовок: \"{2}\" (клиент: {3})", process.Id, process.ProcessName, mainWindowTitle, text3));
+								list2.Add(string.Format("🚨 [5.01 - Чит в заголовке] PID={0} [{1}] заголовок: \"{2}\" (клиент: {3})", process.Id, process.ProcessName, mainWindowTitle, text3));
 								break;
 							}
 						}
@@ -9962,11 +10070,11 @@ namespace MCCheatChecker
 				{
 					CheckResult checkResult = new CheckResult();
 					checkResult.Category = "Процессы / Память";
-					checkResult.Name = "Заголовки активных окон (Чит-клиенты / Инжекторы / Кликеры)";
+					checkResult.Name = "Заголовки активных окон (Чит-клиенты / Инжекторы)";
 					checkResult.Detected = true;
 					checkResult.Severity = CheckSeverity.Critical;
-					checkResult.Detail = "\ud83d\udd34 Обнаружены открытые окна запрещённого ПО: " + list2.Count + " шт.";
-					checkResult.Evidence = string.Join("\r\n", list2) + "\r\n\r\n── Все открытые окна ──\r\n" + string.Join("\r\n", list3);
+					checkResult.Detail = "Обнаружены открытые окна запрещённого ПО: " + list2.Count + " шт.";
+					checkResult.Evidence = string.Join("\r\n", list2) + (listAllowed.Count > 0 ? "\r\n\r\n── Разрешённые автокликеры ──\r\n" + string.Join("\r\n", listAllowed) : "") + "\r\n\r\n── Все открытые окна ──\r\n" + string.Join("\r\n", list3);
 					list.Add(checkResult);
 				}
 				else
@@ -9976,8 +10084,8 @@ namespace MCCheatChecker
 					checkResult2.Name = "Заголовки активных окон";
 					checkResult2.Detected = false;
 					checkResult2.Severity = CheckSeverity.Info;
-					checkResult2.Detail = "Окон запрещённого ПО и кликеров не обнаружено. Всего окон: " + list3.Count;
-					checkResult2.Evidence = string.Join("\r\n", list3);
+					checkResult2.Detail = (listAllowed.Count > 0 ? "Обнаружены открытые автокликеры (разрешены регламентом: " + listAllowed.Count + " шт.). Запрещённых читов не найдено." : "Окон запрещённого ПО не обнаружено. Всего окон: " + list3.Count);
+					checkResult2.Evidence = (listAllowed.Count > 0 ? string.Join("\r\n", listAllowed) + "\r\n\r\n" : "") + string.Join("\r\n", list3);
 					list.Add(checkResult2);
 				}
 			}
@@ -9988,7 +10096,7 @@ namespace MCCheatChecker
 				checkResult3.Name = "Заголовки активных окон";
 				checkResult3.Detected = false;
 				checkResult3.Severity = CheckSeverity.Info;
-				checkResult3.Detail = "Ошибка проверки окон: " + ex.Message;
+				checkResult3.Detail = "Ошибка анализа окон: " + ex.Message;
 				list.Add(checkResult3);
 			}
 			return list;
@@ -10368,7 +10476,7 @@ namespace MCCheatChecker
 									}
 									if (!flag)
 									{
-										string[] extraInjectors = new string[] { "botmek", "keyran", "kmbox", "interception", "spoofer", "clicker", "autoclicker", "injector", "loader", "drip", "slinky", "booster" };
+										string[] extraInjectors = new string[] { "kmbox", "interception", "spoofer", "dllinjector", "cheatloader", "slinky" };
 										foreach (string sinj in extraInjectors)
 										{
 											if (textLower.Contains(sinj))
@@ -10484,7 +10592,7 @@ namespace MCCheatChecker
 			return list;
 		}
 
-		public static List<CheckResult> CheckSystemIntegrityAndEvasion()
+				public static List<CheckResult> CheckSystemIntegrityAndEvasion()
 		{
 			List<CheckResult> list = new List<CheckResult>();
 			try
@@ -10498,7 +10606,7 @@ namespace MCCheatChecker
 				TimeSpan timeSpan = TimeSpan.FromMilliseconds(num);
 				if (timeSpan.TotalMinutes < 15.0)
 				{
-					list2.Add("⚠️ Перезагрузка системы выполнена всего " + Math.Round(timeSpan.TotalMinutes, 1) + " мин назад (возможный сброс RAM / Prefetch / кэша перед проверкой)!");
+					list2.Add("⚠️ [5.08 - Свежая перезагрузка ПК] Перезагрузка системы выполнена всего " + Math.Round(timeSpan.TotalMinutes, 1) + " мин назад (возможный сброс RAM / Prefetch / кэша перед проверкой)!");
 				}
 
 				string[] criticalServices = new string[] { "PcaSvc", "DPS", "EventLog", "SysMain", "bam", "W32Time", "DiagTrack" };
@@ -10524,7 +10632,7 @@ namespace MCCheatChecker
 								object value = registryKey.GetValue("Start");
 								if (value != null && Convert.ToInt32(value) == 4)
 								{
-									list2.Add(string.Format("🚨 {0} ОТКЛЮЧЕНА (Start=4)! Прямой признак сокрытия следов / саботажа криминалистики.", criticalNames[i]));
+									list2.Add(string.Format("🚨 [5.08 - Отключение системной службы криминалистики] {0} ОТКЛЮЧЕНА (Start=4)! Прямой признак сокрытия следов / саботажа криминалистики.", criticalNames[i]));
 								}
 							}
 						}
@@ -10534,6 +10642,67 @@ namespace MCCheatChecker
 					}
 				}
 
+				// Testsigning / Disable Integrity Checks detection
+				try
+				{
+					using (RegistryKey sysCtrl = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control"))
+					{
+						if (sysCtrl != null)
+						{
+							object sso = sysCtrl.GetValue("SystemStartOptions");
+							if (sso != null)
+							{
+								string ssoStr = sso.ToString().ToUpperInvariant();
+								if (ssoStr.Contains("TESTSIGNING") || ssoStr.Contains("DISABLE_INTEGRITY_CHECKS"))
+								{
+									list2.Add("🚨 [5.08 - Режим загрузки неподписанных драйверов (Testsigning)] В параметрах запуска Windows активен TESTSIGNING / DISABLE_INTEGRITY_CHECKS (" + ssoStr.Trim() + ")! Разрешена загрузка неподписанных чит-драйверов ядра!");
+								}
+							}
+						}
+					}
+				}
+				catch
+				{
+				}
+
+				// Safe Mode boot check
+				try
+				{
+					using (RegistryKey sbKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\SafeBoot\Option"))
+					{
+						if (sbKey != null)
+						{
+							object optVal = sbKey.GetValue("OptionValue");
+							if (optVal != null && Convert.ToInt32(optVal) > 0)
+							{
+								list2.Add("🚨 [5.08 - Загрузка в безопасном режиме (Safe Mode)] Система запущена в безопасном режиме (SafeBoot OptionValue=" + optVal + ")! Блокировка античитов и штатных служб безопасности!");
+							}
+						}
+					}
+				}
+				catch
+				{
+				}
+
+				// CrashControl Minidump check (suppressed crash dumps)
+				try
+				{
+					using (RegistryKey ccKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\CrashControl"))
+					{
+						if (ccKey != null)
+						{
+							object cde = ccKey.GetValue("CrashDumpEnabled");
+							if (cde != null && Convert.ToInt32(cde) == 0)
+							{
+								list2.Add("⚠️ [5.08 - Аварийные дампы отключены] Создание аварийных дампов ядра отключено (CrashDumpEnabled=0)! Возможное сокрытие дампов сбоя инжекторов читов.");
+							}
+						}
+					}
+				}
+				catch
+				{
+				}
+
 				if (list2.Count > 0)
 				{
 					CheckResult checkResult = new CheckResult();
@@ -10541,7 +10710,7 @@ namespace MCCheatChecker
 					checkResult.Name = "Целостность системы и уклонение от проверки (Evasion)";
 					checkResult.Detected = true;
 					checkResult.Severity = ((list2.Any(x => x.Contains("🚨"))) ? CheckSeverity.Critical : CheckSeverity.Warning);
-					checkResult.Detail = "Выявлены признаки подготовки к проверке / отключения служб логирования: " + list2.Count + " шт.";
+					checkResult.Detail = "Выявлены признаки подготовки к проверке / отключения служб логирования [5.08]: " + list2.Count + " шт.";
 					checkResult.Evidence = string.Join("\r\n", list2) + "\r\n\r\nАптайм ПК: " + (int)timeSpan.TotalHours + "ч " + timeSpan.Minutes + "м " + timeSpan.Seconds + "с";
 					list.Add(checkResult);
 				}
@@ -10888,88 +11057,88 @@ namespace MCCheatChecker
 			string commonProgData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
 
 			List<string[]> list6 = new List<string[]>();
-			list6.Add(new string[2] { "vape", "config.json" });
-			list6.Add(new string[2] { "vape", "license.json" });
-			list6.Add(new string[2] { "vape", "license.key" });
-			list6.Add(new string[2] { "vape", "auth.json" });
-			list6.Add(new string[2] { ".vape", "config.json" });
-			list6.Add(new string[2] { ".vape", "license.json" });
-			list6.Add(new string[2] { "flux", "license.key" });
-			list6.Add(new string[2] { "flux", "config.json" });
-			list6.Add(new string[2] { "flux", "auth.bin" });
-			list6.Add(new string[2] { ".flux", "license.key" });
-			list6.Add(new string[2] { "flarial", "license.json" });
-			list6.Add(new string[2] { "flarial", "config.json" });
-			list6.Add(new string[2] { "Flarial", "license.json" });
-			list6.Add(new string[2] { "entropy", "license.key" });
-			list6.Add(new string[2] { "entropy", "config.json" });
-			list6.Add(new string[2] { "entropy", "auth.json" });
-			list6.Add(new string[2] { "liquidbounce", "settings.json" });
-			list6.Add(new string[2] { ".liquidbounce", "settings.json" });
-			list6.Add(new string[2] { "meteor-client", "auth.json" });
-			list6.Add(new string[2] { "meteor-client", "accounts.json" });
-			list6.Add(new string[2] { "rusherhack", "license.key" });
-			list6.Add(new string[2] { "rusherhack", "config.json" });
-			list6.Add(new string[2] { "novoline", "license.key" });
-			list6.Add(new string[2] { "novoline", "config.cfg" });
-			list6.Add(new string[2] { "sigma", "license.key" });
-			list6.Add(new string[2] { "sigma", "config.json" });
-			list6.Add(new string[2] { ".sigma", "license.key" });
-			list6.Add(new string[2] { "tenacity", "license.key" });
-			list6.Add(new string[2] { "tenacity", "config.json" });
-			list6.Add(new string[2] { "raven", "license.key" });
-			list6.Add(new string[2] { "raven-client", "license.key" });
-			list6.Add(new string[2] { "celestial", "license.key" });
-			list6.Add(new string[2] { "celestial", "config.json" });
-			list6.Add(new string[2] { "celestial", "binds.json" });
-			list6.Add(new string[2] { "celestial", "users.json" });
-			list6.Add(new string[2] { ".celestial", "config.json" });
-			list6.Add(new string[2] { "expensive", "license.key" });
-			list6.Add(new string[2] { "expensive", "config.json" });
-			list6.Add(new string[2] { "expensive", "default.json" });
-			list6.Add(new string[2] { "expensive", "binds.json" });
-			list6.Add(new string[2] { "expensive", "user.json" });
-			list6.Add(new string[2] { ".expensive", "config.json" });
-			list6.Add(new string[2] { ".expensive", "binds.json" });
-			list6.Add(new string[2] { ".expensive", "user.json" });
-			list6.Add(new string[2] { "nursultan", "license.json" });
-			list6.Add(new string[2] { "nursultan", "config.json" });
-			list6.Add(new string[2] { "nursultan", "auth.json" });
-			list6.Add(new string[2] { "nursultan", "binds.json" });
-			list6.Add(new string[2] { ".nursultan", "license.json" });
-			list6.Add(new string[2] { ".nursultan", "config.json" });
-			list6.Add(new string[2] { "thunderhack", "config.json" });
-			list6.Add(new string[2] { "thunderhack", "misc.json" });
-			list6.Add(new string[2] { "thunderhack", "combat.json" });
-			list6.Add(new string[2] { ".thunderhack", "config.json" });
-			list6.Add(new string[2] { "slinky", "slinky.json" });
-			list6.Add(new string[2] { "slinky", "license.json" });
-			list6.Add(new string[2] { ".slinky", "slinky.json" });
-			list6.Add(new string[2] { "drip", "settings.json" });
-			list6.Add(new string[2] { "drip", "license.key" });
-			list6.Add(new string[2] { ".drip", "settings.json" });
-			list6.Add(new string[2] { "doomsday", "config.json" });
-			list6.Add(new string[2] { ".doomsday", "config.json" });
-			list6.Add(new string[2] { "catlavan", "config.json" });
-			list6.Add(new string[2] { "catlavan", "license.json" });
-			list6.Add(new string[2] { "catlavan", "auth.json" });
-			list6.Add(new string[2] { "deadcode", "config.json" });
-			list6.Add(new string[2] { "deadcode", "license.json" });
-			list6.Add(new string[2] { "deadcode", "auth.json" });
-			list6.Add(new string[2] { "delta", "config.json" });
-			list6.Add(new string[2] { "deltaclient", "config.json" });
-			list6.Add(new string[2] { "wexside", "config.json" });
-			list6.Add(new string[2] { "wexside", "license.json" });
-			list6.Add(new string[2] { "richpremium", "config.json" });
-			list6.Add(new string[2] { "flint", "config.json" });
-			list6.Add(new string[2] { "rockstar", "config.json" });
-			list6.Add(new string[2] { "boberware", "config.json" });
-			list6.Add(new string[2] { "boze", "boze.json" });
-			list6.Add(new string[2] { ".boze", "config.json" });
-			list6.Add(new string[2] { "minced", "config.json" });
-			list6.Add(new string[2] { ".minced", "config.json" });
-			list6.Add(new string[2] { "booster", "config.json" });
-			list6.Add(new string[2] { "booster", "license.json" });
+			list6.Add(new string[] { "vape", "config.json" });
+			list6.Add(new string[] { "vape", "license.json" });
+			list6.Add(new string[] { "vape", "license.key" });
+			list6.Add(new string[] { "vape", "auth.json" });
+			list6.Add(new string[] { ".vape", "config.json" });
+			list6.Add(new string[] { ".vape", "license.json" });
+			list6.Add(new string[] { "license.key" });
+			list6.Add(new string[] { "config.json" });
+			list6.Add(new string[] { "auth.bin" });
+			list6.Add(new string[] { ".flux", "license.key" });
+			list6.Add(new string[] { "license.json" });
+			list6.Add(new string[] { "config.json" });
+			list6.Add(new string[] { "Flarial", "license.json" });
+			list6.Add(new string[] { "license.key" });
+			list6.Add(new string[] { "config.json" });
+			list6.Add(new string[] { "auth.json" });
+			list6.Add(new string[] { "liquidbounce", "settings.json" });
+			list6.Add(new string[] { ".liquidbounce", "settings.json" });
+			list6.Add(new string[] { "meteor-client", "auth.json" });
+			list6.Add(new string[] { "meteor-client", "accounts.json" });
+			list6.Add(new string[] { "rusherhack", "license.key" });
+			list6.Add(new string[] { "rusherhack", "config.json" });
+			list6.Add(new string[] { "novoline", "license.key" });
+			list6.Add(new string[] { "novoline", "config.cfg" });
+			list6.Add(new string[] { "sigma", "license.key" });
+			list6.Add(new string[] { "sigma", "config.json" });
+			list6.Add(new string[] { ".sigma", "license.key" });
+			list6.Add(new string[] { "license.key" });
+			list6.Add(new string[] { "config.json" });
+			list6.Add(new string[] { "license.key" });
+			list6.Add(new string[] { "raven-client", "license.key" });
+			list6.Add(new string[] { "celestial", "license.key" });
+			list6.Add(new string[] { "celestial", "config.json" });
+			list6.Add(new string[] { "celestial", "binds.json" });
+			list6.Add(new string[] { "celestial", "users.json" });
+			list6.Add(new string[] { ".celestial", "config.json" });
+			list6.Add(new string[] { "expensive", "license.key" });
+			list6.Add(new string[] { "expensive", "config.json" });
+			list6.Add(new string[] { "expensive", "default.json" });
+			list6.Add(new string[] { "expensive", "binds.json" });
+			list6.Add(new string[] { "expensive", "user.json" });
+			list6.Add(new string[] { ".expensive", "config.json" });
+			list6.Add(new string[] { ".expensive", "binds.json" });
+			list6.Add(new string[] { ".expensive", "user.json" });
+			list6.Add(new string[] { "nursultan", "license.json" });
+			list6.Add(new string[] { "nursultan", "config.json" });
+			list6.Add(new string[] { "nursultan", "auth.json" });
+			list6.Add(new string[] { "nursultan", "binds.json" });
+			list6.Add(new string[] { ".nursultan", "license.json" });
+			list6.Add(new string[] { ".nursultan", "config.json" });
+			list6.Add(new string[] { "thunderhack", "config.json" });
+			list6.Add(new string[] { "thunderhack", "misc.json" });
+			list6.Add(new string[] { "thunderhack", "combat.json" });
+			list6.Add(new string[] { ".thunderhack", "config.json" });
+			list6.Add(new string[] { "slinky", "slinky.json" });
+			list6.Add(new string[] { "slinky", "license.json" });
+			list6.Add(new string[] { ".slinky", "slinky.json" });
+			list6.Add(new string[] { "settings.json" });
+			list6.Add(new string[] { "license.key" });
+			list6.Add(new string[] { ".drip", "settings.json" });
+			list6.Add(new string[] { "doomsday", "config.json" });
+			list6.Add(new string[] { ".doomsday", "config.json" });
+			list6.Add(new string[] { "catlavan", "config.json" });
+			list6.Add(new string[] { "catlavan", "license.json" });
+			list6.Add(new string[] { "catlavan", "auth.json" });
+			list6.Add(new string[] { "deadcode", "config.json" });
+			list6.Add(new string[] { "deadcode", "license.json" });
+			list6.Add(new string[] { "deadcode", "auth.json" });
+			list6.Add(new string[] { "delta", "config.json" });
+			list6.Add(new string[] { "deltaclient", "config.json" });
+			list6.Add(new string[] { "wexside", "config.json" });
+			list6.Add(new string[] { "wexside", "license.json" });
+			list6.Add(new string[] { "richpremium", "config.json" });
+			list6.Add(new string[] { "flint", "config.json" });
+			list6.Add(new string[] { "rockstar", "config.json" });
+			list6.Add(new string[] { "boberware", "config.json" });
+			list6.Add(new string[] { "boze", "boze.json" });
+			list6.Add(new string[] { ".boze", "config.json" });
+			list6.Add(new string[] { "minced", "config.json" });
+			list6.Add(new string[] { ".minced", "config.json" });
+			list6.Add(new string[] { "booster", "config.json" });
+			list6.Add(new string[] { "booster", "license.json" });
 
 			string[] array2 = new string[]
 			{
@@ -11424,7 +11593,8 @@ namespace MCCheatChecker
 					// Tokens / license files search
 					try
 					{
-						string[] files2 = Directory.GetFiles(path2, "*", SearchOption.AllDirectories);
+						string[] files2;
+try { files2 = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Take(Directory.EnumerateFiles(path2, "*", SearchOption.AllDirectories), 1000)); } catch { files2 = new string[0]; }
 						foreach (string text3 in files2)
 						{
 							string text4 = Path.GetFileName(text3).ToLowerInvariant();
@@ -11884,7 +12054,7 @@ namespace MCCheatChecker
 			{
 				Path.Combine(folderPath, ".minecraft", "crash-reports"),
 				Path.Combine(folderPath, ".feather", "crash-reports"),
-				Path.Combine(folderPath, ".tlauncher", "legacy", "minecraft", "crash-reports"),
+				Path.Combine(folderPath, ".tlauncher", "minecraft", "crash-reports"),
 				Path.Combine(folderPath, ".lunarclient", "offline", "multiver", "crash-reports"),
 				Path.Combine(folderPath2, ".prismlauncher", "instances")
 			};

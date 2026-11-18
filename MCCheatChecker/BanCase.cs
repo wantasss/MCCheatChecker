@@ -1,8 +1,9 @@
-﻿namespace MCCheatChecker
+namespace MCCheatChecker
 {
 	public enum BanCase
 	{
 		// Официальный регламент Раздела 5
+		Allowed,                    // Разрешено регламентом (0d / бан не требуется)
 		CheatClients,               // 5.01. Чит-клиенты (30d / perm)
 		CombatAdvantage,            // 5.02. Преимущество в бою (30d)
 		Automation,                 // 5.03. Автоматизация действий (15-30d)

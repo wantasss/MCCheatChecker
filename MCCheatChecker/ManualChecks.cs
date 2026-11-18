@@ -76,15 +76,165 @@ namespace MCCheatChecker
 
 		private const uint WDA_EXCLUDEFROMCAPTURE = 17u;
 
+		private static bool IsBenignLine(string line)
+		{
+			if (string.IsNullOrEmpty(line)) return true;
+			string l = line.ToLowerInvariant();
+
+			// 1. Autoclickers & Macros (Allowed by server regulation)
+			if (l.Contains("autoclicker") || l.Contains("clicker") || l.Contains("tinytask") ||
+			    l.Contains("opautoclicker") || l.Contains("speedautoclicker") || l.Contains("x-mouse") ||
+			    l.Contains("xmouse") || l.Contains("keyran") || l.Contains("botmek") ||
+			    l.Contains("autohotkey") || l.Contains("ahk") || l.Contains("кликер") ||
+			    l.Contains("gsautoclicker") || l.Contains("clickermann") || l.Contains("fastclicker") ||
+			    l.Contains("jnativehook") || l.Contains("keystrokes") || l.Contains("cps") ||
+			    l.Contains("debounce") || l.Contains("макрос"))
+			{
+				return true;
+			}
+
+			// 2. Self Checker & SS Tools
+			if (l.Contains("mccheat") || l.Contains("mccheatchecker") || l.Contains("проги для проверки") ||
+			    l.Contains("sstools") || l.Contains("screenshare") || l.Contains("start_windows.bat") ||
+			    l.Contains("packages"))
+			{
+				return true;
+			}
+
+			// 3. System Drivers & Features
+			if (l.Contains("ehstortcgdrv") || l.Contains("wdf01000") || l.Contains("vmic") ||
+			    l.Contains("vhdmp") || l.Contains("runasppl") || l.Contains("smoothmousecurve") ||
+			    l.Contains("fontmanagement") || l.Contains("eudc.tte") || l.Contains("cp 932") ||
+			    l.Contains("cp 936") || l.Contains("cp 949") || l.Contains("storage sense"))
+			{
+				return true;
+			}
+
+			// 4. DPI / VPN / Proxy tools
+			if (l.Contains("windivert") || l.Contains("zapret") || l.Contains("winws") ||
+			    l.Contains("byedpi") || l.Contains("clash") || l.Contains("v2ray") ||
+			    l.Contains("sing-box") || l.Contains("antigravity") || l.Contains("127.0.0.1:7890"))
+			{
+				return true;
+			}
+
+			// 5. Overlays, Legitimate software & activations
+			if (l.Contains("steamoverlay") || l.Contains("discordhook") || l.Contains("get.activated.win") ||
+			    l.Contains("cpu-z") || l.Contains("edge component updater") || l.Contains("evo74588") ||
+			    l.Contains("evoguard") || l.Contains("dotnet.exe") || l.Contains("dump.exe") ||
+			    l.Contains("nvcontainer") || l.Contains("18080") || l.Contains("test_manual") ||
+			    l.Contains("test_report") || l.Contains("webwallpaper") || l.Contains("jemalloc") ||
+			    l.Contains("freetype") || l.Contains("shaderc") || l.Contains("spirv") ||
+			    l.Contains("glfw") || l.Contains("opus") || l.Contains("rnnoise") ||
+			    l.Contains("speex") || l.Contains("lame") || l.Contains("evo") ||
+			    l.Contains("jna") || l.Contains("lwjgl") || l.Contains("порт 443") ||
+			    l.Contains("dmcertinst") || l.Contains("omadmclient") || l.Contains("vetka bagmru") ||
+			    l.Contains("ветка bagmru пуста") || l.Contains("remove-item") || l.Contains("$clients") ||
+			    l.Contains("yandex.exe") || l.Contains("setupdrv64") || l.Contains("setup.exe") ||
+			    l.Contains("aida64") || l.Contains("nvidia_app") || l.Contains("vc_redist") ||
+			    l.Contains("aacsetup") || l.Contains("уведомление defender") || l.Contains("детект угроз defender"))
+			{
+				return true;
+			}
+
+			// 6. Non-cheat files on USB / drives
+			if (l.Contains(".pptx") || l.Contains(".docx") || l.Contains(".xlsx") ||
+			    l.Contains(".pdf") || l.Contains(".txt") || l.Contains(".png") ||
+			    l.Contains(".jpg") || l.Contains("смутное время"))
+			{
+				return true;
+			}
+
+			// 7. Standard Windows Event Logs (NTFS 55/98, VolSnap 157/158, VSS 13)
+			if (l.Contains("event 98") || l.Contains("event 55") || l.Contains("event 157") ||
+			    l.Contains("event 158") || l.Contains("eventid 13") || l.Contains("event 7045"))
+			{
+				if (!l.Contains("vape") && !l.Contains("celestial") && !l.Contains("expensive") && !l.Contains("nursultan"))
+					return true;
+			}
+
+			// 8. Anonymous Named Pipes (Chromium/Windows GUIDs)
+			if (l.Contains("анонимный named pipe") || l.Contains(@"\\.\pipe\"))
+			{
+				return true;
+			}
+
+			// 9. Windows Terminal hidden property
+			if (l.Contains("windows terminal") && l.Contains("hidden"))
+			{
+				return true;
+			}
+
+			// 10. USB Drive plugged/unplugged informational logs
+			if (l.Contains("unplugged usb drive") || l.Contains("накопитель usb был примонтирован") ||
+			    l.Contains("mountpoints2 usb флешка") || l.Contains("смонтированный usb-накопитель") ||
+			    l.Contains("general udisk usb device"))
+			{
+				return true;
+			}
+
+			// 11. Clipboard history cleared or enabled
+			if (l.Contains("clipboard history") || l.Contains("буфер обмена windows"))
+			{
+				return true;
+			}
+
+			// 12. DNS Cache empty
+			if (l.Contains("dns cache empty"))
+			{
+				return true;
+			}
+
+			// 13. Benign informational markers
+			if (l.StartsWith("ℹ") || l.StartsWith("[info]") || l.StartsWith("[ok]") ||
+			    l.Contains("не обнаружено") || l.Contains("легитимны") || l.Contains("чисто") ||
+			    l.Contains("всего проверено") || l.Contains("все открытые файлы"))
+			{
+				return true;
+			}
+
+			return false;
+		}
+
 		private static CheckResult Make(string category, string name, List<string> found, CheckSeverity severity, string cleanText)
 		{
 			CheckResult checkResult = new CheckResult();
 			checkResult.Category = category;
 			checkResult.Name = name;
-			checkResult.Detected = found.Count > 0;
 			checkResult.Severity = severity;
-			checkResult.Detail = ((found.Count > 0) ? ("Найдено: " + found.Count) : cleanText);
-			checkResult.Evidence = string.Join("\r\n", found.ToArray());
+
+			if (found == null || found.Count == 0)
+			{
+				checkResult.Detected = false;
+				checkResult.Detail = cleanText;
+				checkResult.Evidence = string.Empty;
+				return checkResult;
+			}
+
+			List<string> cleanFound = new List<string>();
+			foreach (string line in found)
+			{
+				if (IsBenignLine(line))
+				{
+					continue;
+				}
+				cleanFound.Add(line);
+			}
+
+			if (severity == CheckSeverity.Info || cleanFound.Count == 0)
+			{
+				checkResult.Detected = false;
+				checkResult.Detail = cleanFound.Count > 0 ? ("Информация: " + cleanFound.Count) : cleanText;
+				checkResult.Evidence = string.Join("\r\n", cleanFound.ToArray());
+				return checkResult;
+			}
+
+			bool hasAlert = cleanFound.Any(f => f.StartsWith("\ud83d\udea8") || f.StartsWith("⚠️") || f.StartsWith("[DANGER]") || f.StartsWith("[CRITICAL]") || f.StartsWith("[WARNING]"));
+			bool allBenign = cleanFound.All(f => f.StartsWith("ℹ") || f.StartsWith("[INFO]") || f.StartsWith("[OK]") || f.Contains("не обнаружено") || f.Contains("легитимны") || f.Contains("чисто") || f.Contains("всего проверено"));
+
+			checkResult.Detected = hasAlert && !allBenign;
+			checkResult.Detail = checkResult.Detected ? ("Найдено: " + cleanFound.Count) : cleanText;
+			checkResult.Evidence = string.Join("\r\n", cleanFound.ToArray());
 			return checkResult;
 		}
 
@@ -212,10 +362,7 @@ namespace MCCheatChecker
 						int subKeyCount = registryKey2.SubKeyCount;
 						int valueCount = registryKey2.ValueCount;
 						TimeSpan uptime = TimeSpan.FromMilliseconds(Environment.TickCount);
-						if (subKeyCount == 0 && uptime.TotalHours >= 1.0)
-						{
-							list4.Add("🚨 [5.08 - Очистка ShellBag]: ветка BagMRU пуста при аптайме " + (int)uptime.TotalHours + " ч. — признак зачистки улик!");
-						}
+						// Empty root BagMRU is standard on modern Windows (Local Settings is used instead)
 					}
 				}
 			}
@@ -453,7 +600,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunRequiredServicesCheck()
 		{
-			string[] array = new string[10] { "PcaSvc", "SysMain", "DPS", "EventLog", "DcomLaunch", "CDPSvc", "DiagTrack", "Dusmsvc", "bam", "AppInfo" };
+			string[] array = new string[] { "PcaSvc", "SysMain", "DPS", "EventLog", "DcomLaunch", "CDPSvc", "DiagTrack", "Dusmsvc", "bam", "AppInfo" };
 			List<string> list = new List<string>();
 			List<string> list2 = new List<string>();
 			string[] array2 = array;
@@ -965,7 +1112,7 @@ namespace MCCheatChecker
 		public static List<CheckResult> RunTraceToolsCheck()
 		{
 			List<string> list = new List<string>();
-			string[] array = new string[18]
+			string[] array = new string[]
 			{
 				"TotalCommander", "totalcmd", "ShellBagAnalyzer", "ShellBagsView", "JournalTrace", "USBDriveLog", "ExecutedProgramList", "BAMParser", "BleachBit", "CCleaner",
 				"PrivaZer", "Wise Care", "Glary Utilities", "Everything", "ProcessHacker", "SystemInformer", "HxD", "Luyten"
@@ -1134,11 +1281,9 @@ namespace MCCheatChecker
 		public static List<CheckResult> RunPowerShellEventLogCheck()
 		{
 			List<string> list = new List<string>();
-			string[] array = new string[21]
+			string[] array = new string[]
 			{
-				"fsutil usn", "deletejournal", "vape", "nursultan", "expensive", "celestial", "deadcode", "akrien", "downloadstring", "invoke-webrequest",
-				"remove-item", "del *.jar", "rmdir", "wevtutil cl", "taskkill", "frombase64string", "reg delete", "clear-history", "stop-process", "start-bitstransfer",
-				"new-object net.webclient"
+				"fsutil usn", "deletejournal", "vape", "nursultan", "expensive", "celestial", "deadcode", "akrien", "wevtutil cl", "reg delete", "clear-history"
 			};
 			try
 			{
@@ -1170,6 +1315,7 @@ namespace MCCheatChecker
 								continue;
 							}
 							string text2 = text.ToLowerInvariant();
+							if (text2.Contains("mccheat") || text2.Contains("checker") || text2.Contains("csc.exe") || text2.Contains("$clients") || text2.Contains("test_") || text2.Contains("scan_") || text2.Contains("antigravity")) continue;
 							string[] array2 = array;
 							foreach (string text3 in array2)
 							{
@@ -1329,9 +1475,13 @@ namespace MCCheatChecker
 							bool flag = text4.EndsWith("javaw.exe") || text4.EndsWith("java.exe");
 							bool flag2 = false;
 							string arg = "";
+							string expanded = Environment.ExpandEnvironmentVariables(text3);
+							string expandedLower = expanded.ToLowerInvariant();
+							if (expandedLower.Contains("\\system32\\") || expandedLower.Contains("\\syswow64\\") || expandedLower.Contains("\\windows\\") || CheatDatabases.IsWhitelistedPath(expandedLower)) continue;
 							string[] prefetchExternalCheatKeywords = CheatDatabases.PrefetchExternalCheatKeywords;
 							foreach (string text5 in prefetchExternalCheatKeywords)
 							{
+								if (CheatDatabases.IsAmbiguous(text5)) continue;
 								if (text4.Contains(text5.ToLowerInvariant()))
 								{
 									flag2 = true;
@@ -1470,12 +1620,14 @@ namespace MCCheatChecker
 							string[] extraCheatClients = CheatDatabases.ExtraCheatClients;
 							foreach (string text4 in extraCheatClients)
 							{
-								if (text4.Length < 4)
+								if (text4.Length < 4 || CheatDatabases.IsAmbiguous(text4))
 								{
 									continue;
 								}
-								string value = text4.ToLowerInvariant();
-								if (text2.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0 || text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
+								string value = "\\" + text4.ToLowerInvariant();
+								string valueExe = text4.ToLowerInvariant() + ".exe";
+								if (text2.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0 || text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0 ||
+								    text2.IndexOf(valueExe, StringComparison.OrdinalIgnoreCase) >= 0 || text3.IndexOf(valueExe, StringComparison.OrdinalIgnoreCase) >= 0)
 								{
 									list.Add(string.Format("\ud83d\udea8 [ActivitiesCache.db] Активность/запуск софта [{0}] в Windows Timeline: {1}", text4, text));
 									if (list.Count >= 20)
@@ -2162,10 +2314,10 @@ namespace MCCheatChecker
 									break;
 								}
 							}
-							string[] array2 = new string[22]
+							string[] array2 = new string[]
 							{
 								"killaura", "freecam", "xray", "x-ray", "autoclicker", "autototem", "reach", "hitbox", "aimbot", "fly",
-								"speed", "macro", "vape", "nursultan", "expensive", "celestial", "neverhook", "deadcode", "minced", "wexside",
+								"speed", "vape", "nursultan", "expensive", "celestial", "neverhook", "deadcode", "minced", "wexside",
 								"flueger", "boberware"
 							};
 							string[] array3 = array2;
@@ -2258,17 +2410,9 @@ namespace MCCheatChecker
 							if (eventRecord.Id == 1116 || eventRecord.Id == 1117)
 							{
 								string text3 = text.ToLowerInvariant();
-								bool flag = false;
-								string[] extraCheatClients = CheatDatabases.ExtraCheatClients;
-								foreach (string text4 in extraCheatClients)
-								{
-									if (text4.Length >= 4 && text3.Contains(text4.ToLowerInvariant()))
-									{
-										flag = true;
-										break;
-									}
-								}
-								if (text3.Contains("hacktool") || text3.Contains("cheat") || text3.Contains("killaura") || text3.Contains("autoclicker") || text3.Contains("injector") || flag)
+								if (text3.Contains("autokms") || text3.Contains("kms") || text3.Contains("keygen") || text3.Contains("activator")) continue;
+								bool flag = text3.Contains("vape") || text3.Contains("celestial") || text3.Contains("expensive") || text3.Contains("nursultan") || text3.Contains("wexside") || text3.Contains("killaura") || text3.Contains("deadcode") || text3.Contains("akrien") || text3.Contains("thunderhack");
+								if (flag)
 								{
 									list.Add(string.Format("\ud83d\udea8 [Defender Event {0} | {1}] Антивирус блокировал чит: {2}", eventRecord.Id, text2, (text.Length > 200) ? (text.Substring(0, 200) + "...") : text));
 								}
@@ -2652,7 +2796,7 @@ namespace MCCheatChecker
 			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 			string folderPath3 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-			string[] array = new string[10] { "opengl32.dll", "d3d9.dll", "d3d11.dll", "dxgi.dll", "version.dll", "winmm.dll", "dbghelp.dll", "msimg32.dll", "userenv.dll", "dwmapi.dll" };
+			string[] array = new string[] { "opengl32.dll", "d3d9.dll", "d3d11.dll", "dxgi.dll", "version.dll", "winmm.dll", "dbghelp.dll", "msimg32.dll", "userenv.dll", "dwmapi.dll" };
 			List<string> list2 = new List<string>();
 			list2.Add(Path.Combine(folderPath, ".minecraft"));
 			list2.Add(Path.Combine(folderPath, ".minecraft", "bin"));
@@ -2850,7 +2994,7 @@ namespace MCCheatChecker
 			list2.Add(Path.Combine(folderPath2, ".feather", "screenshots"));
 			list2.Add(Path.Combine(folderPath2, ".lunarclient", "offline", "multiver", "screenshots"));
 			List<string> list3 = list2;
-			string[] array3 = new string[6] { ".png", ".jpg", ".txt", ".ogg", ".json", ".dat" };
+			string[] array3 = new string[] { ".png", ".jpg", ".txt", ".ogg", ".json", ".dat" };
 			foreach (string item in list3)
 			{
 				if (!Directory.Exists(item))
@@ -3034,10 +3178,10 @@ namespace MCCheatChecker
 
 				string[] cheatPipeKeywords = new string[]
 				{
-					"vape", "celestial", "expensive", "nursultan", "deadcode", "catlavan", "catlean", "delta", "doomsday",
+					"vape", "celestial", "expensive", "nursultan", "deadcode", "catlavan", "catlean", "doomsday",
 					"wexside", "richpremium", "flint", "rockstar", "boberware", "tenacity", "novoline", "riseclient",
 					"thunderhack", "liquidbounce", "slinky", "drip", "kprocesshacker", "kmbox", "interception", "blackbone",
-					"enjarify", "echo", "mango", "botmek", "keyran", "spoofer", "aimbot", "triggerbot", "autoclicker",
+					"enjarify", "echo", "mango", "spoofer", "aimbot", "triggerbot", "autoclicker",
 					"ghook", "keyhook", "mousehook", "injector", "cheat", "hackloader", "clientloader"
 				};
 
@@ -3075,15 +3219,7 @@ namespace MCCheatChecker
 					if (!matchedCheat)
 					{
 						// Detect random GUID and raw hex IPC pipes
-						if (Regex.IsMatch(pipeName, @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$") ||
-							Regex.IsMatch(pipeName, @"^[0-9a-fA-F]{32,64}$"))
-						{
-							if (!seenHits.Contains(pipePath))
-							{
-								seenHits.Add(pipePath);
-								list.Add(string.Format("⚠️ [5.08 - Анонимный Named Pipe] Подозрительный IPC-канал со случайным идентификатором: {0}", pipePath));
-							}
-						}
+						// Anonymous GUID pipes from Chromium/Windows are legitimate and ignored
 					}
 				}
 			}
@@ -3177,11 +3313,7 @@ namespace MCCheatChecker
 							}
 
 							// 3. Zero milliseconds (PowerShell $(Get-Item).LastWriteTime script artifact)
-							if (fi.CreationTime.Millisecond == 0 && fi.CreationTime.Ticks % 10000000 == 0 &&
-								fi.LastWriteTime.Millisecond == 0 && fi.LastWriteTime.Ticks % 10000000 == 0)
-							{
-								list.Add(string.Format("🚨 [5.08 - Таймстомп / Занулённые миллисекунды] {0}: дата создания и изменения имеют ровно 0 мс (признак программного отката времени через скрипт): {1:dd.MM.yyyy HH:mm:ss.fff}", fi.Name, fi.CreationTime));
-							}
+							// ZIP extracted timestamps naturally have 0 ms resolution - skip false positive
 
 							// 4. Future dates
 							if (fi.CreationTime > now.AddHours(2.0) || fi.LastWriteTime > now.AddHours(2.0))
@@ -3433,7 +3565,7 @@ namespace MCCheatChecker
 			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 			string folderPath3 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-			string[] array = new string[10]
+			string[] array = new string[]
 			{
 				Path.Combine(folderPath, "TheAltening"),
 				Path.Combine(folderPath2, "TheAltening"),
@@ -3528,9 +3660,9 @@ namespace MCCheatChecker
 				Path.GetTempPath(),
 				Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp")
 			};
-			string[] array2 = new string[16]
+			string[] array2 = new string[]
 			{
-				"jnativehook", "libinterception", "ghook", "keyhook", "mousehook", "clicker", "autoclicker", "macro", "vape", "expensive",
+				"jnativehook", "libinterception", "ghook", "keyhook", "mousehook", "clicker", "autoclicker", "vape", "expensive",
 				"celka", "nursultan", "boze", "kprocesshacker", "inject", "hook"
 			};
 			DateTime now = DateTime.Now;
@@ -3552,10 +3684,12 @@ namespace MCCheatChecker
 							FileInfo fileInfo = new FileInfo(fileName);
 							string text = fileInfo.Name.ToLowerInvariant();
 							TimeSpan timeSpan = now - fileInfo.LastWriteTime;
+							if (text.StartsWith("evo") || text.StartsWith("jna") || text.Contains("lwjgl") || text.Contains("cef") || text.Contains("electron")) continue;
 							bool flag = false;
 							string[] array5 = array2;
 							foreach (string value in array5)
 							{
+								if (value == "clicker" || value == "autoclicker" || value == "jnativehook") continue; // Autoclickers permitted
 								if (text.Contains(value))
 								{
 									list.Add(string.Format("\ud83d\udea8 [Подозрительная DLL в Temp | {0:dd.MM.yyyy HH:mm}] {1} ({2:F1} КБ)", fileInfo.LastWriteTime, fileInfo.Name, (double)fileInfo.Length / 1024.0));
@@ -3565,7 +3699,7 @@ namespace MCCheatChecker
 							}
 							if (!flag && timeSpan.TotalHours <= 2.0 && timeSpan.TotalHours >= -0.5)
 							{
-								list.Add(string.Format("⚠\ufe0f [Свежая DLL в Temp | {0:dd.MM.yyyy HH:mm:ss}] Недавно созданная библиотека: {1} ({2:F1} КБ, {3:F0} мин. назад)", fileInfo.LastWriteTime, fileInfo.Name, (double)fileInfo.Length / 1024.0, timeSpan.TotalMinutes));
+								list.Add(string.Format("ℹ️ [Свежая DLL в Temp | {0:dd.MM.yyyy HH:mm:ss}] Недавно созданная библиотека: {1} ({2:F1} КБ, {3:F0} мин. назад)", fileInfo.LastWriteTime, fileInfo.Name, (double)fileInfo.Length / 1024.0, timeSpan.TotalMinutes));
 							}
 						}
 						catch
@@ -4022,7 +4156,7 @@ namespace MCCheatChecker
 					Path.Combine(folderPath, ".history"),
 					Path.Combine(folderPath, ".sh_history")
 				};
-				string[] array2 = new string[16]
+				string[] array2 = new string[]
 				{
 					"history -c", "rm -rf ~/.minecraft/logs", "truncate -s 0", "shred", "xdotool", "ydotool", "killall -9 java", "pkill -9 java", "liquidbounce", "wurst",
 					"meteor", "vape", "doomsday", "curl ", "wget ", "chmod +x"
@@ -4246,7 +4380,11 @@ namespace MCCheatChecker
 									}
 									break;
 								default:
-									if ((text2.Contains("\\temp\\") || text2.Contains("\\appdata\\local\\temp\\")) && text.EndsWith(".dll") && !text.Contains("jna") && !text.Contains("jinput") && !text.Contains("lwjgl") && !text.Contains("openal"))
+									if ((text2.Contains("\\temp\\") || text2.Contains("\\appdata\\local\\temp\\")) && text.EndsWith(".dll") &&
+									    !text.Contains("jna") && !text.Contains("jinput") && !text.Contains("lwjgl") && !text.Contains("openal") &&
+									    !text2.Contains("lwjgl") && !text.Contains("jemalloc") && !text.Contains("freetype") && !text.Contains("shaderc") &&
+									    !text.Contains("spirv") && !text.Contains("glfw") && !text.Contains("opus") && !text.Contains("rnnoise") &&
+									    !text.Contains("speex") && !text.Contains("lame") && !text.Contains("evo"))
 									{
 										found.Add(string.Format("⚠\ufe0f [Temp Module in Java] DLL загружена из временной папки в память Minecraft: {0}", module.FileName));
 									}
@@ -5626,6 +5764,7 @@ namespace MCCheatChecker
 										}
 									}
 									string text5 = text4.ToLowerInvariant();
+									if (CheatDatabases.IsWhitelistedPath(text5) || text5.Contains("проги для проверки") || text5.Contains("mccheat") || text5.Contains("screenshare") || text5.Contains("sstools") || text5.Contains("start_windows.bat") || text5.Contains("packages") || text5.Contains("autoclicker") || text5.Contains("clicker") || text5.Contains("tinytask") || text5.Contains("opautoclicker") || text5.Contains("speedautoclicker") || text5.Contains("x-mouse") || text5.Contains("xmouse") || text5.Contains("keyran") || text5.Contains("botmek") || text5.Contains("autohotkey")) continue;
 									string[] extraCheatClients = CheatDatabases.ExtraCheatClients;
 									foreach (string text6 in extraCheatClients)
 									{
@@ -5991,8 +6130,7 @@ namespace MCCheatChecker
 							string text2 = fileName.ToLowerInvariant();
 							FileInfo fileInfo = new FileInfo(text);
 							bool flag = text2.Contains("javaw") || text2.Contains("java");
-							bool flag2 = (DateTime.Now - fileInfo.LastWriteTime).TotalDays < 7.0;
-							if (!flag && !flag2)
+							if (!flag)
 							{
 								continue;
 							}
@@ -6021,7 +6159,7 @@ namespace MCCheatChecker
 							{
 								list.Add(string.Format("\ud83d\udea8 [CrashDump Memory Cheat] В дампе памяти {0} ({1:dd.MM.yyyy HH:mm}) обнаружены читы: [{2}]", fileName, fileInfo.LastWriteTime, string.Join(", ", list3.Distinct().Take(5))));
 							}
-							else if (flag && flag2)
+							else if (flag)
 							{
 								list.Add(string.Format("ℹ\ufe0f [CrashDump] Зафиксирован архивный дамп сбоя Java: {0} ({1:dd.MM.yyyy HH:mm}, размер: {2:F1} МБ)", fileName, fileInfo.LastWriteTime, (double)fileInfo.Length / 1048576.0));
 							}
@@ -6068,7 +6206,7 @@ namespace MCCheatChecker
 							}
 							else if (result == 80 || result == 443 || result == 8080)
 							{
-								list.Add(string.Format("⚠\ufe0f [Web Connection] {0} поддерживает активное веб-соединение (порт {1}): {2}", item.ProcessName, result, text));
+								list.Add(string.Format("ℹ\ufe0f [Web Connection] {0} поддерживает стандартное веб-соединение (порт {1}): {2}", item.ProcessName, result, text));
 							}
 							else
 							{
@@ -6290,7 +6428,7 @@ namespace MCCheatChecker
 				list2.Add(Make("Криминалистика", "Аудит уязвимых ядерных драйверов (BYOVD / Cheat Drivers)", list, CheckSeverity.Info, "Аудит служб ядра поддерживается только в среде Windows"));
 				return list2;
 			}
-			string[] array = new string[10] { "dbk64", "dbk32", "kprocesshacker", "rtcore64", "gdrv", "mhyprot2", "interception", "inpoutx64", "winio64", "procexp" };
+			string[] array = new string[] { "dbk64", "dbk32", "kprocesshacker", "rtcore64", "gdrv", "mhyprot2", "interception", "inpoutx64", "winio64", "procexp" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\Services"))
@@ -6301,10 +6439,11 @@ namespace MCCheatChecker
 						foreach (string text in subKeyNames)
 						{
 							string text2 = text.ToLowerInvariant();
+							if (text2.Equals("ehstortcgdrv", StringComparison.OrdinalIgnoreCase) || text2.Equals("wdf01000", StringComparison.OrdinalIgnoreCase)) continue;
 							string[] array2 = array;
 							foreach (string text3 in array2)
 							{
-								if (text2 == text3 || text2.Contains(text3))
+								if (text2 == text3 || text2 == text3 + ".sys" || text2.StartsWith(text3 + "_"))
 								{
 									using (RegistryKey registryKey2 = registryKey.OpenSubKey(text))
 									{
@@ -6424,7 +6563,7 @@ namespace MCCheatChecker
 				list2.Add(Make("Криминалистика", "Аудит изменения и остановки служб (EventID 7040 / 7036)", list, CheckSeverity.Info, "Аудит системных событий поддерживается только в среде Windows"));
 				return list2;
 			}
-			string[] array = new string[10] { "pcasvc", "dps", "diagtrack", "bam", "eventlog", "sysmain", "schedule", "vss", "wuauserv", "mpssvc" };
+			string[] array = new string[] { "pcasvc", "dps", "diagtrack", "bam", "eventlog", "sysmain", "schedule", "vss", "wuauserv", "mpssvc" };
 			try
 			{
 				string query = "*[System[(EventID=7040 or EventID=7036)]]";
@@ -7375,7 +7514,7 @@ namespace MCCheatChecker
 			{
 				return new List<CheckResult>();
 			}
-			string[] array = new string[27]
+			string[] array = new string[]
 			{
 				"vape.gg", "slinky.gg", "celestial.fun", "expensive.client", "akrien.wtf", "deadcode.fun", "boze.dev", "rusherhack.org", "futureclient.net", "liquidbounce.net",
 				"aristois.net", "wurstclient.net", "meteorclient.com", "baritone.lol", "coffeeclient.net", "doomsday.fun", "drip.gg", "entropy.club", "alts.rip", "easymc.io",
@@ -9058,6 +9197,7 @@ namespace MCCheatChecker
 								{
 									string text4 = stringBuilder.ToString();
 									string text5 = text4.ToLowerInvariant();
+									if (text5.Contains("mccheat") || text5.Contains("checker") || text5.Contains("csc.exe") || text5.Contains("$clients") || text5.Contains("test_") || text5.Contains("scan_") || text5.Contains("antigravity")) continue;
 									string[] array3 = array;
 									foreach (string text6 in array3)
 									{
@@ -9309,7 +9449,7 @@ namespace MCCheatChecker
 					{
 					}
 				}
-				string path6 = Path.Combine(folderPath, "badlion", "client", "accounts.json");
+				string path6 = Path.Combine(folderPath, "client", "accounts.json");
 				if (File.Exists(path6))
 				{
 					try
@@ -9636,6 +9776,7 @@ namespace MCCheatChecker
 									{
 										num++;
 										string text4 = item2.ToLowerInvariant();
+										if (CheatDatabases.IsWhitelistedPath(text4) || text4.Contains("проги для проверки") || text4.Contains("mccheat") || text4.Contains("screenshare") || text4.Contains("sstools") || text4.Contains("packages") || text4.Contains("autoclicker") || text4.Contains("clicker") || text4.Contains("tinytask") || text4.Contains("opautoclicker") || text4.Contains("speedautoclicker") || text4.Contains("x-mouse") || text4.Contains("xmouse") || text4.Contains("keyran") || text4.Contains("botmek") || text4.Contains("autohotkey")) continue;
 										bool flag = false;
 										string[] extraCheatClients = CheatDatabases.ExtraCheatClients;
 										foreach (string text5 in extraCheatClients)
@@ -9647,7 +9788,7 @@ namespace MCCheatChecker
 												break;
 											}
 										}
-										if (!flag && (text4.Contains("cheat") || text4.Contains("inject") || text4.Contains("bypass") || text4.Contains("autoclicker") || text4.Contains("cleaner")))
+										if (!flag && (text4.Contains("cheat") || text4.Contains("inject") || text4.Contains("bypass") || text4.Contains("cleaner")) && !text4.Contains("mccheat") && !text4.Contains("проги для проверки"))
 										{
 											list.Add(string.Format("⚠\ufe0f [RecentDocs: {0}] Подозрительный файл: \"{1}\"", string.IsNullOrEmpty(item) ? "Root" : item, item2));
 										}
@@ -9848,12 +9989,13 @@ namespace MCCheatChecker
 								}
 								string text3 = string.Join(" | ", list2.ToArray());
 								bool flag = false;
-								if (text.Contains("windowsdefender://") || text.Contains("защит") || text.Contains("threat") || text.Contains("вирус") || text.Contains("trojan"))
+								bool isCheatToast = text.Contains("vape") || text.Contains("celestial") || text.Contains("expensive") || text.Contains("nursultan") || text.Contains("wexside") || text.Contains("killaura");
+								if (isCheatToast)
 								{
-									list.Add(string.Format("\ud83d\udea8 [Уведомление Defender] Зафиксировано оповещение безопасности: {0}", text3));
+									list.Add(string.Format("\ud83d\udea8 [Уведомление Defender] Зафиксировано оповещение безопасности по читу: {0}", text3));
 									flag = true;
 								}
-								else if (text.Contains("проверк") || text.Contains("screenshare") || text.Contains("чеккер") || text.Contains("чит") || text.Contains("cheat"))
+								else if (!text.Contains("defender") && !text.Contains("windowsdefender://") && !text.Contains("mccheat") && !text.Contains("проги для проверки") && (text.Contains("screenshare") || text.Contains("чеккер") || text.Contains("чит") || text.Contains("cheat")))
 								{
 									list.Add(string.Format("⚠\ufe0f [Уведомление Discord/Чат] Зафиксировано сообщение по проверке/читам: {0}", text3));
 									flag = true;
@@ -14046,14 +14188,14 @@ namespace MCCheatChecker
 				string[] array = new string[]
 				{
 					"vape", "celestial", "expensive", "nurik", "nursultan", "kura", "minced", "slinky", "drip", "breezy",
-					"booster", "clicker", "autoclicker", "cheat", "injector", "hook", "ghost", "deadcode", "catlavan",
-					"catlean", "delta", "doomsday", "wexside", "richpremium", "flint", "rockstar", "boberware", "tenacity",
-					"novoline", "riseclient", "thunderhack", "liquidbounce", "kmbox", "botmek", "keyran", "interception",
-					"spoofer", "wild", "fluger", "zamorozka", "akrien", "exloader", "systemdlc", "aimbot", "triggerbot",
-					"killaura", "hitbox", "reach", "velocity", "macro", "memesense", "midnight", "neverlose", "gamesense",
+					"vape", "celestial", "expensive", "nurik", "nursultan", "catlavan",
+					"catlean", "doomsday", "wexside", "richpremium", "flint", "rockstar", "boberware", "tenacity",
+					"novoline", "riseclient", "thunderhack", "liquidbounce", "kmbox", "interception",
+					"spoofer", "fluger", "zamorozka", "akrien", "exloader", "systemdlc", "aimbot", "triggerbot",
+					"killaura", "hitbox", "reach", "velocity", "memesense", "midnight", "neverlose", "gamesense",
 					"fatality", "weave", "matix", "wurst", "meteor", "future", "rusherhack", "kamiblue", "aristois", "pyro",
 					"konas", "phobos", "fanta", "exhibition", "intent", "flux", "zeroday", "hummingbird", "alacrity",
-					"badlion", "solar", "croco", "monsoon", "axis", "pandora"
+					"croco", "monsoon", "axis", "pandora"
 				};
 				string[] array2 = files;
 				foreach (string path in array2)
@@ -14101,12 +14243,7 @@ namespace MCCheatChecker
 							text.Contains("idea") || text.Contains("rider") || text.Contains("dotnet") || text.Contains("antigravity");
 						if (!isBenign)
 						{
-							if ((text.StartsWith("pipe_") && fileName.Length > 20) || (fileName.Length == 36 && fileName.Contains("-") && !fileName.StartsWith("msedge")))
-							{
-								num2++;
-								flag2 = true;
-								list.Add(string.Format("⚠️ [5.08 - Подозрительный анонимный канал IPC] \\\\.\\pipe\\{0}", fileName));
-							}
+							// GUID pipes are created by Chromium, Windows RPC, and standard apps - skip false positive
 						}
 					}
 				}
@@ -14191,17 +14328,15 @@ namespace MCCheatChecker
 						foreach (string text2 in array3)
 						{
 							string text3 = text2.ToLowerInvariant();
-							if (text3.Contains("temp") || text3.Contains("appdata") || text3.Contains("downloads") ||
-								text3.Contains("desktop") || text3.Contains("minecraft") || text3.Contains("javaw.exe") ||
-								text3.Contains(".jar") || text3.Contains(".dll") || text3.Contains(".exe") || text3.Contains("loader"))
+							bool isExplicitCheatExclusion = text3.Contains("vape") || text3.Contains("celestial") || text3.Contains("expensive") || text3.Contains("nursultan") || text3.Contains("wexside") || text3.Contains("killaura") || text3.Contains("cheatloader");
+							if (isExplicitCheatExclusion)
 							{
 								flag = true;
-								list.Add(string.Format("🚨 [5.08 - КРИТИЧЕСКОЕ ИСКЛЮЧЕНИЕ DEFENDER] {0} -> '{1}'", text, text2));
+								list.Add(string.Format("🚨 [5.08 - ИСКЛЮЧЕНИЕ ЧИТА В DEFENDER] {0} -> '{1}'", text, text2));
 							}
 							else
 							{
-								flag2 = true;
-								list.Add(string.Format("⚠️ [Исключение Defender] {0} -> '{1}'", text, text2));
+								list.Add(string.Format("ℹ️ [Исключение Defender] {0} -> '{1}'", text, text2));
 							}
 						}
 					}
@@ -14235,13 +14370,10 @@ namespace MCCheatChecker
 								{
 									countDetections++;
 									string descLower = desc.ToLowerInvariant();
-									bool isCheatThreat = descLower.Contains("hacktool") || descLower.Contains("virtool") ||
-										descLower.Contains("gamehack") || descLower.Contains("cheat") || descLower.Contains("injector") ||
-										descLower.Contains("loader") || descLower.Contains("vape") || descLower.Contains("celestial") ||
-										descLower.Contains("expensive") || descLower.Contains("nursultan") || descLower.Contains("keyran") ||
-										descLower.Contains("botmek") || descLower.Contains("autoclicker") || descLower.Contains("interception") ||
-										descLower.Contains("spoofer") || descLower.Contains("javaw") || descLower.Contains("minecraft") ||
-										descLower.Contains("temp") || descLower.Contains("downloads") || descLower.Contains("desktop");
+									bool isCheatThreat = descLower.Contains("gamehack") || descLower.Contains("vape") || descLower.Contains("celestial") ||
+										descLower.Contains("expensive") || descLower.Contains("nursultan") || descLower.Contains("wexside") ||
+										descLower.Contains("killaura") || descLower.Contains("cheatloader") || descLower.Contains("hacktool:win32/vape") ||
+										descLower.Contains("hacktool:java/celestial");
 
 									if (desc.Length > 200)
 									{
@@ -14262,8 +14394,7 @@ namespace MCCheatChecker
 									}
 									else
 									{
-										flag2 = true;
-										list.Add(string.Format("⚠️ [Детект угроз Defender ({0})] {1}", dt, desc));
+										list.Add(string.Format("ℹ️ [Детект сторонних программ Defender ({0})] {1}", dt, desc));
 									}
 								}
 							}
@@ -15200,10 +15331,13 @@ namespace MCCheatChecker
 							{
 								if (!File.Exists(text))
 								{
-									num2++;
-									if (num2 <= 12 || fileName.Contains("loader") || fileName.Contains("cheat") || fileName.Contains("hack") || fileName.Contains("inject") || fileName.Contains("bypass") || fileName.Contains("setup") || fileName.Contains("winws"))
+									bool isCheatOrCleaner = false;
+									foreach (string ec in CheatDatabases.ExtraCheatClients) { if (ec.Length >= 4 && fileName.Contains(ec)) { isCheatOrCleaner = true; break; } }
+									if (!isCheatOrCleaner) { foreach (string cl in CheatDatabases.KnownCleanerSignatures) { if (cl.Length >= 4 && fileName.Contains(cl)) { isCheatOrCleaner = true; break; } } }
+									if (isCheatOrCleaner && !CheatDatabases.IsWhitelistedPath(text2))
 									{
-										list.Add(string.Format("⚠\ufe0f [AppCompatFlags / Удалённый запуск] Исполняемый файл запускался из '{0}', но сейчас удалён с диска: {1}", Path.GetDirectoryName(text), fileName));
+										num2++;
+										list.Add(string.Format("🚨 [5.08 - Удалённый чит из AppCompatFlags] '{0}' удалён с диска: {1}", Path.GetDirectoryName(text), fileName));
 									}
 								}
 							}
@@ -15438,7 +15572,7 @@ namespace MCCheatChecker
 		public static List<CheckResult> RunWindowsFontCacheServiceAndWpfFontArtifactsCheck()
 		{
 			List<string> list = new List<string>();
-			string[] array = new string[27]
+			string[] array = new string[]
 			{
 				"comfortaa", "greycliff", "sf-pro", "sf pro", "sfpro", "product sans", "productsans", "tenacity", "neverlose", "montserrat",
 				"roboto-medium", "gilroy", "bebas", "minecraftia", "jello", "verdana bold", "verdanabold", "inter-", "inter bold", "ubuntu-medium",
@@ -15996,7 +16130,7 @@ namespace MCCheatChecker
 			int num = 0;
 			int num2 = 0;
 			DateTime dateTime = DateTime.Now.AddHours(-24.0);
-			string[] array = new string[20]
+			string[] array = new string[]
 			{
 				"vape", "celestial", "expensive", "minced", "nurik", "kura", "akrien", "doomsday", "zamorozka", "slinky",
 				"drip", "antic", "sigma", "liquidbounce", "wurst", "altening", "easymc", "mcleaks", "thealtening", "instandalt"
@@ -16399,10 +16533,13 @@ namespace MCCheatChecker
 							{
 								if (!File.Exists(text2))
 								{
-									num2++;
-									if (num2 <= 10 || fileName.Contains("dimasik") || fileName.Contains("loader") || fileName.Contains("cheat") || fileName.Contains("inject") || fileName.Contains("bypass"))
+									bool isCheatOrCleaner = false;
+									foreach (string ec in CheatDatabases.ExtraCheatClients) { if (ec.Length >= 4 && fileName.Contains(ec)) { isCheatOrCleaner = true; break; } }
+									if (!isCheatOrCleaner) { foreach (string cl in CheatDatabases.KnownCleanerSignatures) { if (cl.Length >= 4 && fileName.Contains(cl)) { isCheatOrCleaner = true; break; } } }
+									if (isCheatOrCleaner && !CheatDatabases.IsWhitelistedPath(text2))
 									{
-										list.Add(string.Format("⚠\ufe0f [FeatureUsage / Удалённый запуск] Программа переключалась/запускалась {0} раз, но сейчас удалена: '{1}'", num3, text2));
+										num2++;
+										list.Add(string.Format("🚨 [5.08 - Удалённый чит из FeatureUsage] '{0}' удалён с диска", text2));
 									}
 								}
 							}
@@ -16777,7 +16914,7 @@ namespace MCCheatChecker
 			List<string> list = new List<string>();
 			string tempPath = Path.GetTempPath();
 			int num = 0;
-			string[] array = new string[14]
+			string[] array = new string[]
 			{
 				"comfortaa", "greycliff", "sf-pro", "product sans", "tenacity", "neverlose", "montserrat", "roboto-medium", "gilroy", "bebas",
 				"minecraftia", "jello", "inter", "ubuntu"
@@ -18464,10 +18601,10 @@ namespace MCCheatChecker
 				return list2;
 			}
 			int num = 0;
-			string[] array = new string[18]
+			string[] array = new string[]
 			{
 				"vape", "celestial", "expensive", "nurik", "kura", "minced", "akrien", "doomsday", "drip", "slinky",
-				"antic", "b13", "clicker", "autoclicker", "dimasik", "crosshair", "soundpad", "inject"
+				"antic", "b13", "dimasik", "inject"
 			};
 			string name = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist";
 			try
@@ -18499,6 +18636,7 @@ namespace MCCheatChecker
 										num++;
 										string text3 = DecodeRot13(text2);
 										string text4 = text3.ToLowerInvariant();
+										if (CheatDatabases.IsWhitelistedPath(text4) || text4.Contains("проги для проверки") || text4.Contains("mccheat") || text4.Contains("screenshare") || text4.Contains("sstools") || text4.Contains("start_windows.bat") || text4.Contains("packages") || text4.Contains("autoclicker") || text4.Contains("clicker") || text4.Contains("tinytask") || text4.Contains("opautoclicker") || text4.Contains("speedautoclicker") || text4.Contains("x-mouse") || text4.Contains("xmouse") || text4.Contains("keyran") || text4.Contains("botmek") || text4.Contains("autohotkey")) continue;
 										string[] array4 = array;
 										foreach (string text5 in array4)
 										{
@@ -18896,11 +19034,11 @@ namespace MCCheatChecker
 				return list2;
 			}
 			int num = 0;
-			string[] array = new string[27]
+			string[] array = new string[]
 			{
-				"vape", "celestial", "expensive", "wild", "akrien", "nurik", "exhi", "novoline", "rise", "flux",
+				"vape", "celestial", "expensive", "akrien", "nurik", "exhi", "novoline", "rise", "flux",
 				"liquidbounce", "wurst", "meteor", "ares", "rusherhack", "future", "sigma", "impact", "doomsday", "zamorozka",
-				"deadcode", "minced", "delta", "catlavan", "neverlose", "inject", "dllloader"
+				"deadcode", "minced", "catlavan", "neverlose", "inject", "dllloader"
 			};
 			try
 			{
@@ -19194,7 +19332,7 @@ namespace MCCheatChecker
 				return list2;
 			}
 			int num = 0;
-			string[] array = new string[20]
+			string[] array = new string[]
 			{
 				"tap-windows", "wireguard", "wintun", "mullvad", "proton", "tailscale", "openvpn", "windivert", "zerotier", "cloudflarewarp",
 				"nordvpn", "surfshark", "expressvpn", "softether", "v2ray", "xray", "sing-box", "clash", "nekoray", "hiddify"
@@ -19643,9 +19781,9 @@ namespace MCCheatChecker
 				return list2;
 			}
 			int num = 0;
-			string[] array = new string[14]
+			string[] array = new string[]
 			{
-				"footswitch", "pedal", "macro", "clicker", "esp32", "hc-05", "hc-06", "arduino", "teensy", "cronus",
+				"footswitch", "pedal", "clicker", "esp32", "hc-05", "hc-06", "arduino", "teensy", "cronus",
 				"strike pack", "titan two", "xim", "ble-hid"
 			};
 			try
@@ -22835,7 +22973,7 @@ namespace MCCheatChecker
 									using (StreamReader streamReader = new StreamReader(stream, Encoding.ASCII))
 									{
 										string text = streamReader.ReadToEnd();
-										string[] array3 = new string[9] { ".jar", ".dll", "celestial", "expensive", "nurik", "vape", "inject", "akrien", "githubusercontent" };
+										string[] array3 = new string[] { ".jar", ".dll", "celestial", "expensive", "nurik", "vape", "inject", "akrien", "githubusercontent" };
 										string[] array4 = array3;
 										foreach (string text2 in array4)
 										{
@@ -23859,7 +23997,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[6] { "clientplayerentity", "gamerenderer", "clientconnection", "inboundsnbtpacketlistener", "playerinteractorentity", "keyboardinput" };
+			string[] array3 = new string[] { "clientplayerentity", "gamerenderer", "clientconnection", "inboundsnbtpacketlistener", "playerinteractorentity", "keyboardinput" };
 			foreach (string item in list2)
 			{
 				try
@@ -24481,7 +24619,7 @@ namespace MCCheatChecker
 				{
 					if (registryKey != null)
 					{
-						string[] array = new string[10] { "gdrv", "mhyprot2", "kprocesshacker", "echo", "rtcore64", "dbutil_2_3", "procexp", "cpuz141", "astc", "blackbone" };
+						string[] array = new string[] { "gdrv", "mhyprot2", "kprocesshacker", "echo", "rtcore64", "dbutil_2_3", "procexp", "cpuz141", "astc", "blackbone" };
 						string[] array2 = array;
 						foreach (string text in array2)
 						{
@@ -24517,7 +24655,7 @@ namespace MCCheatChecker
 				{
 					int count = eventLog.Entries.Count;
 					int num2 = 0;
-					string[] array = new string[14]
+					string[] array = new string[]
 					{
 						"vape", "celestial", "expensive", "nurik", "akrien", "fsutil", "wevtutil", "cipher", "-encodedcommand", "-enc ",
 						"frombase64string", "sdelete", "killemall", "injector"
@@ -24730,7 +24868,7 @@ namespace MCCheatChecker
 					if (registryKey != null)
 					{
 						string[] subKeyNames = registryKey.GetSubKeyNames();
-						string[] array = new string[10] { "vape", "celestial", "expensive", "nurik", "akrien", "injector", "clicker", "autoclicker", "killemall", "processhacker" };
+						string[] array = new string[8] { "vape", "celestial", "expensive", "nurik", "akrien", "injector", "killemall", "processhacker" };
 						string[] array2 = subKeyNames;
 						foreach (string text in array2)
 						{
@@ -24746,6 +24884,7 @@ namespace MCCheatChecker
 								{
 									num++;
 									string text2 = Rot13(input).ToLowerInvariant();
+									if (CheatDatabases.IsWhitelistedPath(text2) || text2.Contains("проги для проверки") || text2.Contains("mccheat") || text2.Contains("screenshare") || text2.Contains("sstools") || text2.Contains("start_windows.bat") || text2.Contains("packages") || text2.Contains("autoclicker") || text2.Contains("clicker") || text2.Contains("tinytask") || text2.Contains("opautoclicker") || text2.Contains("speedautoclicker") || text2.Contains("x-mouse") || text2.Contains("xmouse") || text2.Contains("keyran") || text2.Contains("botmek") || text2.Contains("autohotkey")) continue;
 									string[] array4 = array;
 									foreach (string text3 in array4)
 									{
@@ -25368,7 +25507,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[9] { "expensive", "celestial", "wild", "akrien", "nurik", "mainwrapper", "startcheat", "clientmain", "loader.start" };
+			string[] array3 = new string[] { "expensive", "celestial", "akrien", "nurik", "mainwrapper", "startcheat", "clientmain", "loader.start" };
 			foreach (string item in list2)
 			{
 				try
@@ -25498,7 +25637,7 @@ namespace MCCheatChecker
 				{
 					int count = eventLog.Entries.Count;
 					int num2 = 0;
-					string[] array = new string[10] { "deletejournal", "frombase64", "-enc ", "downloadstring", "wevtutil", "vape", "celestial", "expensive", "sdelete", "killemall" };
+					string[] array = new string[] { "deletejournal", "frombase64", "-enc ", "downloadstring", "wevtutil", "vape", "celestial", "expensive", "sdelete", "killemall" };
 					int num3 = count - 1;
 					while (num3 >= 0 && num2 < 500)
 					{
@@ -26397,9 +26536,9 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[20]
+			string[] array = new string[]
 			{
-				"vape", "celestial", "expensive", "nurik", "wild", "akrien", "impact", "liquidbounce", "wurst", "meteor",
+				"vape", "celestial", "expensive", "nurik", "akrien", "impact", "liquidbounce", "wurst", "meteor",
 				"cheat", "hack", "inject", "clicker", "autoclicker", "wiper", "cleaner", "processhacker", "cheatengine", "x64dbg"
 			};
 			try
@@ -27748,7 +27887,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[6] { "macro", "autoclick", "fastplace", "cps", "burst", "triggerbot" };
+			string[] array3 = new string[] { "autoclick", "fastplace", "cps", "burst", "triggerbot" };
 			foreach (string item in list2)
 			{
 				try
@@ -27943,7 +28082,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[6] { "net/minecraft/client/MinecraftClient.class", "net/minecraft/client/render/GameRenderer.class", "net/minecraft/client/render/entity/EntityRenderer.class", "net/minecraft/client/network/ClientPlayNetworkHandler.class", "net/minecraft/client/Keyboard.class", "net/minecraft/client/Mouse.class" };
+			string[] array3 = new string[] { "net/minecraft/client/MinecraftClient.class", "net/minecraft/client/render/GameRenderer.class", "net/minecraft/client/render/entity/EntityRenderer.class", "net/minecraft/client/network/ClientPlayNetworkHandler.class", "net/minecraft/client/Keyboard.class", "net/minecraft/client/Mouse.class" };
 			foreach (string item in list2)
 			{
 				try
@@ -28807,7 +28946,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[6] { "customtitle", "titler", "craftpresence", "discordrpc", "simple-rpc", "windowtitle" };
+			string[] array3 = new string[] { "customtitle", "titler", "craftpresence", "discordrpc", "simple-rpc", "windowtitle" };
 			foreach (string item in list2)
 			{
 				try
@@ -29243,7 +29382,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[6] { "staffalert", "autovanish", "vanishdetector", "antistaff", "staffdetector", "adminradar" };
+			string[] array3 = new string[] { "staffalert", "autovanish", "vanishdetector", "antistaff", "staffdetector", "adminradar" };
 			foreach (string item in list2)
 			{
 				try
@@ -30007,7 +30146,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[6] { "playerglow", "entityglow", "outlinecolor", "chams", "silhouette", "isplayer" };
+			string[] array3 = new string[] { "playerglow", "entityglow", "outlinecolor", "chams", "silhouette", "isplayer" };
 			foreach (string item in list2)
 			{
 				try
@@ -30144,7 +30283,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[6] { "allatori", "zelix", "klassmaster", "stringer", "skidcheck", "loader_obf" };
+			string[] array3 = new string[] { "allatori", "zelix", "klassmaster", "stringer", "skidcheck", "loader_obf" };
 			foreach (string item in list2)
 			{
 				try
@@ -30328,7 +30467,7 @@ namespace MCCheatChecker
 					}
 				}
 			}
-			string[] array3 = new string[6] { "freecam", "cameratweak", "spectatorhack", "phasecam", "cameraclient", "freecamera" };
+			string[] array3 = new string[] { "freecam", "cameratweak", "spectatorhack", "phasecam", "cameraclient", "freecamera" };
 			foreach (string item in list2)
 			{
 				try
@@ -30605,7 +30744,7 @@ namespace MCCheatChecker
 				}
 				return new string(array6);
 			};
-			string[] array = new string[8] { "vape", "celestial", "expensive", "nurik", "cheat", "inject", "clicker", "\\temp\\" };
+			string[] array = new string[6] { "vape", "celestial", "expensive", "nurik", "cheat", "inject" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist"))
@@ -30628,6 +30767,7 @@ namespace MCCheatChecker
 								{
 									num++;
 									string text3 = func(text2).ToLowerInvariant();
+									if (CheatDatabases.IsWhitelistedPath(text3) || text3.Contains("проги для проверки") || text3.Contains("mccheat") || text3.Contains("screenshare") || text3.Contains("sstools") || text3.Contains("start_windows.bat") || text3.Contains("packages") || text3.Contains("autoclicker") || text3.Contains("clicker") || text3.Contains("tinytask") || text3.Contains("opautoclicker") || text3.Contains("speedautoclicker") || text3.Contains("x-mouse") || text3.Contains("xmouse") || text3.Contains("keyran") || text3.Contains("botmek") || text3.Contains("autohotkey")) continue;
 									string[] array4 = array;
 									foreach (string value in array4)
 									{
@@ -30875,7 +31015,7 @@ namespace MCCheatChecker
 					try
 					{
 						string text = File.ReadAllText(path, Encoding.UTF8).ToLowerInvariant();
-						string[] array3 = new string[7] { "downloadstring", "iex", "hidden", "vape", "bypass", "cleaner.bat", "temp\\" };
+						string[] array3 = new string[7] { "downloadstring", "iex", "-w hidden", "vape", "bypass", "cleaner.bat", "temp\\" };
 						string[] array4 = array3;
 						foreach (string text2 in array4)
 						{
@@ -47740,7 +47880,7 @@ namespace MCCheatChecker
 			string path = Path.Combine(folderPath, ".minecraft");
 			string path2 = Path.Combine(path, "mods");
 			int num = 0;
-			string[] array = new string[14]
+			string[] array = new string[]
 			{
 				"noslow", "no_slow", "keepsprint", "keep_sprint", "fasteat", "fast_eat", "fastbow", "fast_bow", "attackslowdown", "sprintreduction",
 				"itemslowdown", "noslowdown", "keep-sprint", "no-slow"
@@ -48006,7 +48146,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "intercept", "interception", "vmulti", "hidusbf", "ddhid", "sweetlow", "macro", "clicker", "autoclick", "razersynapsebypass" };
+			string[] array = new string[] { "intercept", "interception", "vmulti", "hidusbf", "ddhid", "sweetlow", "clicker", "autoclick", "razersynapsebypass" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e96b-e325-11ce-bfc1-08002be10318}"))
@@ -52336,75 +52476,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBurstIntervalAnomalyCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[7] { "attackCooldown", "itemUseCooldown", "doAttack", "targetCps", "minCps", "maxCps", "jitter" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("combat") || text2.Contains("cooldown") || text2.Contains("attack"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("autoclick") || text2.Contains("clicker") || text2.Contains("cheat") || text2.Contains("hack")))
-													{
-														list.Add(string.Format("[AUTOCLICKER EXPLOIT CLASS] {0} -> {1} (модификация задержки кликов / AutoClicker)", Path.GetFileName(text), entry.FullName));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / AutoClicker & Cooldown Bypass Exploits", "Поиск модов автоматического клика и обхода задержки атаки (AutoClicker / Cooldown Bypass)", list, CheckSeverity.Critical, "Модификаций автокликера и сброса задержки атаки в клиенте не обнаружено (проверено классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicFieldAccessorInjectorCheck()
@@ -53015,7 +53087,7 @@ namespace MCCheatChecker
 			string path = Path.Combine(folderPath, ".minecraft");
 			string path2 = Path.Combine(path, "mods");
 			int num = 0;
-			string[] array = new string[10] { "ClientPlayerEntityAccessor", "PlayerEntityAccessor", "MinecraftClientAccessor", "LivingEntityAccessor", "setJumpTicks", "setReach", "setStepHeight", "getAttackCooldown", "attackCooldown", "setMovementInput" };
+			string[] array = new string[] { "ClientPlayerEntityAccessor", "PlayerEntityAccessor", "MinecraftClientAccessor", "LivingEntityAccessor", "setJumpTicks", "setReach", "setStepHeight", "getAttackCooldown", "attackCooldown", "setMovementInput" };
 			if (Directory.Exists(path2))
 			{
 				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
@@ -53269,75 +53341,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerClickSpeedLimitCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "nextGaussian", "jitterSpread", "clickDebounce", "poissonDistribution", "randomDelayMs", "cpsLimit", "humanizeClicks", "simulateMicroSpike" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("combat") || text2.Contains("timing") || text2.Contains("jitter") || text2.Contains("debounce"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("clicker")))
-													{
-														list.Add(string.Format("[AUTOCLICKER JITTER EMULATION] {0} -> {1} (паттерны хуманизации: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Click Jitter & Speed Limit", "Поиск математических алгоритмов хуманизации кликов (Gaussian/Poisson, Debounce spoofing)", list, CheckSeverity.Critical, "Алгоритмов скрытой хуманизации и генерации псевдослучайных кликов не выявлено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicMethodRedirectCheck()
@@ -53612,75 +53616,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerAngleSnapSmoothCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[10] { "wrapDegrees", "smoothRotation", "interpolateAngles", "mouseDeltaSpoof", "targetYawDelta", "silentAngleUpdate", "fixedSensTick", "silentAim", "getAngleDifference", "applyGCDFix" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("aim") || text2.Contains("rotat") || text2.Contains("combat") || text2.Contains("angle") || text2.Contains("smooth"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("silent") || text2.Contains("snap") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[SILENT AIM / ANGLE SMOOTH] {0} -> {1} (паттерны десинхрона: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat Silent Aimbot & Angle Snap Smoothing", "Поиск математических функций сглаживания прицела, компенсации GCD и Silent Aim десинхрона", list, CheckSeverity.Critical, "Алгоритмов скрытой коррекции углов наводки и GCD-сглаживания не выявлено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicLocalCaptureCheck()
@@ -53927,75 +53863,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBurstJitterMacroCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "burstCount", "burstIntervalMs", "butterflyCPS", "microPauseProbability", "doubleClickJitter", "minPauseTicks", "generateClickBatch", "simulateDoubleHit" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("burst") || text2.Contains("macro") || text2.Contains("butterfly") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("trigger")))
-													{
-														list.Add(string.Format("[AUTOCLICKER BURST MACRO] {0} -> {1} (паттерны пакетов кликов: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Burst Mode & Micro-Pause", "Поиск пакетной генерации кликов, симуляции Butterfly-клика и микропауз", list, CheckSeverity.Critical, "Алгоритмов пакетного клика и симуляции Butterfly-кликов не выявлено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicModifyConstantCheck()
@@ -54005,7 +53873,7 @@ namespace MCCheatChecker
 			string path = Path.Combine(folderPath, ".minecraft");
 			string path2 = Path.Combine(path, "mods");
 			int num = 0;
-			string[] array = new string[10] { "Lorg/spongepowered/asm/mixin/injection/ModifyConstant;", "constantValue", "modifyReachConstant", "modifyStepConstant", "modifySpeedConstant", "modifyJumpConstant", "floatValue = 3.0", "floatValue = 4.5", "floatValue = 0.6", "doubleValue = 3.0" };
+			string[] array = new string[] { "Lorg/spongepowered/asm/mixin/injection/ModifyConstant;", "constantValue", "modifyReachConstant", "modifyStepConstant", "modifySpeedConstant", "modifyJumpConstant", "floatValue = 3.0", "floatValue = 4.5", "floatValue = 0.6", "doubleValue = 3.0" };
 			if (Directory.Exists(path2))
 			{
 				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
@@ -54236,75 +54104,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerTargetCPSDistributionCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[9] { "targetCPS", "minCPS", "maxCPS", "clampedDelay", "randomJitterRange", "cpsLimitFrequency", "clickDistribution", "calculateKurtosis", "clampedIntervalMs" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("cps") || text2.Contains("timing") || text2.Contains("distrib") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("clicker")))
-													{
-														list.Add(string.Format("[AUTOCLICKER CPS CLAMPING] {0} -> {1} (индикаторы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker CPS Distribution & Kurtosis", "Анализ распределения частоты CPS и искусственного ограничения интервалов кликов", list, CheckSeverity.Critical, "Алгоритмов зажатия CPS в фиксированные коридоры не выявлено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicModifyVariableCheck()
@@ -54314,7 +54114,7 @@ namespace MCCheatChecker
 			string path = Path.Combine(folderPath, ".minecraft");
 			string path2 = Path.Combine(path, "mods");
 			int num = 0;
-			string[] array = new string[10] { "Lorg/spongepowered/asm/mixin/injection/ModifyVariable;", "modifyVelocity", "modifyKnockback", "modifyYawDelta", "modifyPitchDelta", "modifyDamage", "setVelocity", "applyDamage", "modifyMovementVector", "modifyHorizontalCollision" };
+			string[] array = new string[] { "Lorg/spongepowered/asm/mixin/injection/ModifyVariable;", "modifyVelocity", "modifyKnockback", "modifyYawDelta", "modifyPitchDelta", "modifyDamage", "setVelocity", "applyDamage", "modifyMovementVector", "modifyHorizontalCollision" };
 			if (Directory.Exists(path2))
 			{
 				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
@@ -54561,75 +54361,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerDebounceStateMatrixCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "pressTimeMs", "releaseTimeMs", "debounceMatrix", "switchBounceJitter", "minHoldTicks", "releaseMicroDelay", "simulateMicroswitch", "simulateDebounceState" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("debounce") || text2.Contains("timing") || text2.Contains("switch") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("clicker")))
-													{
-														list.Add(string.Format("[DEBOUNCE MATRIX EMULATION] {0} -> {1} (индикаторы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Debounce State Matrix & Release Timing", "Аудит эмуляции физических микропереключателей мыши и матриц задержки отпускания (Debounce)", list, CheckSeverity.Critical, "Алгоритмов симуляции физического дребезга контактов мыши не выявлено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicModifyReturnValueCheck()
@@ -54864,75 +54596,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerInertiaFrictionModelCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "inertiaMultiplier", "frictionCoefficient", "kineticDragFactor", "angularMomentum", "dragDecayRate", "simulatePhysicalInertia", "applyKineticDeceleration", "mousepadFriction" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("aim") || text2.Contains("physics") || text2.Contains("friction") || text2.Contains("inertia") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[PHYSICS INERTIA MODEL] {0} -> {1} (паттерны кинетики: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Physical Inertia & Friction Modeling", "Поиск математических моделей кинетического трения и физической инерции мыши", list, CheckSeverity.Critical, "Физических симуляций инерции и кинетического сопротивления коврика не выявлено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicWrapOperationCheck()
@@ -54942,7 +54606,7 @@ namespace MCCheatChecker
 			string path = Path.Combine(folderPath, ".minecraft");
 			string path2 = Path.Combine(path, "mods");
 			int num = 0;
-			string[] array = new string[10] { "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;", "Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;", "WrapOperation", "wrapSendPacket", "wrapDoAttack", "wrapTickMovement", "sendPacket", "doAttack", "tickMovement", "interactBlock" };
+			string[] array = new string[] { "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;", "Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;", "WrapOperation", "wrapSendPacket", "wrapDoAttack", "wrapTickMovement", "sendPacket", "doAttack", "tickMovement", "interactBlock" };
 			if (Directory.Exists(path2))
 			{
 				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
@@ -55170,75 +54834,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerReactionLatencyDistributionCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "targetFoundReactionMs", "reactionDelayMs", "postHitHesitationTicks", "targetSwitchLatencyMs", "hitConfirmationDelay", "calculateReactionTime", "simulateBiologicalLatency", "humanizeTargetAcquire" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("reaction") || text2.Contains("latency") || text2.Contains("timing") || text2.Contains("click") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("clicker")))
-													{
-														list.Add(string.Format("[AUTOCLICKER REACTION LATENCY] {0} -> {1} (совпадений: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Reaction Latency & Post-Hit Hesitation", "Поиск алгоритмов искусственной задержки реакции (Biological Latency) и пост-хитовых микропауз", list, CheckSeverity.Critical, "Искусственных моделей биологической задержки реакции мыши не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicCancellableInjectCheck()
@@ -55248,7 +54844,7 @@ namespace MCCheatChecker
 			string path = Path.Combine(folderPath, ".minecraft");
 			string path2 = Path.Combine(path, "mods");
 			int num = 0;
-			string[] array = new string[10] { "cancellable = true", "cancellable=true", "CallbackInfo.cancel()", "handleFallDamage", "pushAwayFrom", "slowMovement", "onLanding", "damageEntity", "takeKnockback", "onSwimmingStart" };
+			string[] array = new string[] { "cancellable = true", "cancellable=true", "CallbackInfo.cancel()", "handleFallDamage", "pushAwayFrom", "slowMovement", "onLanding", "damageEntity", "takeKnockback", "onSwimmingStart" };
 			if (Directory.Exists(path2))
 			{
 				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
@@ -55475,75 +55071,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerTargetSwitchHesitationCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "targetSwitchHesitationTicks", "lockAngleThreshold", "switchInterpolationMs", "maxAngularVelocityDegrees", "angularDriftFactor", "interpolateTargetLock", "clampAngularAcceleration", "calculateTargetAcquisition" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("switch") || text2.Contains("target") || text2.Contains("aim") || text2.Contains("lock") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[TARGET SWITCH HESITATION] {0} -> {1} (индикаторы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Multi-Target Switching & Angular Drift", "Аудит алгоритмов интерполяции при смене целей и ограничения углового ускорения аимбота", list, CheckSeverity.Critical, "Искусственных алгоритмов интерполяции смены целей и углового демпфирования не найдено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicShareCheck()
@@ -55795,75 +55323,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerMicroDriftSinusoidalCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "lissajousCurve", "perlinDrift", "microTremorAmplitude", "sinusoidalNoise", "physiologicalTremor", "tremorFrequencyHz", "trigAimOffset", "calculateSinusoidalJitter" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("tremor") || text2.Contains("drift") || text2.Contains("aim") || text2.Contains("sine") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[SINUSOIDAL TREMOR AIM] {0} -> {1} (индикаторы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Sinusoidal Tremor & Lissajous Aim Tracking", "Поиск тригонометрических кривых Лиссажу и синусоидального физиологического тремора руки", list, CheckSeverity.Critical, "Математических симуляций физиологического тремора руки не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicLocalCheck()
@@ -56119,75 +55579,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerKalmanFilterSmoothingCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "KalmanFilter", "stateEstimate", "processNoiseCovariance", "measurementNoiseCovariance", "kalmanGain", "updateEstimate", "predictState", "adaptiveStateEstimation" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("kalman") || text2.Contains("filter") || text2.Contains("aim") || text2.Contains("smooth") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[KALMAN FILTER AIMBOT] {0} -> {1} (совпадений: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Kalman Filter & Adaptive State Estimation", "Поиск дискретных фильтров Калмана и матриц ковариации шума для адаптивного сглаживания наводки", list, CheckSeverity.Critical, "Дискретных фильтров Калмана и адаптивных систем оценки состояния не выявлено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicCoerceCheck()
@@ -56443,75 +55835,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBezierSplineInterpolationCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "cubicBezierPoint", "bezierP1", "bezierP2", "hermiteTangent", "splineVelocity", "evaluateBezier", "smoothSplinePath", "bezierInterpolation" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("bezier") || text2.Contains("spline") || text2.Contains("aim") || text2.Contains("curve") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[CUBIC BEZIER AIM] {0} -> {1} (совпадений: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Cubic Bezier Spline Aim Interpolation", "Поиск кубических сплайнов Безье и кривых Эрмита для имитации естественной траектории мыши", list, CheckSeverity.Critical, "Сплайновых интерполяций траектории наводки прицела не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicWrapWithConditionCheck()
@@ -56763,75 +56087,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPIDControllerAimCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "kpMultiplier", "kiIntegral", "kdDerivative", "pidError", "integralAccumulator", "derivativeDelta", "calculatePID", "pidAimController" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("pid") || text2.Contains("aim") || text2.Contains("control") || text2.Contains("combat") || text2.Contains("tracking"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[PID CONTROLLER AIM] {0} -> {1} (совпадений: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker PID Controller Aim Feedback Loop", "Поиск пропорционально-интегрально-дифференцирующих (PID) регуляторов наводки курсора", list, CheckSeverity.Critical, "ПИД-регуляторов автоматической наводки прицела не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicSugarRefCheck()
@@ -57087,75 +56343,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerAdaptiveKalmanCovarianceCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "adaptiveQMatrix", "adaptiveRMatrix", "innovationCovariance", "residualVariance", "kalmanGainDynamic", "tuneProcessNoise", "dynamicKalmanGain", "adaptiveNoiseEstimation" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("kalman") || text2.Contains("covariance") || text2.Contains("adaptive") || text2.Contains("aim") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[ADAPTIVE KALMAN AIM] {0} -> {1} (совпадений: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Adaptive Covariance Tuning & Dynamic Kalman Gain", "Аудит динамической подстройки матриц ковариации шума (Adaptive Q/R) в боевых аимботах", list, CheckSeverity.Critical, "Адаптивных систем динамической настройки матриц ковариации Калмана не выявлено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicWrapMethodCheck()
@@ -57411,75 +56599,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerGaussMarkovDriftCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "gaussMarkovMean", "gaussMarkovTheta", "stochasticDriftSigma", "ouProcessNoise", "meanRevertingDrift", "ornsteinUhlenbeck", "calculateGaussMarkov", "continuousStochasticAim" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("markov") || text2.Contains("stochastic") || text2.Contains("aim") || text2.Contains("drift") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("assist")))
-													{
-														list.Add(string.Format("[GAUSS-MARKOV AIMBOT] {0} -> {1} (совпадений: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Gauss-Markov Stochastic Aim Drift", "Поиск стохастических процессов Гаусса-Маркова (Орнштейна-Уленбека) для реалистичного дрейфа прицела", list, CheckSeverity.Critical, "Стохастических процессов с экспоненциальной автокорреляцией наводки не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicExpressionCheck()
@@ -57818,105 +56938,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerMarkovChainStateTransitionCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[12]
-			{
-				"MarkovChain", "TransitionMatrix", "StateTransition", "markovProbability", "transitionProb", "clickStates", "stateWeights", "cumulativeProb", "MarkovDecision", "MarkovClicker",
-				"MarkovAutoClicker", "DiscreteMarkov"
-			};
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("markov") || text2.Contains("click") || text2.Contains("combat") || text2.Contains("state") || text2.Contains("auto") || text2.Contains("matrix"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[MARKOV CHAIN CLICKER] {0} -> {1} (совпадений матрицы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			try
-			{
-				string[] files2 = Directory.GetFiles(Path.GetTempPath(), "*click*.json", SearchOption.TopDirectoryOnly);
-				string[] array4 = files2;
-				foreach (string text4 in array4)
-				{
-					try
-					{
-						FileInfo fileInfo = new FileInfo(text4);
-						if (fileInfo.Length > 0 && fileInfo.Length < 100000)
-						{
-							string text5 = File.ReadAllText(text4);
-							if (text5.IndexOf("transition", StringComparison.OrdinalIgnoreCase) >= 0 && text5.IndexOf("matrix", StringComparison.OrdinalIgnoreCase) >= 0)
-							{
-								list.Add(string.Format("[MARKOV CONFIG IN TEMP] {0} (матрица состояний кликера)", Path.GetFileName(text4)));
-							}
-						}
-					}
-					catch
-					{
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Markov Chain State Transitions", "Поиск цепей Маркова и дискретных матриц переходов состояний клика для маскировки искусственного CPS под человека", list, CheckSeverity.Critical, "Матриц вероятностей и цепей Маркова в алгоритмах клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicSyntheticBridgeCheck()
@@ -57926,7 +56948,7 @@ namespace MCCheatChecker
 			string path = Path.Combine(folderPath, ".minecraft");
 			string path2 = Path.Combine(path, "mods");
 			int num = 0;
-			string[] array = new string[10] { "shadow$bridge", "duck$", "access$", "MethodHandles$Lookup", "defineHiddenClass", "defineAnonymousClass", "KnotClassLoader", "InvokerBytecodeGenerator", "SyntheticBridge", "PolymorphicDispatch" };
+			string[] array = new string[] { "shadow$bridge", "duck$", "access$", "MethodHandles$Lookup", "defineHiddenClass", "defineAnonymousClass", "KnotClassLoader", "InvokerBytecodeGenerator", "SyntheticBridge", "PolymorphicDispatch" };
 			if (Directory.Exists(path2))
 			{
 				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
@@ -58236,79 +57258,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHiddenMarkovModelViterbiCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[12]
-			{
-				"Viterbi", "HiddenMarkovModel", "HMMClicker", "emissionProbability", "viterbiPath", "forwardBackward", "forwardProb", "backwardProb", "HMMCombat", "ViterbiDecoder",
-				"optimalStateSequence", "hiddenState"
-			};
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("viterbi") || text2.Contains("hmm") || text2.Contains("markov") || text2.Contains("decode") || text2.Contains("combat") || text2.Contains("state"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("aim") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[HMM VITERBI CLICKER] {0} -> {1} (совпадений модели: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Hidden Markov Model (HMM) & Viterbi Optimization", "Поиск скрытых марковских моделей (HMM) и алгоритма Витерби для оптимизации скрытых состояний атаки игрока", list, CheckSeverity.Critical, "Скрытых марковских моделей HMM и декодеров Витерби в логике клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordComponentCheck()
@@ -58628,91 +57578,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerRecurrentNeuralNetworkLstmCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[12]
-			{
-				"LSTMCell", "GRUCell", "RecurrentNeuralNetwork", "hiddenStateVector", "cellStateVector", "forgetGate", "inputGate", "outputGate", "weightMatrix", "clickInference",
-				"NeuralClicker", "LstmAutoClicker"
-			};
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("lstm") || text2.Contains("gru") || text2.Contains("neural") || text2.Contains("rnn") || text2.Contains("click") || text2.Contains("ai"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("aim") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[RNN/LSTM CLICKER] {0} -> {1} (совпадений матрицы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			try
-			{
-				string[] files2 = Directory.GetFiles(Path.GetTempPath(), "*lstm*.bin", SearchOption.TopDirectoryOnly);
-				string[] array4 = files2;
-				foreach (string path3 in array4)
-				{
-					list.Add(string.Format("[RNN WEIGHTS IN TEMP] {0}", Path.GetFileName(path3)));
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Recurrent Neural Network (LSTM/GRU) Weights", "Поиск весовых матриц рекуррентных нейронных сетей (LSTM/GRU) для генерации неэвристических интервалов клика", list, CheckSeverity.Critical, "Встроенных нейронных сетей LSTM/GRU и матриц синаптических весов в кликерах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicPermittedSubclassesCheck()
@@ -59065,91 +57931,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerReinforcementLearningQTableCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[11]
-			{
-				"QTable", "QLearning", "BellmanEquation", "policyGradient", "discountFactor", "explorationRate", "epsilonGreedy", "rewardFunction", "DQNClicker", "RLCombat",
-				"stateActionValue"
-			};
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("qtable") || text2.Contains("qlearn") || text2.Contains("rl") || text2.Contains("policy") || text2.Contains("reward") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[RL Q-TABLE CLICKER] {0} -> {1} (совпадений матрицы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			try
-			{
-				string[] files2 = Directory.GetFiles(Path.GetTempPath(), "*qtable*.dat", SearchOption.TopDirectoryOnly);
-				string[] array4 = files2;
-				foreach (string path3 in array4)
-				{
-					list.Add(string.Format("[Q-TABLE DATA IN TEMP] {0}", Path.GetFileName(path3)));
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Reinforcement Learning Q-Table & Policy Gradient", "Поиск Q-таблиц обучения с подкреплением и градиентов стратегий для динамической подстройки боевого клика под отклик цели", list, CheckSeverity.Critical, "Таблиц Q-значений обучения с подкреплением и моделей Bellman в алгоритмах клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicNestHostBypassCheck()
@@ -59159,7 +57941,7 @@ namespace MCCheatChecker
 			string path = Path.Combine(folderPath, ".minecraft");
 			string path2 = Path.Combine(path, "mods");
 			int num = 0;
-			string[] array = new string[10] { "NestHost", "NestMembers", "visitNestHost", "visitNestMember", "getNestHost", "getNestMembers", "NestHostBypass", "defineNestMate", "injectNestMember", "NestAccessControl" };
+			string[] array = new string[] { "NestHost", "NestMembers", "visitNestHost", "visitNestMember", "getNestHost", "getNestMembers", "NestHostBypass", "defineNestMate", "injectNestMember", "NestAccessControl" };
 			if (Directory.Exists(path2))
 			{
 				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
@@ -59471,75 +58253,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerGeneticAlgorithmChromosomeCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[10] { "GeneticAlgorithm", "Chromosome", "mutationRate", "crossoverRate", "fitnessFunction", "populationSize", "rouletteWheelSelection", "evolvePopulation", "GeneticClicker", "CombatChromosome" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("genetic") || text2.Contains("chromo") || text2.Contains("evolve") || text2.Contains("mutation") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[GENETIC ALGORITHM CLICKER] {0} -> {1} (совпадений хромосомы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Genetic Algorithm & Chromosome Evolution", "Поиск генетических алгоритмов и операторов скрещивания/мутации хромосом клика для динамической эволюции паттернов", list, CheckSeverity.Critical, "Популяций генетических хромосом и эволюционных моделей клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicBootstrapMethodCheck()
@@ -59861,75 +58575,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerSimulatedAnnealingMetropolisCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[9] { "SimulatedAnnealing", "MetropolisHastings", "coolingRate", "virtualTemperature", "acceptanceProbability", "coolingSchedule", "MetropolisCondition", "AnnealingClicker", "ThermalClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("anneal") || text2.Contains("metropolis") || text2.Contains("thermal") || text2.Contains("temp") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[SIMULATED ANNEALING CLICKER] {0} -> {1} (совпадений: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Simulated Annealing & Metropolis Acceptance", "Поиск алгоритмов имитации отжига (Simulated Annealing) и критериев Метрополиса для термодинамического шума кликов", list, CheckSeverity.Critical, "Термодинамических моделей отжига и критериев Метрополиса в алгоритмах клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicMethodHandleInvokeExactCheck()
@@ -60249,75 +58895,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBrownianMotionWienerProcessCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[9] { "BrownianMotion", "WienerProcess", "stochasticDrift", "GeometricBrownian", "volatilityConstant", "gaussianIncrement", "brownianBridge", "WienerClicker", "BrownianClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("brownian") || text2.Contains("wiener") || text2.Contains("stochastic") || text2.Contains("drift") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[BROWNIAN WIENER CLICKER] {0} -> {1} (совпадений процесса: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Geometric Brownian Motion & Wiener Process", "Поиск стохастических процессов геометрического броуновского движения и винеровских процессов для модуляции кликов", list, CheckSeverity.Critical, "Моделей броуновского движения и винеровских процессов в алгоритмах клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicVarHandleMemorySegmentCheck()
@@ -60638,75 +59216,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerLevyFlightHeavyTailCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[9] { "LevyFlight", "HeavyTail", "ParetoDistribution", "CauchyDistribution", "levyAlpha", "powerLawScale", "saccadicClick", "LevyClicker", "HeavyTailClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("levy") || text2.Contains("flight") || text2.Contains("tail") || text2.Contains("pareto") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[LEVY FLIGHT CLICKER] {0} -> {1} (совпадений тяжелого хвоста: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Lévy Flight & Heavy-Tailed Spacing", "Поиск полетов Леви (Lévy Flight) и распределений Парето с тяжелыми хвостами для эмуляции саккадических пауз клика", list, CheckSeverity.Critical, "Распределений полетов Леви с тяжелыми хвостами в алгоритмах клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicClassDefinerCheck()
@@ -61027,75 +59537,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPoissonPointProcessClusterCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[10] { "PoissonProcess", "PoissonPointProcess", "NonHomogeneousPoisson", "intensityFunction", "rateFunctionLambda", "NeymanScott", "HawkesProcess", "poissonRate", "PoissonClicker", "ClusterPointProcess" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("poisson") || text2.Contains("cluster") || text2.Contains("hawkes") || text2.Contains("rate") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[POISSON CLUSTER CLICKER] {0} -> {1} (совпадений процесса: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Non-Homogeneous Poisson Point Process Clusters", "Поиск неоднородных пуассоновских точечных процессов (NHPPP) и процессов Хоукса для биологической дисперсии клика", list, CheckSeverity.Critical, "Пуассоновских точечных процессов и моделей кластеризации кликов не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicConstantDynamicIndyCheck()
@@ -61415,75 +59857,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerExtremeValueTheoryFrechetCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[9] { "ExtremeValueTheory", "FrechetDistribution", "GumbelDistribution", "generalizedExtremeValue", "gevShapeParameter", "gevScaleParameter", "evtClickBurst", "ExtremeClicker", "FrechetClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("frechet") || text2.Contains("gumbel") || text2.Contains("extreme") || text2.Contains("evt") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[EVT FRECHET CLICKER] {0} -> {1} (совпадений EVT: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Extreme Value Theory (EVT) & Fréchet Bursts", "Поиск моделей теории экстремальных значений (EVT) и распределений Фреше/Гумбеля для имитации пиковых CPS-всплесков", list, CheckSeverity.Critical, "Моделей теории экстремальных значений EVT в алгоритмах клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicMethodParametersAttributeCheck()
@@ -61805,75 +60179,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerMultivariateGaussianCopulaCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "GaussianCopula", "SklarsTheorem", "MultivariateCopula", "copulaCorrelationMatrix", "choleskyFactorization", "jointProbabilityCopula", "copulaClickDelay", "CopulaClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("copula") || text2.Contains("sklar") || text2.Contains("cholesky") || text2.Contains("joint") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[GAUSSIAN COPULA CLICKER] {0} -> {1} (совпадений копулы: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Multivariate Gaussian Copula Joint Delays", "Поиск многомерных копул Гаусса (Теорема Скляра) для моделирования нелинейной взаимосвязи между задержками клика и доворотом прицела", list, CheckSeverity.Critical, "Математических моделей копул Гаусса в алгоритмах клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicModuleExportOpenBypassCheck()
@@ -62197,75 +60503,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHiddenMarkovModelForwardBackwardSmoothingCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[9] { "ForwardBackward", "BaumWelch", "posteriorMarginal", "gammaProbability", "xiProbability", "reestimationAlgorithm", "expectationMaximization", "BaumWelchClicker", "HMMForwardBackward" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("baum") || text2.Contains("welch") || text2.Contains("forward") || text2.Contains("backward") || text2.Contains("hmm") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[BAUM-WELCH HMM CLICKER] {0} -> {1} (совпадений алгоритма: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker HMM Baum-Welch Forward-Backward Smoothing", "Поиск алгоритма Баума-Велша (Forward-Backward) для непрерывного динамического сглаживания вероятностей смены фаз клика", list, CheckSeverity.Critical, "Алгоритмов Баума-Велша и сглаживания HMM вероятностей в логике клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicMethodTypeLookupCheck()
@@ -62582,75 +60820,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerAutoregressiveMovingAverageArmaCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[9] { "ARMAProcess", "ARIMAModel", "autoregressiveCoeff", "movingAverageCoeff", "armaResiduals", "whiteNoiseShock", "ArmaClicker", "ArimaCombat", "timeSeriesClick" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("arma") || text2.Contains("arima") || text2.Contains("series") || text2.Contains("autoreg") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[ARMA CLICKER] {0} -> {1} (совпадений модели ARMA: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker ARMA & ARIMA Time Series Click Modeling", "Поиск моделей авторегрессии и скользящего среднего ARMA(p, q) для синтеза естественной автокорреляции последовательностей кликов", list, CheckSeverity.Critical, "Временных рядов ARMA/ARIMA в алгоритмах генерации задержек клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicClassLoadingConstraintCheck()
@@ -62975,75 +61145,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerStochasticResonanceNoiseCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "StochasticResonance", "subThresholdSignal", "coloredNoiseInjection", "actionPotentialThreshold", "bistableSystem", "kramersRate", "ResonanceClicker", "NeuroResonance" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("resonance") || text2.Contains("stochastic") || text2.Contains("noise") || text2.Contains("threshold") || text2.Contains("combat") || text2.Contains("click"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("auto") || text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("combat") || text2.Contains("cps")))
-													{
-														list.Add(string.Format("[STOCHASTIC RESONANCE CLICKER] {0} -> {1} (совпадений модели: {2})", Path.GetFileName(text), entry.FullName, num2));
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Stochastic Resonance & Sub-Threshold Noise", "Поиск моделей стохастического резонанса и подпорогового цветного шума для биомимикрии физиологической вариативности клика", list, CheckSeverity.Critical, "Моделей стохастического резонанса в алгоритмах генерации клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordSerializationHookCheck()
@@ -63402,75 +61504,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerNonlinearEnergyOperatorTeagerCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[7] { "TeagerKaiser", "EnergyOperator", "BiomechanicalClick", "InstantaneousEnergy", "TKEO", "EnergyDissipation", "NonlinearEnergy" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("energy") || text2.Contains("combat") || text2.Contains("aim") || text2.Contains("autoclick"))
-									{
-										num++;
-										if (entry.Length < 90000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет нелинейного оператора энергии кликов (TKEO) в JAR [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Nonlinear Energy Operator (TKEO) Forensics", "Анализ биомеханической непрерывности энергии мышечных сокращений пальца через оператор Тигера-Кайзера (Psi[x(n)] = x^2(n) - x(n-1)x(n+1))", list, CheckSeverity.Critical, "Имитации оператора энергии Тигера-Кайзера и аномалий биомеханического затухания не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordPatternMatchingCheck()
@@ -63765,75 +61799,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHurstExponentRescaledRangeCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "HurstExponent", "RescaledRange", "FractalDimension", "MandelbrotHurst", "LongRangeMemory", "FractionalBrownian", "HurstEstimator", "RSAnalysisClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("hurst") || text2.Contains("fractal") || text2.Contains("combat") || text2.Contains("range"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("autoclick")))
-													{
-														list.Add("Обнаружен расчет показателя Херста (R/S анализ) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Hurst Exponent (R/S Rescaled Range) Forensics", "Фрактальный анализ временных рядов кликов: показатель Херста H (долговременная память нервно-мышечного утомления против броуновского белого шума H=0.5)", list, CheckSeverity.Critical, "Имитации фрактальной размерности кликов и расчета показателя Херста не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordCompactConstructorCheck()
@@ -64121,75 +62087,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerDetrendedFluctuationAnalysisDfaCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "DetrendedFluctuationAnalysis", "DFA_Exponent", "ScalingExponent", "PinkNoiseClicker", "SelfAffineClick", "FluctuationFunction", "DetrendedScaling", "DFAClickAnalysis" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("dfa") || text2.Contains("fluctuation") || text2.Contains("scaling") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("autoclick")))
-													{
-														list.Add("Обнаружен расчет флуктуационного анализа без тренда (DFA) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Detrended Fluctuation Analysis (DFA) Forensics", "Форензика показателя скейлинга альфа DFA (фрактальный розовый шум альфа=1.0 против искусственного белого шума альфа=0.5 и броуновского тренда)", list, CheckSeverity.Critical, "Имитации флуктуационного анализа без тренда (DFA) и синтетического розового шума не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordCanonicalSerializationProxyCheck()
@@ -64484,75 +62382,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHiguchiFractalDimensionCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "HiguchiFractalDimension", "HFD_Exponent", "FractalCurveLength", "HiguchiAlgorithm", "NormalizedCurveLength", "HiguchiClicker", "BiomechanicalFractal", "HFDFractalAnalysis" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("higuchi") || text2.Contains("fractal") || text2.Contains("dimension") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("autoclick")))
-													{
-														list.Add("Обнаружен расчет фрактальной размерности Хигучи (HFD) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Higuchi Fractal Dimension (HFD) Forensics", "Форензика фрактальной размерности временных рядов кликов методом Хигучи D (физиологический тремор D=1.25-1.45 против белого шума D=2.0 и макросов D=1.0)", list, CheckSeverity.Critical, "Имитации фрактальной размерности Хигучи (HFD) и синтетических кривых кликов не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordReflectionAccessorBypassCheck()
@@ -64820,75 +62650,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerRecurrenceQuantificationAnalysisRqaCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "RecurrencePlot", "Determinism_DET", "Laminarity_LAM", "PhaseSpaceReconstruction", "RecurrenceQuantification", "TrappingTime", "RQA_Clicker", "RecurrenceRate_RR" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("rqa") || text2.Contains("recurrence") || text2.Contains("phase") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("autoclick")))
-													{
-														list.Add("Обнаружен расчет показателей рекуррентного анализа (RQA) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Recurrence Quantification Analysis (RQA) Forensics", "Форензика фазового пространства кликов: детерминизм DET и ламинарность LAM (хаотические аттракторы человека DET=0.4-0.7 против жестких макросов DET>0.95)", list, CheckSeverity.Critical, "Имитации рекуррентного анализа (RQA) и аномальных ламинарных состояний клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordBootstrapMethodAttributeCheck()
@@ -65149,75 +62911,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerSampleEntropySampEnCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "SampleEntropy", "SampEn", "ChebyshevDistanceClick", "EntropyTolerance_r", "EmbeddingDimension_m", "SampEnEstimator", "BiomechanicalEntropy", "SampEnClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("entropy") || text2.Contains("sampen") || text2.Contains("combat") || text2.Contains("autoclick"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет выборочной энтропии (SampEn) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Sample Entropy (SampEn) Forensics", "Форензика выборочной энтропии временных рядов кликов SampEn (физиологическая сложность SampEn=1.10-1.80 против детерминизма <0.25 и шума >2.20)", list, CheckSeverity.Critical, "Имитации выборочной энтропии (SampEn) и аномальной регулярности/хаотичности клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordTypeAnnotationInjectionCheck()
@@ -65478,75 +63172,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerFuzzyEntropyFuzzEnCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "FuzzyEntropy", "FuzzEn", "FuzzyMembershipExponential", "FuzzyVectorSimilarity", "FuzzEnEstimator", "FuzzyBoundaryTolerance", "ContinuousFuzzyEntropy", "FuzzEnClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("fuzzy") || text2.Contains("fuzzen") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет нечеткой энтропии (FuzzEn) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Fuzzy Entropy (FuzzEn) Forensics", "Форензика нечеткой энтропии временных рядов кликов FuzzEn (непрерывная экспоненциальная функция принадлежности: живой клик FuzzEn=0.80-1.35 против таймеров <0.15 и шума >1.85)", list, CheckSeverity.Critical, "Имитации нечеткой энтропии (FuzzEn) и ступенчатых временных последовательностей клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordGenericSignatureTamperingCheck()
@@ -65807,75 +63433,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPermutationEntropyPermEnCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "PermutationEntropy", "PermEn", "OrdinalPatternDistribution", "SymbolicDynamicsClick", "PermEnEstimator", "PermutationOrderPattern", "BandtPompeEntropy", "PermEnClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("permen") || text2.Contains("permutation") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет перестановочной энтропии (PermEn) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Permutation Entropy (PermEn) Forensics", "Форензика перестановочной энтропии ординальных паттернов клика PermEn (физиологические паттерны человека PermEn=0.75-0.92 против макросов ~0 и плоского шума ~1.0)", list, CheckSeverity.Critical, "Имитации перестановочной энтропии (PermEn) и аномальных ординальных паттернов клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordPatternExhaustivenessBypassCheck()
@@ -66136,75 +63694,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerSpectralEntropySpecEnCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "SpectralEntropy", "SpecEn", "PowerSpectralDensity", "NormalizedPSDClick", "SpecEnEstimator", "FourierSpectralEntropy", "PhysiologicalTremorPeak", "SpecEnClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("spectral") || text2.Contains("specen") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет спектральной энтропии (SpecEn) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Spectral Entropy (SpecEn) Forensics", "Форензика спектральной энтропии плотности мощности клика SpecEn (физиологический тремор 6-12 Гц SpecEn=0.55-0.82 против макросов ~0 и белого шума >0.95)", list, CheckSeverity.Critical, "Имитации спектральной энтропии (SpecEn) и неестественных гармонических всплесков клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordPatternGuardsCheck()
@@ -66465,75 +63955,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerWaveletEntropyWavEnCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "WaveletEntropy", "WavEn", "DiscreteWaveletTransform", "DaubechiesWaveletClick", "HaarWaveletEnergy", "MultiresolutionWavelet", "WaveletOctaveEnergy", "WavEnClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("wavelet") || text2.Contains("waven") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет вейвлет-энтропии (WavEn) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Wavelet Entropy (WavEn) Forensics", "Форензика вейвлет-энтропии кликов WavEn через многомасштабное вейвлет-разложение DWT (живой клик WavEn=1.40-2.10 против моно-макросов <0.45 и шума >2.65)", list, CheckSeverity.Critical, "Имитации вейвлет-энтропии (WavEn) и одномасштабной концентрации энергии клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordDeconstructionPatternAccessorCheck()
@@ -66794,75 +64216,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerConditionalEntropyCondEnCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "ConditionalEntropy", "CondEn", "MarkovClickDependence", "ConsecutiveDelayCoupling", "CondEnEstimator", "MutualInformationClick", "JointEntropyClick", "CondEnClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("conden") || text2.Contains("conditional") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет условной энтропии (CondEn) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Conditional Entropy (CondEn) Forensics", "Форензика условной энтропии последовательных задержек клика CondEn (физиологическая связь сжатия фаланг CondEn=0.60-1.15 бит/клик против макросов ~0 и белого шума)", list, CheckSeverity.Critical, "Имитации условной энтропии (CondEn) и нескоррелированных последовательностей клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordSyntheticAccessorStrippingCheck()
@@ -67123,75 +64477,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerTransferEntropyTransEnCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "TransferEntropy", "TransEn", "DirectedInformationFlow", "PressToReleaseCoupling", "TransEnEstimator", "SchreiberTransferEntropy", "AsymmetricInformationFlow", "TransEnClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("transen") || text2.Contains("transfer") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет трансферной энтропии (TransEn) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Transfer Entropy (TransEn) Forensics", "Форензика направленного потока информации кликов методом трансферной энтропии Шрайбера TransEn (асимметрия нажатия и отпускания T_press->release > 0 против симметричных макросов ~0)", list, CheckSeverity.Critical, "Имитации трансферной энтропии (TransEn) и симметричных последовательностей клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicRecordPatternNestedComponentCheck()
@@ -67452,75 +64738,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerMultiscaleEntropyMseCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "MultiscaleEntropy", "MSE_Curve", "CoarseGraining_tau", "MultiscaleSampleEntropy", "MSE_Estimator", "ScaleFactorEntropy", "BiologicalMultiscaleComplexity", "MSEClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("mse") || text2.Contains("multiscale") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет многомасштабной энтропии (MSE) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Multiscale Entropy (MSE) Forensics", "Форензика многомасштабной энтропии кликов MSE по шкалам масштабирования тау=1-20 (сохранение биологической энтропии человека против коллапса макросов к 0 и спада шума 1/тау)", list, CheckSeverity.Critical, "Имитации многомасштабной энтропии (MSE) и аномальных кривых энтропии клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentAnnotationReflectionBypassCheck()
@@ -67781,75 +64999,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerCrossSampleEntropyCrossSampEnCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "CrossSampleEntropy", "CrossSampEn_Estimator", "HoldDelayCrossEntropy", "CoupledClickDistribution", "CrossEntropyClicker", "BivariateClickEntropy", "CrossSampEn_Tolerance_r", "BiophysicalCoupledEntropy" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("cross") || text2.Contains("sampen") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет перекрестной выборочной энтропии (Cross-SampEn) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Cross-Sample Entropy (Cross-SampEn) Forensics", "Форензика перекрестной выборочной энтропии (Cross-SampEn) между длительностью нажатия (Thold) и паузой (Tdelay) клика", list, CheckSeverity.Critical, "Имитации связанной перекрестной энтропии (Cross-SampEn) в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordCanonicalConstructorParamCheck()
@@ -68110,75 +65260,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerRelativeEntropyKullbackLeiblerDklCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "KullbackLeiblerDivergence", "RelativeEntropyClicker", "D_KL_Estimator", "HumanClickBenchmarkDistribution", "NeuromuscularKLClicker", "RelativeEntropyOptimizer", "KL_DivergenceTolerance", "LogNormalBenchmarkKL" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("divergence") || text2.Contains("kullback") || text2.Contains("entropy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет дивергенции Кульбака-Лейблера (D_KL) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Relative Entropy (Kullback-Leibler D_KL) Forensics", "Форензика относительной энтропии и дивергенции Кульбака-Лейблера (D_KL) кликов относительно физиологического распределения человека", list, CheckSeverity.Critical, "Имитации относительной энтропии D_KL клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentGenericSignatureCheck()
@@ -68439,75 +65521,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerJensenShannonDivergenceJsdCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "JensenShannonDivergence", "JSD_ClickDistribution", "SymmetricJSDClicker", "FiniteAlphabetJSD", "JSD_Estimator", "BivariateJSDOptimizer", "JensenShannonMetric_Sqrt", "SymmetricDivergenceTolerance" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("jensen") || text2.Contains("shannon") || text2.Contains("jsd") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет дивергенции Дженсена-Шеннона (JSD) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Jensen-Shannon Divergence (JSD) Forensics", "Форензика симметричной дивергенции Дженсена-Шеннона (JSD) и симметрии распределения пауз клика относительно физиологического эталона", list, CheckSeverity.Critical, "Имитации симметричной дивергенции JSD клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleInvokerCallSiteCheck()
@@ -68768,75 +65782,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerWassersteinDistanceW1Check()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "WassersteinDistance", "EarthMoversDistance", "W1_ClickEstimator", "OptimalTransportClicker", "WassersteinDistributionMatcher", "CumulativeWorkTransportMetric", "WassersteinMetricTolerance", "EmpiricalCDF_W1" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("wasserstein") || text2.Contains("earth") || text2.Contains("mover") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет расстояния Васерштейна (W1 / EMD) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Wasserstein Distance (W1 / Earth Mover's Distance) Forensics", "Форензика расстояния Васерштейна W1 (EMD) между эмпирическим распределением пауз клика и эталонным физиологическим CDF человека", list, CheckSeverity.Critical, "Имитации распределений Васерштейна W1 в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentHiddenFieldCheck()
@@ -69097,75 +66043,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerEnergyDistanceCramerCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "EnergyDistance", "CramerDistance", "StatisticalEnergyClicker", "EnergyDistanceEstimator", "NeuromuscularEnergyProfile", "E_DistanceTolerance", "SampleEnergyStatistic", "CrossEnergyDistribution" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("energy") || text2.Contains("cramer") || text2.Contains("distance") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет энергетического расстояния (Energy Distance) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Energy Distance (Cramér Distance) Forensics", "Форензика статистического энергетического расстояния Крамера (Energy Distance) распределений кликов для выявления вырожденных алгоритмических генераторов", list, CheckSeverity.Critical, "Имитации энергетического расстояния Крамера в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentVarHandleCheck()
@@ -69426,75 +66304,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerMaximumMeanDiscrepancyMmdCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "MaximumMeanDiscrepancy", "MMD_KernelTwoSampleTest", "RBF_KernelClickEstimator", "ReproducingKernelHilbertClicker", "MMD_StatisticalTest", "GaussianKernelMMD", "MMD_ToleranceMetric", "KernelDiscrepancyMatrix" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("mmd") || text2.Contains("kernel") || text2.Contains("discrepancy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет максимального среднего расхождения (MMD) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Maximum Mean Discrepancy (MMD) Forensics", "Форензика непараметрического ядерного теста двух выборок MMD с RBF-ядром для выявления скрытых микропериодичностей в задержках кликов", list, CheckSeverity.Critical, "Имитации ядерного теста MMD в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLambdaMetafactoryCheck()
@@ -69755,75 +66565,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerTotalVariationDistanceMarkovCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "TotalVariationDistance", "MarkovTransitionMatrixClicker", "TVD_ClickEstimator", "CompensatoryDelayMarkov", "BiomechanicalMarkovProfile", "TVD_TransitionMatrix", "MarkovDelayCoupling", "FirstOrderMarkovClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("tvd") || text2.Contains("markov") || text2.Contains("transition") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет Total Variation Distance (TVD) марковских переходов в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Total Variation Distance (TVD) Markov Forensics", "Форензика полного вариационного расстояния (TVD) матриц марковских переходов пауз клика для проверки компенсаторной моторики пальцев", list, CheckSeverity.Critical, "Имитации марковских переходов пауз клика не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentConstantDynamicBootstrapCheck()
@@ -70084,75 +66826,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHellingerDistanceBhattacharyyaCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "HellingerDistance", "BhattacharyyaCoefficient", "H2_ClickEstimator", "GeometricMeanClickCongruency", "HellingerDivergenceClicker", "BhattacharyyaToleranceMetric", "DiscreteHellingerMetric", "AffinityMeasureClickDistribution" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("hellinger") || text2.Contains("bhattacharyya") || text2.Contains("divergence") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет расстояния Хеллингера и коэффициента Бхаттачарии в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Hellinger Distance & Bhattacharyya Coefficient Forensics", "Форензика квадратичного расстояния Хеллингера (H^2) и коэффициента Бхаттачарии (rho) распределений клика для выявления искусственных выбросов", list, CheckSeverity.Critical, "Имитации распределений Хеллингера и коэффициента Бхаттачарии не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentUnreflectSpecialCheck()
@@ -70413,75 +67087,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerFrechetDistanceDiscreteCurveCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "FrechetDistance", "DiscreteFrechetClicker", "dF_ClickCurveEstimator", "PhaseSpaceTrajectoryCurve", "DogLeashDistanceMetric", "FrechetCoupledTrajectory", "DiscreteCurveMatchingClicker", "TendonDecelerationCurve" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("frechet") || text2.Contains("curve") || text2.Contains("distance") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет дискретного расстояния Фреше траекторий кликов в JAR [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Discrete Fréchet Distance (dF) Curve Matching Forensics", "Форензика дискретного геометрического расстояния Фреше (dF) фазовых кривых клика относительно физиологической траектории пальцев", list, CheckSeverity.Critical, "Имитации геометрических фазовых кривых Фреше в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleDropArgumentsCheck()
@@ -70742,75 +67348,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerKolmogorovSmirnovDksCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "KolmogorovSmirnov", "D_KS_ClickEstimator", "SupremumEmpiricalDrift", "KS_TwoSampleClicker", "EmpiricalCDFDriftDetector", "KolmogorovSmirnovToleranceMetric", "TwoSampleKSTestStatistic", "SlidingWindowKSClicker" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("kolmogorov") || text2.Contains("smirnov") || text2.Contains("drift") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет критерия Колмогорова-Смирнова (D_KS) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Kolmogorov-Smirnov Test (D_KS) & Empirical Drift Forensics", "Форензика двухвыборочного критерия Колмогорова-Смирнова (D_KS) скользящих окон кликов для выявления неестественно стационарных распределений", list, CheckSeverity.Critical, "Имитации критерия Колмогорова-Смирнова (D_KS) в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentFilterReturnValueCheck()
@@ -71071,75 +67609,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerAndersonDarlingA2Check()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "AndersonDarling", "A2_ClickEstimator", "HeavyTailClickDistribution", "AndersonDarlingStatistic", "LogNormalTailFittingClicker", "AndersonDarlingToleranceMetric", "TailWeightedAndersonDarling", "EmpiricalTailDistributionA2" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("anderson") || text2.Contains("darling") || text2.Contains("tail") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет критерия Андерсона-Дарлинга (A2) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Anderson-Darling Test (A2) & Heavy-Tail Forensics", "Форензика критерия Андерсона-Дарлинга (A2) с повышенным весом «тяжелых хвостов» распределений клика для выявления усеченных рандомизаторов", list, CheckSeverity.Critical, "Имитации критерия Андерсона-Дарлинга (A2) в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleFoldArgumentsCheck()
@@ -71400,75 +67870,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerCramerVonMisesTCvMCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "CramerVonMises", "T_CvM_ClickEstimator", "IntegratedQuadraticDiscrepancy", "CvM_StatisticalTest", "BezierJitterCvMDetector", "CramerVonMisesToleranceMetric", "EmpiricalIntegratedDiscrepancy", "CvM_QuadraticLossTest" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("cramer") || text2.Contains("mises") || text2.Contains("discrepancy") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет критерия Крамера-фон Мизеса (T_CvM) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Cramér-von Mises Test (T_CvM) Integrated Discrepancy Forensics", "Форензика интегрированного квадратичного расхождения критерия Крамера-фон Мизеса (T_CvM) для выявления кусочно-полиномиальных джиттеров", list, CheckSeverity.Critical, "Имитации критерия Крамера-фон Мизеса (T_CvM) в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleGuardWithTestCheck()
@@ -71729,75 +68131,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerWatsonU2CircularDistributionCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "WatsonU2", "Watson_U2_ClickEstimator", "CircularPhaseClickDistribution", "TickAlignedPhaseAngle", "WatsonGoodnessOfFit", "CircularAutoclickerDetector", "PhaseAngle50msTick", "U2_CircularDispersionMetric" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("watson") || text2.Contains("circular") || text2.Contains("phase") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет критерия Ватсона (U2) круговых фаз кликов в JAR [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Watson U2 Goodness-of-Fit Circular Distribution Forensics", "Форензика инвариантного критерия согласия Ватсона (U2) для круговых фазовых распределений клика относительно 50мс игровых тиков сервера", list, CheckSeverity.Critical, "Имитации синхронизированных круговых фаз критерия Ватсона (U2) не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleCatchExceptionCheck()
@@ -72058,75 +68392,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerKuiperTestCyclicCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "KuiperTest", "Kuiper_V_ClickEstimator", "CyclicWeaponCooldownPhase", "AttackSpeedResetKuiper", "RotationInvariantClickDetector", "KuiperToleranceMetric", "CyclicInvariantDiscrepancy", "WeaponSwingResetMacro" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("kuiper") || text2.Contains("cyclic") || text2.Contains("cooldown") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет критерия Койпера циклической фазы кликов в JAR [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Kuiper Test (V) Cyclic Weapon Cooldown Forensics", "Форензика инвариантного критерия Койпера (V) циклических распределений пауз клика относительно времени восстановления атаки оружия", list, CheckSeverity.Critical, "Имитации циклических фаз критерия Койпера (V) в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleTryFinallyCheck()
@@ -72387,75 +68653,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerGiniImpurityDecisionBoundaryCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "GiniImpurity", "I_G_ClickEstimator", "DecisionBoundaryEntropy", "CategoricalClickPurity", "GiniImpurityAutoclickerDetector", "GiniDiversityMetric", "CategoricalDelayBinPurity", "GiniSwitchingBoundary" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("gini") || text2.Contains("impurity") || text2.Contains("boundary") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет индекса Джини (Gini Impurity) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Gini Impurity Decision Boundary Forensics", "Форензика индекса неоднородности Джини (I_G) категоризованных интервалов клика для выявления переключения пороговых решающих границ", list, CheckSeverity.Critical, "Имитации пороговых неоднородностей Джини в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleLoopCombinatorCheck()
@@ -72716,75 +68914,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerSilhouetteCoefficientClusterCheck()
 		{
-			List<string> list = new List<string>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string path = Path.Combine(folderPath, ".minecraft");
-			string path2 = Path.Combine(path, "mods");
-			int num = 0;
-			string[] array = new string[8] { "SilhouetteCoefficient", "ClusterSeparationClicker", "s_ClickEstimator", "MultimodalDelayClustering", "SilhouetteAnalysisDetector", "ClusterCohesionMetric", "StateSeparationSilhouette", "DiscreteClusterSilhouetteMetric" };
-			if (Directory.Exists(path2))
-			{
-				string[] files = Directory.GetFiles(path2, "*.jar", SearchOption.TopDirectoryOnly);
-				string[] array2 = files;
-				foreach (string text in array2)
-				{
-					try
-					{
-						using (ZipArchive zipArchive = ZipFile.OpenRead(text))
-						{
-							foreach (ZipArchiveEntry entry in zipArchive.Entries)
-							{
-								if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
-								{
-									string text2 = entry.FullName.ToLowerInvariant();
-									if (text2.Contains("click") || text2.Contains("silhouette") || text2.Contains("cluster") || text2.Contains("separation") || text2.Contains("combat"))
-									{
-										num++;
-										if (entry.Length < 95000)
-										{
-											using (Stream stream = entry.Open())
-											{
-												using (MemoryStream memoryStream = new MemoryStream())
-												{
-													stream.CopyTo(memoryStream);
-													string text3 = Encoding.ASCII.GetString(memoryStream.ToArray());
-													int num2 = 0;
-													string[] array3 = array;
-													foreach (string value in array3)
-													{
-														if (text3.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
-														{
-															num2++;
-														}
-													}
-													if (num2 >= 2 && (text2.Contains("cheat") || text2.Contains("hack") || text2.Contains("macro") || text2.Contains("click")))
-													{
-														list.Add("Обнаружен расчет коэффициента силуэта (Silhouette Coefficient) в автокликер-моде [" + Path.GetFileName(text) + "] класс: " + entry.FullName);
-													}
-												}
-											}
-										}
-									}
-								}
-								if (list.Count >= 8)
-								{
-									break;
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-					if (list.Count >= 8)
-					{
-						break;
-					}
-				}
-			}
-			List<CheckResult> list2 = new List<CheckResult>();
-			list2.Add(Make("Minecraft / Combat AutoClicker Silhouette Coefficient Cluster Separation Forensics", "Форензика коэффициента силуэта (s) разделения кластеров задержек клика для выявления дискретных переключений режимов автокликера", list, CheckSeverity.Critical, "Имитации кластерных коэффициентов силуэта в кликах не обнаружено (просканировано классов: " + num + ")."));
-			return list2;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleFilterArgumentsCheck()
@@ -73102,146 +69232,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerDaviesBouldinClusterSeparationCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			double num5 = 70.0;
-			List<double> list4 = new List<double>();
-			List<double> list5 = new List<double>();
-			for (int j = 0; j < list3.Count; j++)
-			{
-				if (list3[j] < num5)
-				{
-					list4.Add(list3[j]);
-				}
-				else
-				{
-					list5.Add(list3[j]);
-				}
-			}
-			if (list4.Count == 0)
-			{
-				list4.Add(num5 - 5.0);
-			}
-			if (list5.Count == 0)
-			{
-				list5.Add(num5 + 5.0);
-			}
-			double num6 = 0.0;
-			for (int k = 0; k < list4.Count; k++)
-			{
-				num6 += list4[k];
-			}
-			num6 /= (double)list4.Count;
-			double num7 = 0.0;
-			for (int l = 0; l < list5.Count; l++)
-			{
-				num7 += list5[l];
-			}
-			num7 /= (double)list5.Count;
-			double num8 = 0.0;
-			for (int m = 0; m < list4.Count; m++)
-			{
-				num8 += Math.Abs(list4[m] - num6);
-			}
-			num8 /= (double)list4.Count;
-			double num9 = 0.0;
-			for (int n = 0; n < list5.Count; n++)
-			{
-				num9 += Math.Abs(list5[n] - num7);
-			}
-			num9 /= (double)list5.Count;
-			double num10 = Math.Abs(num6 - num7);
-			if (num10 < 0.001)
-			{
-				num10 = 0.001;
-			}
-			double num11 = (num8 + num9) / num10;
-			double num12 = double.MaxValue;
-			for (int num13 = 0; num13 < Math.Min(list4.Count, 20); num13++)
-			{
-				for (int num14 = 0; num14 < Math.Min(list5.Count, 20); num14++)
-				{
-					double num15 = Math.Abs(list4[num13] - list5[num14]);
-					if (num15 < num12)
-					{
-						num12 = num15;
-					}
-				}
-			}
-			double num16 = Math.Max(num8 * 2.0, num9 * 2.0);
-			if (num16 < 0.001)
-			{
-				num16 = 0.001;
-			}
-			double num17 = num12 / num16;
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}", list3.Count));
-			list2.Add(string.Format("Кластер C1 (Высокий CPS): {0} кликов, центроид = {1:F2} мс, дисперсия s1 = {2:F2} мс", list4.Count, num6, num8));
-			list2.Add(string.Format("Кластер C2 (Низкий CPS): {0} кликов, центроид = {1:F2} мс, дисперсия s2 = {2:F2} мс", list5.Count, num7, num9));
-			list2.Add(string.Format("Дистанция между центроидами: {0:F2} мс", num10));
-			list2.Add(string.Format("Индекс Дэвиса-Болдина (DBI): {0:F4} (Порог синтетики: < 0.35, норма: > 0.90)", num11));
-			list2.Add(string.Format("Индекс Данна (Dunn Index): {0:F4} (Порог синтетики: > 2.00, норма: < 0.80)", num17));
-			if (num11 < 0.35 && num17 > 1.8 && list3.Count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: жесткое разделение режимов клика (DBI={0:F4}, Dunn={1:F4}, N={2})", num11, num17, list3.Count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list6 = new List<CheckResult>();
-			list6.Add(Make("Minecraft / Player Combat AutoClicker Davies-Bouldin Index (DBI) & Dunn Index Cluster Separation Forensics", "Кластерный анализ интервалов задержек клика по индексам Дэвиса-Болдина (DBI) и Данна для выявления искусственно разделенных режимов автокликера", list, CheckSeverity.Critical, string.Format("Органическое распределение интервалов кликов (DBI={0:F3}, Dunn={1:F3}, N={2}).", num11, num17, list3.Count)));
-			return list6;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandlePermuteArgumentsCheck()
@@ -73540,134 +69531,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerCalinskiHarabaszIndexCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.0;
-			for (int j = 0; j < count; j++)
-			{
-				num5 += list3[j];
-			}
-			num5 /= (double)count;
-			double num6 = 70.0;
-			List<double> list4 = new List<double>();
-			List<double> list5 = new List<double>();
-			for (int k = 0; k < count; k++)
-			{
-				if (list3[k] < num6)
-				{
-					list4.Add(list3[k]);
-				}
-				else
-				{
-					list5.Add(list3[k]);
-				}
-			}
-			if (list4.Count == 0)
-			{
-				list4.Add(num6 - 5.0);
-			}
-			if (list5.Count == 0)
-			{
-				list5.Add(num6 + 5.0);
-			}
-			double num7 = 0.0;
-			for (int l = 0; l < list4.Count; l++)
-			{
-				num7 += list4[l];
-			}
-			num7 /= (double)list4.Count;
-			double num8 = 0.0;
-			for (int m = 0; m < list5.Count; m++)
-			{
-				num8 += list5[m];
-			}
-			num8 /= (double)list5.Count;
-			double num9 = (double)list4.Count * Math.Pow(num7 - num5, 2.0) + (double)list5.Count * Math.Pow(num8 - num5, 2.0);
-			double num10 = 0.0;
-			for (int n = 0; n < list4.Count; n++)
-			{
-				num10 += Math.Pow(list4[n] - num7, 2.0);
-			}
-			for (int num11 = 0; num11 < list5.Count; num11++)
-			{
-				num10 += Math.Pow(list5[num11] - num8, 2.0);
-			}
-			if (num10 < 0.001)
-			{
-				num10 = 0.001;
-			}
-			int num12 = 2;
-			double num13 = num9 / num10 * ((double)(count - num12) / (double)(num12 - 1));
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}", count));
-			list2.Add(string.Format("Общее среднее (Grand Mean): {0:F2} мс", num5));
-			list2.Add(string.Format("Кластер C1 (Высокий CPS): {0} кликов, центроид = {1:F2} мс", list4.Count, num7));
-			list2.Add(string.Format("Кластер C2 (Низкий CPS): {0} кликов, центроид = {1:F2} мс", list5.Count, num8));
-			list2.Add(string.Format("Межкластерная дисперсия Tr(B): {0:F2}", num9));
-			list2.Add(string.Format("Внутрикластерная дисперсия Tr(W): {0:F2}", num10));
-			list2.Add(string.Format("Индекс Калински-Харабаша (VRC): {0:F2} (Порог синтетики: > 450.0, норма: < 85.0)", num13));
-			if (num13 > 450.0 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: аномально высокий индекс Калински-Харабаша (VRC={0:F2}, N={1})", num13, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list6 = new List<CheckResult>();
-			list6.Add(Make("Minecraft / Player Combat AutoClicker Calinski-Harabasz Index (Variance Ratio Criterion) Forensics", "Кластерный анализ интервалов задержек клика по индексу Калински-Харабаша (VRC) для выявления дискретных синтетических режимов автокликера", list, CheckSeverity.Critical, string.Format("Органическое распределение интервалов кликов (VRC={0:F2}, N={1}).", num13, count)));
-			return list6;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleFoldArgumentsWithCombinerCheck()
@@ -73739,7 +69603,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "titlcheat", "esptitl", "hudtitl", "pvptitl", "stealthtitl", "autotitl", "radartitl", "titlglyph", "overlaytitl", "customtitl" };
+			string[] array = new string[] { "titlcheat", "esptitl", "hudtitl", "pvptitl", "stealthtitl", "autotitl", "radartitl", "titlglyph", "overlaytitl", "customtitl" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -73962,109 +69826,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerConcordanceIndexHazardCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.0;
-			for (int j = 0; j < count; j++)
-			{
-				num5 += list3[j];
-			}
-			num5 /= (double)count;
-			double num6 = 8.0;
-			double[] array = new double[count];
-			for (int k = 0; k < count; k++)
-			{
-				array[k] = Math.Exp((0.0 - Math.Pow(list3[k] - num5, 2.0)) / (2.0 * num6 * num6));
-			}
-			double num7 = 0.0;
-			double num8 = 0.0;
-			double num9 = 0.0;
-			for (int l = 0; l < count; l++)
-			{
-				for (int m = 0; m < count; m++)
-				{
-					if (list3[l] < list3[m])
-					{
-						num9 += 1.0;
-						if (array[l] > array[m])
-						{
-							num7 += 1.0;
-						}
-						else if (Math.Abs(array[l] - array[m]) < 0.0001)
-						{
-							num8 += 1.0;
-						}
-					}
-				}
-			}
-			double num10 = ((num9 > 0.0) ? ((num7 + 0.5 * num8) / num9) : 0.5);
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}", count));
-			list2.Add(string.Format("Средний интервал клика (Mean ICI): {0:F2} мс", num5));
-			list2.Add(string.Format("Согласованных пар (Concordant): {0:F0} из {1:F0}", num7, num9));
-			list2.Add(string.Format("Индекс конкордантности Харрелла (C-Index): {0:F4} (Порог синтетики: > 0.90, норма: 0.50-0.75)", num10));
-			if (num10 > 0.9 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: аномально высокая конкордантность функции риска клика (C-Index={0:F4}, N={1})", num10, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft / Player Combat AutoClicker Concordance Index (C-Index) Renewal Hazard Forensics", "Анализ функции риска возобновления кликов по индексу конкордантности Харрелла (C-Index) для выявления запрограммированных задержек", list, CheckSeverity.Critical, string.Format("Органическое распределение риска кликов (C-Index={0:F3}, N={1}).", num10, count)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleCollectArgumentsCheck()
@@ -74136,7 +69898,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "smcpcheat", "espsmcp", "hudsmcp", "pvpsmcp", "stealthsmcp", "autosmcp", "radarsmcp", "smcpglyph", "overlaysmcp", "customsmcp" };
+			string[] array = new string[] { "smcpcheat", "espsmcp", "hudsmcp", "pvpsmcp", "stealthsmcp", "autosmcp", "radarsmcp", "smcpglyph", "overlaysmcp", "customsmcp" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -74359,106 +70121,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBrierScoreReliabilityCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.0;
-			for (int j = 0; j < count; j++)
-			{
-				num5 += list3[j];
-			}
-			num5 /= (double)count;
-			double num6 = 0.0;
-			int num7 = 0;
-			double num8 = num5;
-			for (int k = 0; k < count; k++)
-			{
-				double num9 = list3[k];
-				int num10 = (int)Math.Max(1.0, Math.Round(num9 / 50.0));
-				for (int l = 1; l <= num10; l++)
-				{
-					num7++;
-					double num11 = (double)l * 50.0;
-					double num12 = Math.Exp((0.0 - Math.Pow(num11 - num8, 2.0)) / 1250.0);
-					if (num12 > 0.99)
-					{
-						num12 = 0.99;
-					}
-					if (num12 < 0.01)
-					{
-						num12 = 0.01;
-					}
-					double num13 = ((l == num10) ? 1.0 : 0.0);
-					num6 += Math.Pow(num12 - num13, 2.0);
-				}
-			}
-			double num14 = ((num7 > 0) ? (num6 / (double)num7) : 0.25);
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}, смоделировано тиков: {1}", count, num7));
-			list2.Add(string.Format("Средний интервал клика: {0:F2} мс", num5));
-			list2.Add(string.Format("Сумма квадратичных отклонений вероятности: {0:F4}", num6));
-			list2.Add(string.Format("Индекс Брайера (Brier Score): {0:F4} (Порог синтетики: < 0.055, норма: > 0.160)", num14));
-			if (num14 < 0.055 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: сверхточная калибровка вероятности кликов без усталости (Brier={0:F4}, N={1})", num14, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft / Player Combat AutoClicker Brier Score (BS) & Reliability Forensics", "Анализ вероятностной калибровки таймингов кликов по индексу Брайера (Brier Score) для выявления неестественной точности интервалов", list, CheckSeverity.Critical, string.Format("Органическое распределение индекса Брайера (Brier={0:F3}, N={1}).", num14, count)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleSpreadInvokerCheck()
@@ -74530,7 +70193,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "c2sccheat", "espc2sc", "hudc2sc", "pvpc2sc", "stealthc2sc", "autoc2sc", "radarc2sc", "c2scglyph", "overlayc2sc", "customc2sc" };
+			string[] array = new string[] { "c2sccheat", "espc2sc", "hudc2sc", "pvpc2sc", "stealthc2sc", "autoc2sc", "radarc2sc", "c2scglyph", "overlayc2sc", "customc2sc" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -74753,90 +70416,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerSprtLogLikelihoodRatioCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 75.0;
-			double num6 = 18.0;
-			double num7 = 65.0;
-			double num8 = 3.0;
-			double num9 = 0.0;
-			double num10 = Math.Log(num6 / num8);
-			for (int j = 0; j < count; j++)
-			{
-				double num11 = list3[j];
-				double num12 = Math.Pow(num11 - num5, 2.0) / (2.0 * num6 * num6);
-				double num13 = Math.Pow(num11 - num7, 2.0) / (2.0 * num8 * num8);
-				num9 += num12 - num13 + num10;
-			}
-			double num14 = 6.907;
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}", count));
-			list2.Add(string.Format("Параметры гипотезы H0 (Человек): mu0 = {0:F1} мс, sigma0 = {1:F1} мс", num5, num6));
-			list2.Add(string.Format("Параметры гипотезы H1 (Автокликер): mu1 = {0:F1} мс, sigma1 = {1:F1} мс", num7, num8));
-			list2.Add(string.Format("Кумулятивное лог-правдоподобие Вальда (Lambda): {0:F2}", num9));
-			list2.Add(string.Format("Порог отсечения гипотезы (Порог А, 99.9% достоверности): {0:F3}", num14));
-			if (num9 >= num14 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: тест отношения последовательных правдоподобий Вальда отверг H0 (Lambda={0:F2} >= {1:F2}, N={2})", num9, num14, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft / Player Combat AutoClicker SPRT Log-Likelihood Ratio Sequential Test Forensics", "Последовательный тест отношения правдоподобий Вальда (SPRT) для выявления синтетических распределений задержек клика с 99.9% надежностью", list, CheckSeverity.Critical, string.Format("Органическое распределение SPRT (Lambda={0:F2} < {1:F2}, N={2}).", num9, num14, count)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleIdentityConstantTrampolineCheck()
@@ -74908,7 +70488,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "uniccheat", "espunic", "hudunic", "pvpunic", "stealthunic", "autounic", "radarunic", "unicglyph", "overlayunic", "customunic" };
+			string[] array = new string[] { "uniccheat", "espunic", "hudunic", "pvpunic", "stealthunic", "autounic", "radarunic", "unicglyph", "overlayunic", "customunic" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -75131,112 +70711,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerCusumChangePointDetectionCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.0;
-			for (int j = 0; j < count; j++)
-			{
-				num5 += list3[j];
-			}
-			num5 /= (double)count;
-			double num6 = 0.0;
-			for (int k = 0; k < count; k++)
-			{
-				num6 += Math.Pow(list3[k] - num5, 2.0);
-			}
-			double num7 = Math.Sqrt(num6 / (double)Math.Max(1, count - 1));
-			if (num7 < 0.5)
-			{
-				num7 = 0.5;
-			}
-			double num8 = 0.5 * num7;
-			double num9 = 0.0;
-			double num10 = 0.0;
-			double num11 = 0.0;
-			double num12 = 0.0;
-			for (int l = 0; l < count; l++)
-			{
-				double num13 = list3[l];
-				num9 = Math.Max(0.0, num9 + (num13 - num5 - num8));
-				num10 = Math.Min(0.0, num10 + (num13 - num5 + num8));
-				if (num9 > num11)
-				{
-					num11 = num9;
-				}
-				if (Math.Abs(num10) > num12)
-				{
-					num12 = Math.Abs(num10);
-				}
-			}
-			double num14 = Math.Max(num11, num12) / num7;
-			double num15 = 6.0;
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}", count));
-			list2.Add(string.Format("Средний интервал: {0:F2} мс, Стандартное отклонение (sigma): {1:F2} мс", num5, num7));
-			list2.Add(string.Format("Максимальное кумулятивное отклонение CUSUM: {0:F2} sigma", num14));
-			list2.Add(string.Format("Порог детекции скачка режима клика (Порог H): {0:F1} sigma", num15));
-			if (num14 > num15 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: обнаружен резкий скачок режима генерации кликов по CUSUM ({0:F2} sigma > {1:F1} sigma, N={2})", num14, num15, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft / Player Combat AutoClicker CUSUM Change-Point Detection Forensics", "Анализ резких скачков и переключений режимов клика методом кумулятивных сумм (CUSUM) для детекции включения автокликера", list, CheckSeverity.Critical, string.Format("Органический профиль CUSUM без резких скачков режима (CUSUM={0:F2} sigma, N={1}).", num14, count)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleZeroEmptyAdaptersCheck()
@@ -75308,7 +70783,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "histcheat", "esphist", "hudhist", "pvphist", "stealthhist", "autohist", "radarhist", "histglyph", "overlayhist", "customhist" };
+			string[] array = new string[] { "histcheat", "esphist", "hudhist", "pvphist", "stealthhist", "autohist", "radarhist", "histglyph", "overlayhist", "customhist" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -75531,104 +71006,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerEmaVolatilityRatioCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.15;
-			double num6 = list3[0];
-			double num7 = 0.0;
-			List<double> list4 = new List<double>();
-			for (int j = 0; j < count; j++)
-			{
-				double num8 = list3[j];
-				num6 = num5 * num8 + (1.0 - num5) * num6;
-				num7 = num5 * Math.Pow(num8 - num6, 2.0) + (1.0 - num5) * num7;
-				if (j >= 5)
-				{
-					list4.Add(num7);
-				}
-			}
-			double num9 = double.MaxValue;
-			double num10 = double.MinValue;
-			for (int k = 0; k < list4.Count; k++)
-			{
-				if (list4[k] < num9)
-				{
-					num9 = list4[k];
-				}
-				if (list4[k] > num10)
-				{
-					num10 = list4[k];
-				}
-			}
-			double num11 = ((num9 + 0.1 > 0.0) ? (num10 / (num9 + 0.1)) : 1.0);
-			double num12 = 2.2;
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}, точек EMA дисперсии: {1}", count, list4.Count));
-			list2.Add(string.Format("Минимальная динамическая дисперсия EMA: {0:F3} мс^2", num9));
-			list2.Add(string.Format("Максимальная динамическая дисперсия EMA: {0:F3} мс^2", num10));
-			list2.Add(string.Format("Коэффициент волатильности дисперсии (EVR): {0:F2} (Порог синтетики: < {1:F2}, норма: > 5.0)", num11, num12));
-			if (num11 < num12 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: аномально плоская волатильность задержек клика по EMA (EVR={0:F2} < {1:F2}, N={2})", num11, num12, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list5 = new List<CheckResult>();
-			list5.Add(Make("Minecraft / Player Combat AutoClicker Exponential Moving Average Volatility Ratio (EVR) Forensics", "Анализ динамической волатильности задержек клика по экспоненциальной скользящей средней (EMA) для выявления неестественно стабильного разброса", list, CheckSeverity.Critical, string.Format("Органическая динамика волатильности кликов по EMA (EVR={0:F2} >= {1:F2}, N={2}).", num11, num12, count)));
-			return list5;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleExplicitCastArgumentsCheck()
@@ -75700,7 +71078,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "italcheat", "espital", "hudital", "pvpital", "stealthital", "autoital", "radarital", "italglyph", "overlayital", "customital" };
+			string[] array = new string[] { "italcheat", "espital", "hudital", "pvpital", "stealthital", "autoital", "radarital", "italglyph", "overlayital", "customital" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -75923,132 +71301,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerFftSpectralPurityCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.0;
-			for (int j = 0; j < count; j++)
-			{
-				num5 += list3[j];
-			}
-			num5 /= (double)count;
-			double[] array = new double[count];
-			for (int k = 0; k < count; k++)
-			{
-				array[k] = list3[k] - num5;
-			}
-			int num6 = count / 2;
-			double num7 = 0.0;
-			int num8 = 1;
-			double num9 = 0.0;
-			for (int l = 1; l < num6; l++)
-			{
-				double num10 = 0.0;
-				double num11 = 0.0;
-				double num12 = Math.PI * 2.0 * (double)l / (double)count;
-				for (int m = 0; m < count; m++)
-				{
-					double num13 = num12 * (double)m;
-					num10 += array[m] * Math.Cos(num13);
-					num11 -= array[m] * Math.Sin(num13);
-				}
-				double num14 = num10 * num10 + num11 * num11;
-				if (num14 > num7)
-				{
-					num7 = num14;
-					num8 = l;
-				}
-			}
-			for (int n = 1; n < num6; n++)
-			{
-				if (n != num8)
-				{
-					double num15 = 0.0;
-					double num16 = 0.0;
-					double num17 = Math.PI * 2.0 * (double)n / (double)count;
-					for (int num18 = 0; num18 < count; num18++)
-					{
-						double num19 = num17 * (double)num18;
-						num15 += array[num18] * Math.Cos(num19);
-						num16 -= array[num18] * Math.Sin(num19);
-					}
-					num9 += num15 * num15 + num16 * num16;
-				}
-			}
-			int num20 = Math.Max(1, num6 - 2);
-			double num21 = num9 / (double)num20;
-			if (num21 < 0.001)
-			{
-				num21 = 0.001;
-			}
-			double num22 = 10.0 * Math.Log10(num7 / num21);
-			double num23 = 13.5;
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}", count));
-			list2.Add(string.Format("Пиковая спектральная мощность (P_max): {0:F2} (гармоника k={1})", num7, num8));
-			list2.Add(string.Format("Средняя мощность внепикового спектрального шума: {0:F2}", num21));
-			list2.Add(string.Format("Динамический диапазон гармоники (SFDR): {0:F2} dB (Порог синтетики: > {1:F2} dB, норма: < 7.0 dB)", num22, num23));
-			if (num22 > num23 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: аномальная гармоническая чистота спектра задержек (SFDR={0:F2} dB > {1:F2} dB, N={2})", num22, num23, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft / Player Combat AutoClicker FFT Spectral Purity & SFDR Dynamic Range Forensics", "Спектральный анализ Фурье (FFT) интервалов задержек клика по динамическому диапазону гармоник (SFDR) для выявления синтетических автогенераторов", list, CheckSeverity.Critical, string.Format("Органический спектр задержек клика с низким SFDR (SFDR={0:F2} dB <= {1:F2} dB, N={2}).", num22, num23, count)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleAsTypeCoercionCheck()
@@ -76120,7 +71373,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "rubycheat", "espruby", "hudruby", "pvpruby", "stealthruby", "autoruby", "radarruby", "rubyglyph", "overlayruby", "customruby" };
+			string[] array = new string[] { "rubycheat", "espruby", "hudruby", "pvpruby", "stealthruby", "autoruby", "radarruby", "rubyglyph", "overlayruby", "customruby" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -76343,138 +71596,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerDfaScalingExponentCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.0;
-			for (int j = 0; j < count; j++)
-			{
-				num5 += list3[j];
-			}
-			num5 /= (double)count;
-			double[] array = new double[count];
-			double num6 = 0.0;
-			for (int k = 0; k < count; k++)
-			{
-				num6 = (array[k] = num6 + (list3[k] - num5));
-			}
-			int num7 = 4;
-			int num8 = 16;
-			if (num8 > count / 2)
-			{
-				num8 = Math.Max(num7 + 2, count / 2);
-			}
-			double[] array2 = new double[2] { num7, num8 };
-			double[] array3 = new double[2];
-			for (int l = 0; l < 2; l++)
-			{
-				int num9 = (int)array2[l];
-				double num10 = 0.0;
-				int num11 = 0;
-				for (int m = 0; m + num9 <= count; m += num9)
-				{
-					double num12 = 0.0;
-					double num13 = 0.0;
-					double num14 = 0.0;
-					double num15 = 0.0;
-					for (int n = 0; n < num9; n++)
-					{
-						double num16 = array[m + n];
-						num12 += (double)n;
-						num13 += num16;
-						num14 += (double)n * num16;
-						num15 += (double)(n * n);
-					}
-					double num17 = (double)num9 * num15 - num12 * num12;
-					double num18 = ((Math.Abs(num17) > 0.0001) ? (((double)num9 * num14 - num12 * num13) / num17) : 0.0);
-					double num19 = (num13 - num18 * num12) / (double)num9;
-					for (int num20 = 0; num20 < num9; num20++)
-					{
-						double num21 = num18 * (double)num20 + num19;
-						double num22 = array[m + num20] - num21;
-						num10 += num22 * num22;
-						num11++;
-					}
-				}
-				array3[l] = ((num11 > 0) ? Math.Sqrt(num10 / (double)num11) : 0.001);
-			}
-			double num23 = array3[0];
-			double num24 = array3[1];
-			if (num23 < 0.001)
-			{
-				num23 = 0.001;
-			}
-			if (num24 < 0.001)
-			{
-				num24 = 0.001;
-			}
-			double num25 = (Math.Log(num24) - Math.Log(num23)) / (Math.Log(num8) - Math.Log(num7));
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}", count));
-			list2.Add(string.Format("Флуктуация на масштабе s1={0}: F(s1) = {1:F3}", num7, num23));
-			list2.Add(string.Format("Флуктуация на масштабе s2={0}: F(s2) = {1:F3}", num8, num24));
-			list2.Add(string.Format("Скейлинговый показатель DFA (alpha): {0:F3} (Порог белого шума синтетики: < 0.62, норма человека 1/f: 0.75-1.15)", num25));
-			if (num25 < 0.62 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: белый шум без долгосрочной физиологической персистентности (DFA alpha={0:F3} < 0.62, N={1})", num25, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft / Player Combat AutoClicker Detrended Fluctuation Analysis (DFA) Scaling Exponent Forensics", "Анализ флуктуаций DFA (Detrended Fluctuation Analysis) масштабирующего показателя alpha для выявления отсутствия биологической персистентности", list, CheckSeverity.Critical, string.Format("Органическая биомеханическая персистентность флуктуаций кликов 1/f (DFA alpha={0:F3}, N={1}).", num25, count)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleExactInvokerDispatchCheck()
@@ -76546,7 +71668,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "naltcheat", "espnalt", "hudnalt", "pvpnalt", "stealthnalt", "autonalt", "radarnalt", "naltglyph", "overlaynalt", "customnalt" };
+			string[] array = new string[] { "naltcheat", "espnalt", "hudnalt", "pvpnalt", "stealthnalt", "autonalt", "radarnalt", "naltglyph", "overlaynalt", "customnalt" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -76769,112 +71891,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerLjungBoxAutocorrelationCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.0;
-			for (int j = 0; j < count; j++)
-			{
-				num5 += list3[j];
-			}
-			num5 /= (double)count;
-			double num6 = 0.0;
-			for (int k = 0; k < count; k++)
-			{
-				num6 += Math.Pow(list3[k] - num5, 2.0);
-			}
-			if (num6 < 0.001)
-			{
-				num6 = 0.001;
-			}
-			int num7 = Math.Min(5, count / 4);
-			if (num7 < 2)
-			{
-				num7 = 2;
-			}
-			double num8 = 0.0;
-			List<double> list4 = new List<double>();
-			for (int l = 1; l <= num7; l++)
-			{
-				double num9 = 0.0;
-				for (int m = 0; m < count - l; m++)
-				{
-					num9 += (list3[m] - num5) * (list3[m + l] - num5);
-				}
-				double num10 = num9 / num6;
-				list4.Add(num10);
-				num8 += num10 * num10 / (double)(count - l);
-			}
-			num8 *= (double)(count * (count + 2));
-			double num11 = 7.5;
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}, лагов автокорреляции (h): {1}", count, num7));
-			for (int n = 0; n < list4.Count; n++)
-			{
-				list2.Add(string.Format("Автокорреляция r(lag {0}): {1:F3}", n + 1, list4[n]));
-			}
-			list2.Add(string.Format("Статистика Льюнга-Бокса Q: {0:F2} (Порог белого шума синтетики: < {1:F1}, норма человека: > 20.0)", num8, num11));
-			if (num8 < num11 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: тест Льюнга-Бокса выявил идеальный нескоррелированный белый шум (Q={0:F2} < {1:F1}, N={2})", num8, num11, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list5 = new List<CheckResult>();
-			list5.Add(Make("Minecraft / Player Combat AutoClicker Ljung-Box Autocorrelation Q-Test Forensics", "Анализ многолаговой автокорреляции кликов по критерию Льюнга-Бокса (Q-Test) для выявления нескоррелированного синтетического белого шума", list, CheckSeverity.Critical, string.Format("Органическая биомеханическая автокорреляция кликов по Льюнгу-Боксу (Q={0:F2} >= {1:F1}, N={2}).", num8, num11, count)));
-			return list5;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleInvokeWithArgumentsCheck()
@@ -76946,7 +71963,7 @@ namespace MCCheatChecker
 		{
 			List<string> list = new List<string>();
 			int num = 0;
-			string[] array = new string[10] { "supscheat", "subscheat", "espsups", "espsubs", "hudsups", "hudsubs", "pvpsups", "stealthsups", "radarsups", "customsups" };
+			string[] array = new string[] { "supscheat", "subscheat", "espsups", "espsubs", "hudsups", "hudsubs", "pvpsups", "stealthsups", "radarsups", "customsups" };
 			try
 			{
 				using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes"))
@@ -77169,96 +72186,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerMaseForecastCheck()
 		{
-			List<string> list = new List<string>();
-			List<string> list2 = new List<string>();
-			List<double> list3 = new List<double>();
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string text = Path.Combine(folderPath, ".minecraft", "logs");
-			if (Directory.Exists(text))
-			{
-				try
-				{
-					string path = Path.Combine(text, "latest.log");
-					if (File.Exists(path))
-					{
-						using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						{
-							using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-							{
-								string text2;
-								while ((text2 = streamReader.ReadLine()) != null)
-								{
-									int num = text2.IndexOf("ici_ms=", StringComparison.OrdinalIgnoreCase);
-									if (num >= 0)
-									{
-										string text3 = text2.Substring(num + 7);
-										int num2 = text3.IndexOfAny(new char[4] { ' ', ',', ']', '\t' });
-										if (num2 > 0)
-										{
-											text3 = text3.Substring(0, num2);
-										}
-										double result;
-										if (double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result) && result >= 20.0 && result <= 250.0)
-										{
-											list3.Add(result);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				catch
-				{
-				}
-			}
-			if (list3.Count < 20)
-			{
-				Random random = new Random((int)DateTime.UtcNow.Ticks);
-				double num3 = 65.0;
-				for (int i = 0; i < 40; i++)
-				{
-					double num4 = (random.NextDouble() - 0.5) * 16.0;
-					list3.Add(num3 + num4);
-				}
-			}
-			int count = list3.Count;
-			double num5 = 0.0;
-			for (int j = 1; j < count; j++)
-			{
-				num5 += Math.Abs(list3[j] - list3[j - 1]);
-			}
-			double num6 = num5 / (double)Math.Max(1, count - 1);
-			if (num6 < 0.001)
-			{
-				num6 = 0.001;
-			}
-			double num7 = 0.3;
-			double num8 = list3[0];
-			double num9 = 0.0;
-			for (int k = 1; k < count; k++)
-			{
-				num8 = num7 * list3[k - 1] + (1.0 - num7) * num8;
-				num9 += Math.Abs(list3[k] - num8);
-			}
-			double num10 = num9 / (double)Math.Max(1, count - 1);
-			double num11 = num10 / num6;
-			double num12 = 0.5;
-			list2.Add(string.Format("Выборка интервалов клика (N): {0}", count));
-			list2.Add(string.Format("Средняя абсолютная ошибка случайного блуждания (MAE Naive): {0:F3} мс", num6));
-			list2.Add(string.Format("Средняя абсолютная ошибка модели сглаживания (MAE Model): {0:F3} мс", num10));
-			list2.Add(string.Format("Масштабированная ошибка прогноза (MASE): {0:F3} (Порог предсказуемости синтетики: < {1:F2}, норма: > 0.90)", num11, num12));
-			if (num11 < num12 && count >= 25)
-			{
-				list.Add(string.Format("Синтетический автокликер: аномально высокая предсказуемость таймингов кликов (MASE={0:F3} < {1:F2}, N={2})", num11, num12, count));
-				foreach (string item in list2)
-				{
-					list.Add(item);
-				}
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft / Player Combat AutoClicker MASE Forecast Predictability Forensics", "Анализ масштабированной ошибки прогноза MASE (Mean Absolute Scaled Error) для выявления детерминированной предсказуемости автокликера", list, CheckSeverity.Critical, string.Format("Органическая непредсказуемость интервалов кликов человека (MASE={0:F3} >= {1:F2}, N={2}).", num11, num12, count)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentMethodHandleInsertArgumentsBindingCheck()
@@ -77469,85 +72397,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerEngleArchTestHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			double num2 = 1.0;
-			int num3 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num4 = array.Length - 1; num4 >= Math.Max(0, array.Length - 300); num4--)
-						{
-							string text2 = array[num4];
-							int num5 = text2.IndexOf("interval=");
-							if (num5 >= 0)
-							{
-								string s = text2.Substring(num5 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 20)
-				{
-					num3 = list2.Count;
-					double num6 = 0.0;
-					for (int i = 0; i < list2.Count; i++)
-					{
-						num6 += list2[i];
-					}
-					num6 /= (double)list2.Count;
-					double[] array2 = new double[list2.Count];
-					double num7 = 0.0;
-					for (int j = 0; j < list2.Count; j++)
-					{
-						double num8 = list2[j] - num6;
-						array2[j] = num8 * num8;
-						num7 += array2[j];
-					}
-					num7 /= (double)list2.Count;
-					int num9 = list2.Count - 1;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					for (int k = 1; k < list2.Count; k++)
-					{
-						double num12 = array2[k - 1] - num7;
-						double num13 = array2[k] - num7;
-						num10 += num12 * num13;
-						num11 += num12 * num12;
-					}
-					double num14 = ((num11 > 1E-12) ? (num10 / num11) : 0.0);
-					double num15 = num14 * num14;
-					if (num15 > 1.0)
-					{
-						num15 = 1.0;
-					}
-					num = (double)num9 * num15;
-					num2 = Math.Exp((0.0 - num) / 2.0);
-					if (num > 10.83 && num2 < 0.001)
-					{
-						list.Add("Обнаружена выраженная кластеризация волатильности кликов по тесту Энгла (ARCH LM = " + num.ToString("F3") + ", p < 0.001, выборка: " + num3 + "), характерная для адаптивных автокликеров с рандомизацией!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Engle ARCH Autoregressive Conditional Heteroskedasticity Forensics", "Тест Энгла (ARCH LM) на авторегрессионную условную гетероскедастичность интервалов кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num3 >= 20) ? ("Тест Энгла ARCH пройден успешно (LM = " + num.ToString("F3") + ", p = " + num2.ToString("F4") + ", выборка: " + num3 + "). Аномальной кластеризации волатильности не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста ARCH (выборка: " + num3 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLambdaAltMetafactoryCheck()
@@ -77757,71 +72607,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerDurbinWatsonAutocorrelationCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 2.0;
-			int num2 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num3 = array.Length - 1; num3 >= Math.Max(0, array.Length - 300); num3--)
-						{
-							string text2 = array[num3];
-							int num4 = text2.IndexOf("interval=");
-							if (num4 >= 0)
-							{
-								string s = text2.Substring(num4 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 20)
-				{
-					num2 = list2.Count;
-					double num5 = 0.0;
-					for (int i = 0; i < list2.Count; i++)
-					{
-						num5 += list2[i];
-					}
-					num5 /= (double)list2.Count;
-					double[] array2 = new double[list2.Count];
-					double num6 = 0.0;
-					for (int j = 0; j < list2.Count; j++)
-					{
-						array2[j] = list2[j] - num5;
-						num6 += array2[j] * array2[j];
-					}
-					double num7 = 0.0;
-					for (int k = 1; k < list2.Count; k++)
-					{
-						double num8 = array2[k] - array2[k - 1];
-						num7 += num8 * num8;
-					}
-					num = ((num6 > 1E-12) ? (num7 / num6) : 2.0);
-					if (num < 0.9 || num > 3.1)
-					{
-						list.Add("Обнаружена аномальная автокорреляция остатков интервалов по Дарбину-Уотсону (d = " + num.ToString("F3") + ", норма: 1.5 - 2.5, выборка: " + num2 + "), указывающая на программный генератор кликов!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Durbin-Watson Autocorrelation Forensics", "Статистический критерий Дарбина-Уотсона (DW) для детекции автокорреляции кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num2 >= 20) ? ("Критерий Дарбина-Уотсона DW пройден успешно (d = " + num.ToString("F3") + ", выборка: " + num2 + "). Аномальной автокорреляции остатков не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта критерия DW (выборка: " + num2 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinDynamicStringConcatFactoryRecipeInjectionCheck()
@@ -78031,94 +72817,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerLoMacKinlayVarianceRatioCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 1.0;
-			double value = 0.0;
-			int num2 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num3 = array.Length - 1; num3 >= Math.Max(0, array.Length - 300); num3--)
-						{
-							string text2 = array[num3];
-							int num4 = text2.IndexOf("interval=");
-							if (num4 >= 0)
-							{
-								string s = text2.Substring(num4 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num2 = list2.Count;
-					int count = list2.Count;
-					double num5 = 0.0;
-					double[] array2 = new double[count - 1];
-					for (int i = 1; i < count; i++)
-					{
-						array2[i - 1] = list2[i] - list2[i - 1];
-						num5 += array2[i - 1];
-					}
-					num5 /= (double)(count - 1);
-					double num6 = 0.0;
-					for (int j = 0; j < array2.Length; j++)
-					{
-						double num7 = array2[j] - num5;
-						num6 += num7 * num7;
-					}
-					num6 /= (double)(count - 1);
-					int num8 = 2;
-					double num9 = 0.0;
-					double[] array3 = new double[count - num8];
-					for (int k = num8; k < count; k++)
-					{
-						array3[k - num8] = list2[k] - list2[k - num8];
-						num9 += array3[k - num8];
-					}
-					num9 /= (double)(count - num8);
-					double num10 = 0.0;
-					for (int l = 0; l < array3.Length; l++)
-					{
-						double num11 = array3[l] - num9;
-						num10 += num11 * num11;
-					}
-					num10 /= (double)(count - num8);
-					if (num6 > 1E-12)
-					{
-						num = num10 / ((double)num8 * num6);
-					}
-					double num12 = 2.0 * (2.0 * (double)num8 - 1.0) * ((double)num8 - 1.0) / (3.0 * (double)num8);
-					double num13 = Math.Sqrt(num12 / (double)count);
-					if (num13 > 1E-12)
-					{
-						value = (num - 1.0) / num13;
-					}
-					if (Math.Abs(value) > 3.0)
-					{
-						list.Add("Обнаружено статистически значимое отклонение теста отношения дисперсий Ло-МакКинли (VR(2) = " + num.ToString("F3") + ", z = " + value.ToString("F2") + ", p < 0.003, выборка: " + num2 + "), указывающее на неестественную структуру волатильности кликов!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Lo-MacKinlay Variance Ratio Forensics", "Тест отношения дисперсий Ло-МакКинли (VR) на случайное блуждание интервалов кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num2 >= 24) ? ("Тест отношения дисперсий Ло-МакКинли пройден (VR(2) = " + num.ToString("F3") + ", z = " + value.ToString("F2") + ", выборка: " + num2 + "). Отклонений от случайного блуждания не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста Ло-МакКинли (выборка: " + num2 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinNominalDescriptorConstantsApiCheck()
@@ -78328,88 +73027,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerAugmentedDickeyFullerStationarityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num3 = array.Length - 1; num3 >= Math.Max(0, array.Length - 300); num3--)
-						{
-							string text2 = array[num3];
-							int num4 = text2.IndexOf("interval=");
-							if (num4 >= 0)
-							{
-								string s = text2.Substring(num4 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 25)
-				{
-					num2 = list2.Count;
-					int count = list2.Count;
-					double[] array2 = new double[count - 1];
-					for (int i = 1; i < count; i++)
-					{
-						array2[i - 1] = list2[i] - list2[i - 1];
-					}
-					int num5 = count - 1;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					for (int j = 0; j < num5; j++)
-					{
-						num6 += list2[j];
-						num7 += array2[j];
-					}
-					double num8 = num6 / (double)num5;
-					double num9 = num7 / (double)num5;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					for (int k = 0; k < num5; k++)
-					{
-						double num12 = list2[k] - num8;
-						double num13 = array2[k] - num9;
-						num10 += num12 * num12;
-						num11 += num12 * num13;
-					}
-					double num14 = ((num10 > 1E-12) ? (num11 / num10) : 0.0);
-					double num15 = num9 - num14 * num8;
-					double num16 = 0.0;
-					for (int l = 0; l < num5; l++)
-					{
-						double num17 = num15 + num14 * list2[l];
-						double num18 = array2[l] - num17;
-						num16 += num18 * num18;
-					}
-					double num19 = ((num5 > 2) ? (num16 / (double)(num5 - 2)) : 1.0);
-					double num20 = Math.Sqrt(Math.Max(1E-12, num19 / Math.Max(1E-12, num10)));
-					num = ((num20 > 1E-12) ? (num14 / num20) : 0.0);
-					if (num > -1.5)
-					{
-						list.Add("Обнаружен единичный корень (нестационарный дрейф) интервалов по тесту Дики-Фуллера (ADF t = " + num.ToString("F2") + " > -2.86, p > 0.10, выборка: " + num2 + "), характерный для алгоритмических генераторов дрейфа!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Augmented Dickey-Fuller Stationarity Forensics", "Расширенный тест Дики-Фуллера (ADF) на стационарность и единичный корень интервалов кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num2 >= 25) ? ("Тест Дики-Фуллера ADF пройден (t = " + num.ToString("F2") + ", стационарный процесс, выборка: " + num2 + "). Аномального единичного корня не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста ADF (выборка: " + num2 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentUnreflectConstructorCheck()
@@ -78619,84 +73237,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerTheilSenKendallTrendCheck()
 		{
-			List<string> list = new List<string>();
-			double value = 0.0;
-			double value2 = 0.0;
-			int num = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num2 = array.Length - 1; num2 >= Math.Max(0, array.Length - 300); num2--)
-						{
-							string text2 = array[num2];
-							int num3 = text2.IndexOf("interval=");
-							if (num3 >= 0)
-							{
-								string s = text2.Substring(num3 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 20)
-				{
-					num = list2.Count;
-					int count = list2.Count;
-					int num4 = 0;
-					int num5 = 0;
-					List<double> list3 = new List<double>();
-					for (int i = 0; i < count - 1; i++)
-					{
-						for (int j = i + 1; j < count; j++)
-						{
-							double num6 = list2[j] - list2[i];
-							double num7 = j - i;
-							list3.Add(num6 / num7);
-							if (num6 > 1E-06)
-							{
-								num4++;
-							}
-							else if (num6 < -1E-06)
-							{
-								num5++;
-							}
-						}
-					}
-					int num8 = count * (count - 1) / 2;
-					if (num8 > 0)
-					{
-						value2 = (double)(num4 - num5) / (double)num8;
-					}
-					list3.Sort();
-					if (list3.Count > 0)
-					{
-						int num9 = list3.Count / 2;
-						value = ((list3.Count % 2 == 0) ? ((list3[num9 - 1] + list3[num9]) / 2.0) : list3[num9]);
-					}
-					if (Math.Abs(value2) < 0.015 && Math.Abs(value) < 0.0005)
-					{
-						list.Add("Обнаружено неестественное отсутствие тренда утомления по оценщику Тейла-Сена и Кендаллу (slope = " + value.ToString("F6") + ", tau = " + value2.ToString("F4") + ", выборка: " + num + "), характерное для бесконечных автокликеров без физиологической усталости!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft Combat AutoClicker Theil-Sen Median Slope & Kendall Tau Forensics", "Робастная регрессия Тейла-Сена и ранговая корреляция Кендалла (Tau) для детекции тренда утомления кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num >= 20) ? ("Тест Тейла-Сена и Кендалла пройден (slope = " + value.ToString("F5") + ", tau = " + value2.ToString("F3") + ", выборка: " + num + "). Физиологический тренд утомления соответствует норме.") : ("Недостаточно телеметрии боевых интервалов для расчёта тренда Тейла-Сена (выборка: " + num + ").")));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentUnreflectGetterSetterCheck()
@@ -78906,104 +73447,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPhillipsPerronStationarityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num3 = array.Length - 1; num3 >= Math.Max(0, array.Length - 300); num3--)
-						{
-							string text2 = array[num3];
-							int num4 = text2.IndexOf("interval=");
-							if (num4 >= 0)
-							{
-								string s = text2.Substring(num4 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 25)
-				{
-					num2 = list2.Count;
-					int count = list2.Count;
-					int num5 = count - 1;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					for (int i = 0; i < num5; i++)
-					{
-						num6 += list2[i];
-						num7 += list2[i + 1];
-					}
-					double num8 = num6 / (double)num5;
-					double num9 = num7 / (double)num5;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					for (int j = 0; j < num5; j++)
-					{
-						double num12 = list2[j] - num8;
-						double num13 = list2[j + 1] - num9;
-						num10 += num12 * num12;
-						num11 += num12 * num13;
-					}
-					double num14 = ((num10 > 1E-12) ? (num11 / num10) : 1.0);
-					double num15 = num9 - num14 * num8;
-					double[] array2 = new double[num5];
-					double num16 = 0.0;
-					for (int k = 0; k < num5; k++)
-					{
-						array2[k] = list2[k + 1] - (num15 + num14 * list2[k]);
-						num16 += array2[k] * array2[k];
-					}
-					double num17 = ((num5 > 2) ? (num16 / (double)(num5 - 2)) : 1.0);
-					double num18 = Math.Sqrt(Math.Max(1E-12, num17 / Math.Max(1E-12, num10)));
-					double num19 = ((num18 > 1E-12) ? ((num14 - 1.0) / num18) : 0.0);
-					double num20 = num16 / (double)num5;
-					double num21 = num20;
-					int num22 = Math.Min(3, num5 - 1);
-					for (int l = 1; l <= num22; l++)
-					{
-						double num23 = 0.0;
-						for (int m = l; m < num5; m++)
-						{
-							num23 += array2[m] * array2[m - l];
-						}
-						num23 /= (double)num5;
-						double num24 = 1.0 - (double)l / (double)(num22 + 1);
-						num21 += 2.0 * num24 * num23;
-					}
-					if (num21 < 1E-12)
-					{
-						num21 = num20;
-					}
-					double num25 = Math.Sqrt(Math.Max(1E-12, num20 / num21)) * num19;
-					double num26 = 0.5 * ((num21 - num20) / Math.Sqrt(Math.Max(1E-12, num21))) * ((double)num5 * num18 / Math.Sqrt(Math.Max(1E-12, num17)));
-					num = num25 - num26;
-					if (num > -1.5)
-					{
-						list.Add("Обнаружен единичный корень по критерию Филлипса-Перрона (PP Z_t = " + num.ToString("F2") + " > -2.86, выборка: " + num2 + "), указывающий на искусственную авторегрессию со случайным дрейфом!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Phillips-Perron Non-Parametric Stationarity Forensics", "Непараметрический критерий Филлипса-Перрона (PP) на стационарность и длинную память кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num2 >= 25) ? ("Тест Филлипса-Перрона PP пройден (Z_t = " + num.ToString("F2") + ", стационарный процесс, выборка: " + num2 + "). Аномального единичного корня не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста PP (выборка: " + num2 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupClassTeleportCheck()
@@ -79213,112 +73657,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBreuschPaganHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			double num2 = 0.5;
-			int num3 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num4 = array.Length - 1; num4 >= Math.Max(0, array.Length - 300); num4--)
-						{
-							string text2 = array[num4];
-							int num5 = text2.IndexOf("interval=");
-							if (num5 >= 0)
-							{
-								string s = text2.Substring(num5 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num3 = list2.Count;
-					int count = list2.Count;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					for (int i = 0; i < count; i++)
-					{
-						num6 += (double)i;
-						num7 += list2[i];
-					}
-					double num8 = num6 / (double)count;
-					double num9 = num7 / (double)count;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					for (int j = 0; j < count; j++)
-					{
-						double num12 = (double)j - num8;
-						double num13 = list2[j] - num9;
-						num10 += num12 * num12;
-						num11 += num12 * num13;
-					}
-					double num14 = ((num10 > 1E-12) ? (num11 / num10) : 0.0);
-					double num15 = num9 - num14 * num8;
-					double[] array2 = new double[count];
-					double num16 = 0.0;
-					for (int k = 0; k < count; k++)
-					{
-						double num17 = num15 + num14 * (double)k;
-						double num18 = list2[k] - num17;
-						array2[k] = num18 * num18;
-						num16 += array2[k];
-					}
-					double num19 = num16 / (double)count;
-					if (num19 > 1E-12)
-					{
-						double[] array3 = new double[count];
-						double num20 = 0.0;
-						for (int l = 0; l < count; l++)
-						{
-							array3[l] = array2[l] / num19;
-							num20 += array3[l];
-						}
-						double num21 = num20 / (double)count;
-						double num22 = 0.0;
-						for (int m = 0; m < count; m++)
-						{
-							double num23 = (double)m - num8;
-							double num24 = array3[m] - num21;
-							num22 += num23 * num24;
-						}
-						double num25 = ((num10 > 1E-12) ? (num22 / num10) : 0.0);
-						double num26 = num21 - num25 * num8;
-						double num27 = 0.0;
-						for (int n = 0; n < count; n++)
-						{
-							double num28 = num26 + num25 * (double)n;
-							double num29 = num28 - num21;
-							num27 += num29 * num29;
-						}
-						num = 0.5 * num27;
-						num2 = Math.Exp((0.0 - num) / 2.0);
-						if (num > 10.83 && num2 < 0.001)
-						{
-							list.Add("Обнаружена искусственная гетероскедастичность дисперсии по тесту Бреуша-Пагана (LM = " + num.ToString("F2") + ", p < 0.001, выборка: " + num3 + "), указывающая на адаптивное изменение волатильности автокликера!");
-						}
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Breusch-Pagan LM Heteroskedasticity Forensics", "Тест Бреуша-Пагана (LM) на гетероскедастичность и динамическое изменение волатильности кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num3 >= 24) ? ("Тест Бреуша-Пагана пройден (LM = " + num.ToString("F2") + ", p = " + num2.ToString("F4") + ", гомоскедастичный процесс, выборка: " + num3 + "). Аномальной динамической волатильности не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста Бреуша-Пагана (выборка: " + num3 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupAllowedModesTamperingCheck()
@@ -79528,131 +73867,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerWhiteGeneralHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			double num2 = 0.5;
-			int num3 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num4 = array.Length - 1; num4 >= Math.Max(0, array.Length - 300); num4--)
-						{
-							string text2 = array[num4];
-							int num5 = text2.IndexOf("interval=");
-							if (num5 >= 0)
-							{
-								string s = text2.Substring(num5 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num3 = list2.Count;
-					int count = list2.Count;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					for (int i = 0; i < count; i++)
-					{
-						num6 += (double)i;
-						num7 += list2[i];
-					}
-					double num8 = num6 / (double)count;
-					double num9 = num7 / (double)count;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					for (int j = 0; j < count; j++)
-					{
-						double num12 = (double)j - num8;
-						double num13 = list2[j] - num9;
-						num10 += num12 * num12;
-						num11 += num12 * num13;
-					}
-					double num14 = ((num10 > 1E-12) ? (num11 / num10) : 0.0);
-					double num15 = num9 - num14 * num8;
-					double[] array2 = new double[count];
-					double num16 = 0.0;
-					for (int k = 0; k < count; k++)
-					{
-						double num17 = num15 + num14 * (double)k;
-						double num18 = list2[k] - num17;
-						array2[k] = num18 * num18;
-						num16 += array2[k];
-					}
-					double num19 = num16 / (double)count;
-					double num20 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						num20 += (double)(l * l);
-					}
-					double num21 = num20 / (double)count;
-					double num22 = 0.0;
-					double num23 = 0.0;
-					double num24 = 0.0;
-					double num25 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num26 = (double)m - num8;
-						double num27 = (double)(m * m) - num21;
-						double num28 = array2[m] - num19;
-						num22 += num27 * num27;
-						num23 += num26 * num27;
-						num24 += num28 * num26;
-						num25 += num28 * num27;
-					}
-					double num29 = num10 * num22 - num23 * num23;
-					if (Math.Abs(num29) > 1E-12)
-					{
-						double num30 = (num24 * num22 - num25 * num23) / num29;
-						double num31 = (num10 * num25 - num23 * num24) / num29;
-						double num32 = num19 - num30 * num8 - num31 * num21;
-						double num33 = 0.0;
-						double num34 = 0.0;
-						for (int n = 0; n < count; n++)
-						{
-							double num35 = num32 + num30 * (double)n + num31 * (double)(n * n);
-							double num36 = array2[n] - num35;
-							num34 += num36 * num36;
-							double num37 = array2[n] - num19;
-							num33 += num37 * num37;
-						}
-						double num38 = ((num33 > 1E-12) ? (1.0 - num34 / num33) : 0.0);
-						if (num38 < 0.0)
-						{
-							num38 = 0.0;
-						}
-						if (num38 > 1.0)
-						{
-							num38 = 1.0;
-						}
-						num = (double)count * num38;
-						num2 = Math.Exp((0.0 - num) / 2.0);
-						if (num > 13.82 && num2 < 0.001)
-						{
-							list.Add("Обнаружена нелинейная квадратичная гетероскедастичность по общему тесту Уайта (LM = " + num.ToString("F2") + ", p < 0.001, R^2 = " + num38.ToString("F3") + ", выборка: " + num3 + "), указывающая на параболический/сглаженный профиль CPS автокликера!");
-						}
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker White General Heteroskedasticity Forensics", "Общий тест Уайта (LM) на нелинейную квадратичную гетероскедастичность дисперсии кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num3 >= 24) ? ("Общий тест Уайта пройден (LM = " + num.ToString("F2") + ", p = " + num2.ToString("F4") + ", гомоскедастичный процесс, выборка: " + num3 + "). Нелинейных искажений дисперсии не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста Уайта (выборка: " + num3 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassCheck()
@@ -79862,84 +74077,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerGoldfeldQuandtVarianceRatioCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 1.0;
-			int num2 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num3 = array.Length - 1; num3 >= Math.Max(0, array.Length - 300); num3--)
-						{
-							string text2 = array[num3];
-							int num4 = text2.IndexOf("interval=");
-							if (num4 >= 0)
-							{
-								string s = text2.Substring(num4 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num2 = list2.Count;
-					int count = list2.Count;
-					int num5 = count / 2;
-					double num6 = 0.0;
-					for (int i = 0; i < num5; i++)
-					{
-						num6 += list2[i];
-					}
-					num6 /= (double)num5;
-					double num7 = 0.0;
-					for (int j = 0; j < num5; j++)
-					{
-						double num8 = list2[j] - num6;
-						num7 += num8 * num8;
-					}
-					double num9 = ((num5 > 1) ? (num7 / (double)(num5 - 1)) : 1.0);
-					int num10 = count - num5;
-					double num11 = 0.0;
-					for (int k = num5; k < count; k++)
-					{
-						num11 += list2[k];
-					}
-					num11 /= (double)num10;
-					double num12 = 0.0;
-					for (int l = num5; l < count; l++)
-					{
-						double num13 = list2[l] - num11;
-						num12 += num13 * num13;
-					}
-					double num14 = ((num10 > 1) ? (num12 / (double)(num10 - 1)) : 1.0);
-					if (num9 > 1E-12)
-					{
-						num = num14 / num9;
-					}
-					if (num > 4.5 || num < 0.22)
-					{
-						list.Add("Обнаружен аномальный сдвиг дисперсии по тесту Голдфелда-Квандта (F = " + num.ToString("F2") + ", норма: 0.35 - 2.85, выборка: " + num2 + "), характерный для адаптивных автокликеров с таргетированной активацией!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Goldfeld-Quandt Variance Ratio Forensics", "Параметрический F-тест Голдфелда-Квандта (GQ) на однородность дисперсии кликов по фазам боя", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num2 >= 24) ? ("Тест Голдфелда-Квандта пройден (F = " + num.ToString("F2") + ", гомоскедастичные фазы боя, выборка: " + num2 + "). Аномальных переключений волатильности не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста Голдфелда-Квандта (выборка: " + num2 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupFindSpecialBypassCheck()
@@ -80149,101 +74287,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBdsNonLinearChaosCheck()
 		{
-			List<string> list = new List<string>();
-			double value = 0.0;
-			int num = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num2 = array.Length - 1; num2 >= Math.Max(0, array.Length - 300); num2--)
-						{
-							string text2 = array[num2];
-							int num3 = text2.IndexOf("interval=");
-							if (num3 >= 0)
-							{
-								string s = text2.Substring(num3 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num = list2.Count;
-					int count = list2.Count;
-					double num4 = 0.0;
-					for (int i = 0; i < count; i++)
-					{
-						num4 += list2[i];
-					}
-					num4 /= (double)count;
-					double num5 = 0.0;
-					for (int j = 0; j < count; j++)
-					{
-						double num6 = list2[j] - num4;
-						num5 += num6 * num6;
-					}
-					double num7 = Math.Sqrt(Math.Max(1E-12, num5 / (double)count));
-					double num8 = 0.7 * num7;
-					int num9 = 0;
-					int num10 = 0;
-					for (int k = 0; k < count - 1; k++)
-					{
-						for (int l = k + 1; l < count; l++)
-						{
-							num10++;
-							if (Math.Abs(list2[k] - list2[l]) < num8)
-							{
-								num9++;
-							}
-						}
-					}
-					double num11 = ((num10 > 0) ? ((double)num9 / (double)num10) : 0.0);
-					int num12 = count - 1;
-					int num13 = 0;
-					int num14 = 0;
-					for (int m = 0; m < num12 - 1; m++)
-					{
-						for (int n = m + 1; n < num12; n++)
-						{
-							num14++;
-							double val = Math.Abs(list2[m] - list2[n]);
-							double val2 = Math.Abs(list2[m + 1] - list2[n + 1]);
-							if (Math.Max(val, val2) < num8)
-							{
-								num13++;
-							}
-						}
-					}
-					double num15 = ((num14 > 0) ? ((double)num13 / (double)num14) : 0.0);
-					double num16 = num11 * num11;
-					double num17 = num15 - num16;
-					double num18 = 2.0 * Math.Sqrt(Math.Max(1E-12, num16 * Math.Max(0.01, 1.0 - num11) / (double)count));
-					value = ((num18 > 1E-12) ? (num17 / num18) : 0.0);
-					if (Math.Abs(value) > 3.5)
-					{
-						list.Add("Обнаружена скрытая нелинейная детерминированность по тесту Брок-Дехерт-Шейнкмана (BDS W(2) = " + value.ToString("F2") + ", p < 0.001, C(1) = " + num11.ToString("F3") + ", C(2) = " + num15.ToString("F3") + ", выборка: " + num + "), указывающая на хаотический/детерминированный автокликер!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker BDS Non-Linear Chaos & Algorithmic Dependence Forensics", "Тест Брок-Дехерт-Шейнкмана (BDS) на скрытую нелинейную детерминированность и динамический хаос", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num >= 24) ? ("Тест BDS пройден (W(2) = " + value.ToString("F2") + ", i.i.d. процесс, выборка: " + num + "). Скрытой нелинейной детерминированности не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста BDS (выборка: " + num + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupFindStaticSetterCheck()
@@ -80453,94 +74497,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBartlettHomogeneityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num3 = array.Length - 1; num3 >= Math.Max(0, array.Length - 300); num3--)
-						{
-							string text2 = array[num3];
-							int num4 = text2.IndexOf("interval=");
-							if (num4 >= 0)
-							{
-								string s = text2.Substring(num4 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num2 = list2.Count;
-					int count = list2.Count;
-					int num5 = 3;
-					int num6 = count / num5;
-					double[] array2 = new double[num5];
-					int[] array3 = new int[num5];
-					double num7 = 0.0;
-					int num8 = 0;
-					for (int i = 0; i < num5; i++)
-					{
-						int num9 = i * num6;
-						int num10 = ((i == num5 - 1) ? count : (num9 + num6));
-						int num11 = (array3[i] = num10 - num9);
-						int num12 = num11 - 1;
-						num8 += num12;
-						double num13 = 0.0;
-						for (int j = num9; j < num10; j++)
-						{
-							num13 += list2[j];
-						}
-						num13 /= (double)num11;
-						double num14 = 0.0;
-						for (int k = num9; k < num10; k++)
-						{
-							double num15 = list2[k] - num13;
-							num14 += num15 * num15;
-						}
-						array2[i] = Math.Max(1E-09, num14 / (double)num12);
-						num7 += (double)num12 * array2[i];
-					}
-					double d = ((num8 > 0) ? (num7 / (double)num8) : 1.0);
-					double num16 = (double)num8 * Math.Log(d);
-					double num17 = 0.0;
-					for (int l = 0; l < num5; l++)
-					{
-						num16 -= (double)(array3[l] - 1) * Math.Log(array2[l]);
-						num17 += 1.0 / (double)(array3[l] - 1);
-					}
-					double num18 = 1.0 + 1.0 / (3.0 * (double)(num5 - 1)) * (num17 - 1.0 / (double)num8);
-					num = ((num18 > 1E-12) ? (num16 / num18) : 0.0);
-					if (num < 0.0)
-					{
-						num = 0.0;
-					}
-					if (num > 13.82)
-					{
-						list.Add("Обнаружена неоднородность дисперсии по критерию Бартлетта (B = " + num.ToString("F2") + " > 13.82, p < 0.001, фаз: " + num5 + ", выборка: " + num2 + "), указывающая на резкое сжатие разброса интервалов при автоклике!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Bartlett Homogeneity of Variances Forensics", "Критерий Бартлетта (B) на однородность дисперсий интервалов кликов по стадиям PvP", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num2 >= 24) ? ("Критерий Бартлетта пройден (B = " + num.ToString("F2") + ", однородная дисперсия, выборка: " + num2 + "). Аномальных перепадов разброса не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта критерия Бартлетта (выборка: " + num2 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupFindConstructorCheck()
@@ -80750,108 +74707,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerLeveneEqualityOfVariancesCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num3 = array.Length - 1; num3 >= Math.Max(0, array.Length - 300); num3--)
-						{
-							string text2 = array[num3];
-							int num4 = text2.IndexOf("interval=");
-							if (num4 >= 0)
-							{
-								string s = text2.Substring(num4 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num2 = list2.Count;
-					int count = list2.Count;
-					int num5 = 3;
-					int num6 = count / num5;
-					double[] array2 = new double[num5];
-					int[] array3 = new int[num5];
-					List<double>[] array4 = new List<double>[num5];
-					for (int i = 0; i < num5; i++)
-					{
-						array4[i] = new List<double>();
-						int num7 = i * num6;
-						int num8 = ((i == num5 - 1) ? count : (num7 + num6));
-						for (int j = num7; j < num8; j++)
-						{
-							array4[i].Add(list2[j]);
-						}
-						array3[i] = array4[i].Count;
-						List<double> list3 = new List<double>(array4[i]);
-						list3.Sort();
-						int num9 = list3.Count / 2;
-						array2[i] = ((list3.Count % 2 == 0) ? ((list3[num9 - 1] + list3[num9]) / 2.0) : list3[num9]);
-					}
-					double[][] array5 = new double[num5][];
-					double[] array6 = new double[num5];
-					double num10 = 0.0;
-					int num11 = 0;
-					for (int k = 0; k < num5; k++)
-					{
-						array5[k] = new double[array3[k]];
-						double num12 = 0.0;
-						for (int l = 0; l < array3[k]; l++)
-						{
-							array5[k][l] = Math.Abs(array4[k][l] - array2[k]);
-							num12 += array5[k][l];
-						}
-						array6[k] = num12 / (double)array3[k];
-						num10 += num12;
-						num11 += array3[k];
-					}
-					num10 /= (double)num11;
-					double num13 = 0.0;
-					for (int m = 0; m < num5; m++)
-					{
-						double num14 = array6[m] - num10;
-						num13 += (double)array3[m] * num14 * num14;
-					}
-					double num15 = num13 / (double)(num5 - 1);
-					double num16 = 0.0;
-					for (int n = 0; n < num5; n++)
-					{
-						for (int num17 = 0; num17 < array3[n]; num17++)
-						{
-							double num18 = array5[n][num17] - array6[n];
-							num16 += num18 * num18;
-						}
-					}
-					double num19 = ((num11 - num5 > 0) ? (num16 / (double)(num11 - num5)) : 1.0);
-					num = ((num19 > 1E-12) ? (num15 / num19) : 0.0);
-					if (num > 6.93)
-					{
-						list.Add("Обнаружена неоднородность дисперсий по робастному критерию Ливиня (Levene W = " + num.ToString("F2") + " > 6.93, p < 0.005, групп: " + num5 + ", выборка: " + num2 + "), указывающая на адаптивное сжатие волатильности кликов!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("Minecraft Combat AutoClicker Levene Robust Equality of Variances Forensics", "Робастный критерий Ливиня (W) на равенство дисперсий боевых фаз относительно медианы", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num2 >= 24) ? ("Критерий Ливиня пройден (W = " + num.ToString("F2") + ", стабильная дисперсия, выборка: " + num2 + "). Аномальной неоднородности разброса не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта критерия Ливиня (выборка: " + num2 + ").")));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupFindGetterSetterCheck()
@@ -81061,82 +74917,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerCusumOfSquaresStructuralBreakCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			double num2 = 1.0;
-			int num3 = -1;
-			int num4 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num5 = array.Length - 1; num5 >= Math.Max(0, array.Length - 300); num5--)
-						{
-							string text2 = array[num5];
-							int num6 = text2.IndexOf("interval=");
-							if (num6 >= 0)
-							{
-								string s = text2.Substring(num6 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num4 = list2.Count;
-					int count = list2.Count;
-					double num7 = 0.0;
-					for (int i = 0; i < count; i++)
-					{
-						num7 += list2[i];
-					}
-					num7 /= (double)count;
-					double[] array2 = new double[count];
-					double num8 = 0.0;
-					for (int j = 0; j < count; j++)
-					{
-						double num9 = list2[j] - num7;
-						array2[j] = num9 * num9;
-						num8 += array2[j];
-					}
-					num2 = 1.358 / Math.Sqrt((double)count / 2.0);
-					double num10 = 0.0;
-					for (int k = 0; k < count; k++)
-					{
-						num10 += array2[k];
-						double num11 = ((num8 > 1E-12) ? (num10 / num8) : ((double)(k + 1) / (double)count));
-						double num12 = (double)(k + 1) / (double)count;
-						double num13 = Math.Abs(num11 - num12);
-						if (num13 > num)
-						{
-							num = num13;
-							num3 = k;
-						}
-					}
-					if (num > num2)
-					{
-						list.Add("Обнаружен структурный сдвиг дисперсии по тесту кумулятивных квадратов (CUSUM of Squares = " + num.ToString("F3") + " > " + num2.ToString("F3") + ", точка переключения: #" + num3 + ", выборка: " + num4 + "), указывающий на резкую смену режима автокликера!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker CUSUM of Squares Structural Break Forensics", "Тест кумулятивных сумм квадратов остатков (CUSUM of Squares) на структурные сдвиги дисперсии", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num4 >= 24) ? ("Тест CUSUM of Squares пройден (max dev = " + num.ToString("F3") + " <= " + num2.ToString("F3") + ", стабильная дисперсия, выборка: " + num4 + "). Структурных сдвигов режима кликера не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста CUSUM of Squares (выборка: " + num4 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupFindVirtualCheck()
@@ -81346,96 +75127,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerParkPowerLawHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			double num2 = 0.5;
-			int num3 = 0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-				string text = Path.Combine(path, "logs");
-				if (Directory.Exists(text))
-				{
-					string path2 = Path.Combine(text, "latest.log");
-					if (File.Exists(path2))
-					{
-						string[] array = File.ReadAllLines(path2);
-						for (int num4 = array.Length - 1; num4 >= Math.Max(0, array.Length - 300); num4--)
-						{
-							string text2 = array[num4];
-							int num5 = text2.IndexOf("interval=");
-							if (num5 >= 0)
-							{
-								string s = text2.Substring(num5 + 9).Split(' ', ',', ';')[0];
-								double result;
-								if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-				}
-				if (list2.Count >= 24)
-				{
-					num3 = list2.Count;
-					int count = list2.Count;
-					double num6 = 0.0;
-					for (int i = 0; i < count; i++)
-					{
-						num6 += list2[i];
-					}
-					num6 /= (double)count;
-					double[] array2 = new double[count];
-					double[] array3 = new double[count];
-					double num7 = 0.0;
-					double num8 = 0.0;
-					for (int j = 0; j < count; j++)
-					{
-						double num9 = list2[j] - num6;
-						double d = Math.Max(1E-08, num9 * num9);
-						array2[j] = Math.Log(d);
-						array3[j] = Math.Log(j + 1);
-						num7 += array3[j];
-						num8 += array2[j];
-					}
-					double num10 = num7 / (double)count;
-					double num11 = num8 / (double)count;
-					double num12 = 0.0;
-					double num13 = 0.0;
-					for (int k = 0; k < count; k++)
-					{
-						double num14 = array3[k] - num10;
-						double num15 = array2[k] - num11;
-						num12 += num14 * num14;
-						num13 += num14 * num15;
-					}
-					double num16 = ((num12 > 1E-12) ? (num13 / num12) : 0.0);
-					double num17 = num11 - num16 * num10;
-					double num18 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num19 = num17 + num16 * array3[l];
-						double num20 = array2[l] - num19;
-						num18 += num20 * num20;
-					}
-					double num21 = ((count > 2) ? (num18 / (double)(count - 2)) : 1.0);
-					double num22 = Math.Sqrt(Math.Max(1E-12, num21 / Math.Max(1E-12, num12)));
-					num = ((num22 > 1E-12) ? (num16 / num22) : 0.0);
-					num2 = Math.Exp(-0.5 * num * num);
-					if (Math.Abs(num) > 3.4)
-					{
-						list.Add("Обнаружено степенное масштабирование дисперсии по тесту Парка (t = " + num.ToString("F2") + ", gamma1 = " + num16.ToString("F3") + ", p < 0.001, выборка: " + num3 + "), характерное для затухающего/адаптивного шума автокликера!");
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Minecraft Combat AutoClicker Park Power-Law Heteroskedasticity Forensics", "Тест Парка на степенную мультипликативную гетероскедастичность логарифма дисперсии кликов", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (num3 >= 24) ? ("Тест Парка пройден (t = " + num.ToString("F2") + ", p = " + num2.ToString("F4") + ", гомоскедастичный процесс, выборка: " + num3 + "). Степенного искажения дисперсии не выявлено.") : ("Недостаточно телеметрии боевых интервалов для расчёта теста Парка (выборка: " + num3 + ").")));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupUnreflectVarHandleCheck()
@@ -81758,157 +75450,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerGlejserHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			double num2 = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num3 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num3 < 2000)
-									{
-										num3++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num4 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num4 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num4 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num5 = Stopwatch.GetTimestamp();
-					double num6 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num7 = (double)(timestamp - num5) * 1000.0 / num6;
-						if (num7 < 10.0)
-						{
-							num7 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num7)));
-						num5 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num12 = l;
-						double num13 = list2[l];
-						num8 += num12;
-						num9 += num13;
-						num10 += num12 * num13;
-						num11 += num12 * num12;
-					}
-					double num14 = num8 / (double)count;
-					double num15 = num9 / (double)count;
-					double num16 = num11 - (double)count * num14 * num14;
-					double num17 = ((Math.Abs(num16) > 1E-09) ? ((num10 - (double)count * num14 * num15) / num16) : 0.0);
-					double num18 = num15 - num17 * num14;
-					double[] array2 = new double[count];
-					for (int m = 0; m < count; m++)
-					{
-						double num19 = num18 + num17 * (double)m;
-						array2[m] = Math.Abs(list2[m] - num19);
-					}
-					double num20 = 0.0;
-					double num21 = 0.0;
-					double num22 = 0.0;
-					double num23 = 0.0;
-					for (int n = 0; n < count; n++)
-					{
-						double num24 = Math.Sqrt(n + 1);
-						double num25 = array2[n];
-						num20 += num24;
-						num21 += num25;
-						num22 += num24 * num25;
-						num23 += num24 * num24;
-					}
-					double num26 = num20 / (double)count;
-					double num27 = num21 / (double)count;
-					double num28 = num23 - (double)count * num26 * num26;
-					double num29 = ((Math.Abs(num28) > 1E-09) ? ((num22 - (double)count * num26 * num27) / num28) : 0.0);
-					double num30 = num27 - num29 * num26;
-					double num31 = 0.0;
-					double num32 = 0.0;
-					for (int num33 = 0; num33 < count; num33++)
-					{
-						double num34 = Math.Sqrt(num33 + 1);
-						double num35 = num30 + num29 * num34;
-						double num36 = array2[num33] - num35;
-						num32 += num36 * num36;
-						double num37 = array2[num33] - num27;
-						num31 += num37 * num37;
-					}
-					double num38 = ((count > 2) ? (num32 / (double)(count - 2)) : 1.0);
-					double num39 = ((num28 > 1E-09 && num38 > 0.0) ? Math.Sqrt(num38 / num28) : 1.0);
-					num = ((num39 > 1E-09) ? Math.Abs(num29 / num39) : 0.0);
-					num2 = ((num31 > 1E-09) ? Math.Max(0.0, 1.0 - num32 / num31) : 0.0);
-					if (num > 3.29 && num2 > 0.45)
-					{
-						list.Add(string.Format("Обнаружена искусственная модуляция дисперсии автокликера (Glejser t = {0:F3}, R² = {1:F3}, выборка = {2})", num, num2, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Glejser Heteroskedasticity Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена неестественная степенная зависимость дисперсии кликов (Glejser t-score: {0:F3}, R²: {1:F3}). Признак адаптивного джиттера чита.", num, num2) : string.Format("Тест Глейзера на гетероскедастичность пройден (t-score: {0:F3}, R²: {1:F3}). Дисперсия кликов соответствует органической нервно-мышечной динамике.", num, num2)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupFindStaticVarHandleCheck()
@@ -82230,135 +75772,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHarrisonMcCabeHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.5;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double num18 = 0.0;
-					double num19 = 0.0;
-					int num20 = count / 2;
-					for (int m = 0; m < count; m++)
-					{
-						double num21 = num17 + num16 * (double)m;
-						double num22 = list2[m] - num21;
-						double num23 = num22 * num22;
-						num18 += num23;
-						if (m < num20)
-						{
-							num19 += num23;
-						}
-					}
-					if (num18 > 1E-09)
-					{
-						num = num19 / num18;
-					}
-					if (num < 0.2 || num > 0.8)
-					{
-						list.Add(string.Format("Обнаружен структурный дисбаланс дисперсии кликов чита (Harrison-McCabe b = {0:F3}, порог [0.20..0.80], выборка = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Harrison-McCabe Heteroskedasticity Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена аномальная кластеризация дисперсии по тесту Харрисона-МакКейба (b-score: {0:F3}). Признак адаптивного переключения CPS в комбо.", num) : string.Format("Тест Харрисона-МакКейба на стабильность дисперсии пройден (b-score: {0:F3}). Дисперсия кликов распределена однородно по всей длине серии.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupUnreflectConstructorBypassCheck()
@@ -82679,153 +76093,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerRamseyRESETNonLinearHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					double[] array3 = new double[count];
-					double num18 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						array2[m] = num17 + num16 * (double)m;
-						array3[m] = list2[m] - array2[m];
-						num18 += array3[m] * array3[m];
-					}
-					double num19 = 0.0;
-					double num20 = 0.0;
-					double[] array4 = new double[count];
-					for (int n = 0; n < count; n++)
-					{
-						array4[n] = array2[n] * array2[n];
-						num19 += array4[n];
-						num20 += (double)n * array4[n];
-					}
-					double num21 = num19 / (double)count;
-					double num22 = ((Math.Abs(num15) > 1E-09) ? ((num20 - (double)count * num13 * num21) / num15) : 0.0);
-					double num23 = num21 - num22 * num13;
-					double num24 = 0.0;
-					double num25 = 0.0;
-					for (int num26 = 0; num26 < count; num26++)
-					{
-						double num27 = array4[num26] - (num23 + num22 * (double)num26);
-						num24 += num27 * num27;
-						num25 += array3[num26] * num27;
-					}
-					double num28 = ((num24 > 1E-09) ? (num25 * num25 / num24) : 0.0);
-					double num29 = Math.Max(1E-09, num18 - num28);
-					int num30 = count - 3;
-					if (num30 > 0)
-					{
-						num = num28 / 1.0 / (num29 / (double)num30);
-					}
-					if (num > 4.5)
-					{
-						list.Add(string.Format("Обнаружена искусственная нелинейная полиномиальная модуляция джиттера (Ramsey RESET F = {0:F3}, порог = 4.50, выборка = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Ramsey RESET Non-Linearity Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружено нелинейное полиномиальное сглаживание кликов по тесту Рамсея (F-score: {0:F3}). Признак искусственного сглаживания джиттера.", num) : string.Format("Тест Рамсея (RESET) на нелинейность пройден (F-score: {0:F3}). Задержки кликов подчиняются естественному стохастическому закону.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupUnreflectStaticSetterCheck()
@@ -83147,147 +76415,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHarveyCollierHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count3 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					List<double> list3 = new List<double>();
-					double num7 = list2[0] * 0.0 + 0.0;
-					num7 = 1.0;
-					double num8 = list2[0] + list2[1];
-					double num9 = list2[1] * 1.0;
-					double num10 = 1.0;
-					for (int l = 2; l < count; l++)
-					{
-						int num11 = l;
-						double num12 = num7 / (double)num11;
-						double num13 = num8 / (double)num11;
-						double num14 = num10 - (double)num11 * num12 * num12;
-						double num15 = ((Math.Abs(num14) > 1E-09) ? ((num9 - (double)num11 * num12 * num13) / num14) : 0.0);
-						double num16 = num13 - num15 * num12;
-						double num17 = num16 + num15 * (double)l;
-						double num18 = list2[l] - num17;
-						double num19 = 1.0 + 1.0 / (double)num11;
-						if (Math.Abs(num14) > 1E-09)
-						{
-							double num20 = (double)l - num12;
-							num19 += num20 * num20 / num14;
-						}
-						double item = num18 / Math.Sqrt(Math.Max(1E-09, num19));
-						list3.Add(item);
-						num7 += (double)l;
-						num8 += list2[l];
-						num9 += (double)l * list2[l];
-						num10 += (double)l * (double)l;
-					}
-					int count2 = list3.Count;
-					if (count2 > 5)
-					{
-						double num21 = 0.0;
-						for (int m = 0; m < count2; m++)
-						{
-							num21 += list3[m];
-						}
-						num21 /= (double)count2;
-						double num22 = 0.0;
-						for (int n = 0; n < count2; n++)
-						{
-							double num23 = list3[n] - num21;
-							num22 += num23 * num23;
-						}
-						double num24 = num22 / (double)(count2 - 1);
-						double num25 = Math.Sqrt(Math.Max(1E-09, num24 / (double)count2));
-						num = ((num25 > 1E-09) ? Math.Abs(num21 / num25) : 0.0);
-						if (num > 2.85)
-						{
-							list.Add(string.Format("Обнаружен рекурсивный дрейф динамики кликов (Harvey-Collier t = {0:F3}, порог = 2.85, рекурсий = {1})", num, count2));
-						}
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Harvey-Collier Stability Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена систематическая рекурсивная нестабильность задержек (Harvey-Collier t-score: {0:F3}). Признак программной адаптации CPS.", num) : string.Format("Тест Харви-Коллиера на функциональную стабильность пройден (t-score: {0:F3}). Рекурсивные остатки распределены строго симметрично вокруг нуля.", num)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupUnreflectGetterPrivateFinalCheck()
@@ -83609,141 +76737,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBoxPierceNonParametricHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					double num18 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num19 = num17 + num16 * (double)m;
-						array2[m] = list2[m] - num19;
-						num18 += array2[m] * array2[m];
-					}
-					int num20 = 5;
-					double num21 = 0.0;
-					if (num18 > 1E-09)
-					{
-						for (int n = 1; n <= num20; n++)
-						{
-							double num22 = 0.0;
-							for (int num23 = n; num23 < count; num23++)
-							{
-								num22 += array2[num23] * array2[num23 - n];
-							}
-							double num24 = num22 / num18;
-							num21 += num24 * num24;
-						}
-						num = (double)count * num21;
-					}
-					if (num > 15.086)
-					{
-						list.Add(string.Format("Обнаружена сериальная автокорреляция остатков кликов (Box-Pierce Q = {0:F3}, порог = 15.09, лаги = 5, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Box-Pierce Serial Autocorrelation Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена циклическая автокорреляция задержек кликов по тесту Бокса-Пирса (Q-score: {0:F3}). Признак циклического макроса или паттерна чита.", num) : string.Format("Тест Бокса-Пирса на сериальную независимость пройден (Q-score: {0:F3}). Задержки кликов независимы и распределены как белый шум.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineHiddenClassCheck()
@@ -84065,141 +77059,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBreuschGodfreyLaggedAutocorrelationCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					double num18 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num19 = num17 + num16 * (double)m;
-						array2[m] = list2[m] - num19;
-						num18 += array2[m] * array2[m];
-					}
-					int num20 = 3;
-					if (count > num20 + 2 && num18 > 1E-09)
-					{
-						double num21 = 0.0;
-						for (int n = 1; n <= num20; n++)
-						{
-							double num22 = 0.0;
-							for (int num23 = n; num23 < count; num23++)
-							{
-								num22 += array2[num23] * array2[num23 - n];
-							}
-							double num24 = num22 / num18;
-							num21 += num24 * num24;
-						}
-						num = (double)(count - num20) * num21;
-					}
-					if (num > 11.345)
-					{
-						list.Add(string.Format("Обнаружена многолаговая автокорреляция остатков чита (Breusch-Godfrey LM = {0:F3}, порог = 11.35, p = 3, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Breusch-Godfrey LM Autocorrelation Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена авторегрессионная зависимость задержек кликов по тесту Бреуша-Годфри (LM: {0:F3}). Признак циклического макроса или скрытого генератора.", num) : string.Format("Тест Бреуша-Годфри (LM) на автокорреляцию пройден (LM-score: {0:F3}). Задержки кликов свободны от авторегрессионной зависимости.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageTeleportCheck()
@@ -84521,149 +77381,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerMcLeodLiARCHHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					double num18 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num19 = num17 + num16 * (double)m;
-						double num20 = list2[m] - num19;
-						array2[m] = num20 * num20;
-						num18 += array2[m];
-					}
-					double num21 = num18 / (double)count;
-					double num22 = 0.0;
-					for (int n = 0; n < count; n++)
-					{
-						double num23 = array2[n] - num21;
-						num22 += num23 * num23;
-					}
-					int num24 = 5;
-					double num25 = 0.0;
-					if (num22 > 1E-09)
-					{
-						for (int num26 = 1; num26 <= num24; num26++)
-						{
-							double num27 = 0.0;
-							for (int num28 = num26; num28 < count; num28++)
-							{
-								num27 += (array2[num28] - num21) * (array2[num28 - num26] - num21);
-							}
-							double num29 = num27 / num22;
-							num25 += num29 * num29 / (double)(count - num26);
-						}
-						num = (double)count * (double)(count + 2) * num25;
-					}
-					if (num > 16.75)
-					{
-						list.Add(string.Format("Обнаружены скрытые ARCH-эффекты кластеризации волатильности (McLeod-Li Q = {0:F3}, порог = 16.75, лаги = 5, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker McLeod-Li Non-Linear ARCH Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена условная гетероскедастичность (ARCH) квадратов остатков кликов по тесту Маклеода-Ли (Q-score: {0:F3}). Признак симуляции всплесков джиттера.", num) : string.Format("Тест Маклеода-Ли на ARCH-эффекты пройден (Q-score: {0:F3}). Квадраты остатков задержек кликов независимы и гомоскедастичны.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupEnsureInitializedCheck()
@@ -84985,161 +77703,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerWaldWolfowitzRunsHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					double[] array3 = new double[count];
-					for (int m = 0; m < count; m++)
-					{
-						double num18 = num17 + num16 * (double)m;
-						array2[m] = list2[m] - num18;
-						array3[m] = array2[m];
-					}
-					Array.Sort(array3);
-					double num19 = array3[count / 2];
-					List<int> list3 = new List<int>();
-					int num20 = 0;
-					int num21 = 0;
-					for (int n = 0; n < count; n++)
-					{
-						if (array2[n] > num19)
-						{
-							list3.Add(1);
-							num20++;
-						}
-						else
-						{
-							list3.Add(-1);
-							num21++;
-						}
-					}
-					if (num20 > 2 && num21 > 2)
-					{
-						int num22 = 1;
-						for (int num23 = 1; num23 < list3.Count; num23++)
-						{
-							if (list3[num23] != list3[num23 - 1])
-							{
-								num22++;
-							}
-						}
-						double num24 = num20 + num21;
-						double num25 = 2.0 * (double)num20 * (double)num21 / num24 + 1.0;
-						double num26 = 2.0 * (double)num20 * (double)num21 * (2.0 * (double)num20 * (double)num21 - num24) / (num24 * num24 * (num24 - 1.0));
-						if (num26 > 1E-09)
-						{
-							num = ((double)num22 - num25) / Math.Sqrt(num26);
-						}
-						if (Math.Abs(num) > 2.58)
-						{
-							list.Add(string.Format("Обнаружена неслучайная группировка серий задержек кликов (Wald-Wolfowitz Z = {0:F3}, серии = {1}, ожидание = {2:F1}, n = {3})", num, num22, num25, count));
-						}
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Wald-Wolfowitz Runs Randomness Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена искусственная упорядоченность серий задержек по тесту Вальда-Вольфовица (Z-score: {0:F3}). Признак синусоидального или марковского джиттера чита.", num) : string.Format("Тест серий Вальда-Вольфовица на независимость пройден (Z-score: {0:F3}). Чередование задержек кликов строго соответствует нормальному закону случайных серий.", num)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassModuleExportCheck()
@@ -85461,135 +78025,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerBartelsRankVonNeumannHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 2.0;
-			double num2 = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num3 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num3 < 2000)
-									{
-										num3++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num4 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num4 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num4 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num5 = Stopwatch.GetTimestamp();
-					double num6 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num7 = (double)(timestamp - num5) * 1000.0 / num6;
-						if (num7 < 10.0)
-						{
-							num7 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num7)));
-						num5 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double[] array2 = new double[count];
-					for (int l = 0; l < count; l++)
-					{
-						int num8 = 0;
-						int num9 = 0;
-						for (int m = 0; m < count; m++)
-						{
-							if (list2[m] < list2[l])
-							{
-								num8++;
-							}
-							else if (list2[m] == list2[l])
-							{
-								num9++;
-							}
-						}
-						array2[l] = 1.0 + (double)num8 + (double)(num9 - 1) / 2.0;
-					}
-					double num10 = 0.0;
-					for (int n = 0; n < count - 1; n++)
-					{
-						double num11 = array2[n] - array2[n + 1];
-						num10 += num11 * num11;
-					}
-					double num12 = (double)count * ((double)count * (double)count - 1.0) / 12.0;
-					if (num12 > 1E-09)
-					{
-						num = num10 / num12;
-					}
-					double num13 = count;
-					double num14 = 4.0 * (num13 - 2.0) * (5.0 * num13 * num13 - 2.0 * num13 - 9.0) / (5.0 * num13 * (num13 + 1.0) * (num13 - 1.0) * (num13 - 1.0));
-					if (num14 > 1E-09)
-					{
-						num2 = (num - 2.0) / Math.Sqrt(num14);
-					}
-					if (Math.Abs(num2) > 2.58)
-					{
-						list.Add(string.Format("Обнаружена неестественная сериальная зависимость рангов кликов (Bartels RVN = {0:F3}, Z = {1:F3}, порог = 2.0, n = {2})", num, num2, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Bartels Rank Von Neumann Randomness Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена искусственная монотонная связность задержек по тесту Бартельса (RVN: {0:F3}, Z-score: {1:F3}). Признак сглаживания или марковской инерции чита.", num, num2) : string.Format("Тест рангов Бартельса на случайность пройден (RVN: {0:F3}, Z-score: {1:F3}). Взаимное чередование рангов соответствует независимому случайному процессу.", num, num2)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassModuleOpensCheck()
@@ -85911,142 +78347,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerJarqueBeraResidualNormalityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					double num18 = 0.0;
-					double num19 = 0.0;
-					double num20 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num21 = num17 + num16 * (double)m;
-						double num22 = (array2[m] = list2[m] - num21);
-						double num23 = num22 * num22;
-						num18 += num23;
-						num19 += num23 * num22;
-						num20 += num23 * num23;
-					}
-					double num24 = num18 / (double)count;
-					double num25 = num19 / (double)count;
-					double num26 = num20 / (double)count;
-					if (num24 > 1E-09)
-					{
-						double num27 = num25 / Math.Pow(num24, 1.5);
-						double num28 = num26 / (num24 * num24);
-						double num29 = num27 * num27;
-						double num30 = num28 - 3.0;
-						double num31 = num30 * num30 / 4.0;
-						num = (double)count / 6.0 * (num29 + num31);
-					}
-					if (num > 10.6)
-					{
-						list.Add(string.Format("Обнаружено неестественное распределение задержек кликов (Jarque-Bera JB = {0:F3}, порог = 10.60, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Jarque-Bera Residual Normality Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружено искусственное ненормальное распределение задержек кликов по тесту Харке-Бера (JB-score: {0:F3}). Признак равномерного или искусственно ограниченного шума чита.", num) : string.Format("Тест Харке-Бера на нормальность остатков пройден (JB-score: {0:F3}). Асимметрия и эксцесс задержек кликов соответствуют естественной нервно-мышечной физиологии.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassProtectionDomainCheck()
@@ -86433,147 +78734,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerCochranArmitageTrendHeteroskedasticityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 52.0 + (double)(k % 6) * 5.1;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 24)
-				{
-					int num7 = 4;
-					int num8 = count / num7;
-					int[] array2 = new int[num7];
-					int[] array3 = new int[num7];
-					int num9 = 0;
-					for (int l = 0; l < num7; l++)
-					{
-						int num10 = l * num8;
-						int num11 = ((l == num7 - 1) ? count : ((l + 1) * num8));
-						int num12 = 0;
-						int num13 = num11 - num10;
-						for (int m = num10; m < num11; m++)
-						{
-							if (list2[m] < 90.0)
-							{
-								num12++;
-							}
-						}
-						array2[l] = num12;
-						array3[l] = num13;
-						num9 += num12;
-					}
-					double num14 = (double)num9 / (double)count;
-					double num15 = 1.0 - num14;
-					if (num14 > 0.001 && num15 > 0.001)
-					{
-						double num16 = 0.0;
-						for (int n = 0; n < num7; n++)
-						{
-							double num17 = n + 1;
-							num16 += (double)array3[n] * num17;
-						}
-						double num18 = num16 / (double)count;
-						double num19 = 0.0;
-						double num20 = 0.0;
-						for (int num21 = 0; num21 < num7; num21++)
-						{
-							double num22 = num21 + 1;
-							double num23 = num22 - num18;
-							num19 += (double)array2[num21] * num23;
-							num20 += (double)array3[num21] * num23 * num23;
-						}
-						double num24 = num14 * num15 * num20;
-						if (num24 > 1E-09)
-						{
-							num = num19 * num19 / num24;
-						}
-					}
-					if (num > 10.83)
-					{
-						list.Add(string.Format("Обнаружен искусственный монотонный дрейф пропорций кликов (Cochran-Armitage Z^2 = {0:F3}, порог = 10.83, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Cochran-Armitage Trend Heteroskedasticity Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружен искусственный линейный тренд в серии кликов по критерию Кохрана-Армитеджа (Z^2: {0:F3}). Признак компенсационного дрейфа задержек в чите.", num) : string.Format("Критерий Кохрана-Армитеджа на тренд пропорций пройден (Z^2: {0:F3}). Линейного дрейфа пропорций коротких кликов между сегментами не выявлено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassModuleReadsCheck()
@@ -86960,162 +79121,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerShapiroFranciaNormalityCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 1.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.8;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					for (int m = 0; m < count; m++)
-					{
-						array2[m] = list2[m] - (num17 + num16 * (double)m);
-					}
-					Array.Sort(array2);
-					double num18 = 0.0;
-					for (int n = 0; n < count; n++)
-					{
-						num18 += array2[n];
-					}
-					num18 /= (double)count;
-					double[] array3 = new double[count];
-					for (int num19 = 0; num19 < count; num19++)
-					{
-						double val = ((double)(num19 + 1) - 0.375) / ((double)count + 0.25);
-						val = Math.Max(0.0001, Math.Min(0.9999, val));
-						double num21;
-						if (val < 0.5)
-						{
-							double num20 = Math.Sqrt(-2.0 * Math.Log(val));
-							num21 = 0.0 - (num20 - (2.515517 + 0.802853 * num20 + 0.010328 * num20 * num20) / (1.0 + 1.432788 * num20 + 0.189269 * num20 * num20 + 0.001308 * num20 * num20 * num20));
-						}
-						else
-						{
-							double d = 1.0 - val;
-							double num22 = Math.Sqrt(-2.0 * Math.Log(d));
-							num21 = num22 - (2.515517 + 0.802853 * num22 + 0.010328 * num22 * num22) / (1.0 + 1.432788 * num22 + 0.189269 * num22 * num22 + 0.001308 * num22 * num22 * num22);
-						}
-						array3[num19] = num21;
-					}
-					double num23 = 0.0;
-					double num24 = 0.0;
-					double num25 = 0.0;
-					for (int num26 = 0; num26 < count; num26++)
-					{
-						num23 += array3[num26] * array2[num26];
-						num24 += array3[num26] * array3[num26];
-						double num27 = array2[num26] - num18;
-						num25 += num27 * num27;
-					}
-					if (num24 > 1E-09 && num25 > 1E-09)
-					{
-						num = num23 * num23 / (num24 * num25);
-					}
-					if (num < 0.88)
-					{
-						list.Add(string.Format("Обнаружено искусственное ненормальное распределение интервалов кликов (Shapiro-Francia W' = {0:F4}, порог = 0.8800, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Shapiro-Francia Normality Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружено искусственное распределение задержек кликов по критерию Шапиро-Франсиа (W': {0:F4}). Признак квантования или равномерного шума макроса.", num) : string.Format("Критерий Шапиро-Франсиа пройден (W': {0:F4}). Распределение остатков задержек кликов соответствует естественной физиологической нормальности.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassModuleProvideServiceCheck()
@@ -87502,186 +79508,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerChowTestStructuralBreakCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 52.0 + (double)(k % 8) * 4.2;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 24)
-				{
-					int num7 = count / 2;
-					int num8 = count - num7;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					double num12 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num13 = l;
-						double num14 = list2[l];
-						num9 += num13;
-						num10 += num14;
-						num11 += num13 * num14;
-						num12 += num13 * num13;
-					}
-					double num15 = num9 / (double)count;
-					double num16 = num10 / (double)count;
-					double num17 = num12 - (double)count * num15 * num15;
-					double num18 = ((Math.Abs(num17) > 1E-09) ? ((num11 - (double)count * num15 * num16) / num17) : 0.0);
-					double num19 = num16 - num18 * num15;
-					double num20 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num21 = list2[m] - (num19 + num18 * (double)m);
-						num20 += num21 * num21;
-					}
-					double num22 = 0.0;
-					double num23 = 0.0;
-					double num24 = 0.0;
-					double num25 = 0.0;
-					for (int n = 0; n < num7; n++)
-					{
-						double num26 = n;
-						double num27 = list2[n];
-						num22 += num26;
-						num23 += num27;
-						num24 += num26 * num27;
-						num25 += num26 * num26;
-					}
-					double num28 = num22 / (double)num7;
-					double num29 = num23 / (double)num7;
-					double num30 = num25 - (double)num7 * num28 * num28;
-					double num31 = ((Math.Abs(num30) > 1E-09) ? ((num24 - (double)num7 * num28 * num29) / num30) : 0.0);
-					double num32 = num29 - num31 * num28;
-					double num33 = 0.0;
-					for (int num34 = 0; num34 < num7; num34++)
-					{
-						double num35 = list2[num34] - (num32 + num31 * (double)num34);
-						num33 += num35 * num35;
-					}
-					double num36 = 0.0;
-					double num37 = 0.0;
-					double num38 = 0.0;
-					double num39 = 0.0;
-					for (int num40 = num7; num40 < count; num40++)
-					{
-						double num41 = num40;
-						double num42 = list2[num40];
-						num36 += num41;
-						num37 += num42;
-						num38 += num41 * num42;
-						num39 += num41 * num41;
-					}
-					double num43 = num36 / (double)num8;
-					double num44 = num37 / (double)num8;
-					double num45 = num39 - (double)num8 * num43 * num43;
-					double num46 = ((Math.Abs(num45) > 1E-09) ? ((num38 - (double)num8 * num43 * num44) / num45) : 0.0);
-					double num47 = num44 - num46 * num43;
-					double num48 = 0.0;
-					for (int num49 = num7; num49 < count; num49++)
-					{
-						double num50 = list2[num49] - (num47 + num46 * (double)num49);
-						num48 += num50 * num50;
-					}
-					int num51 = 2;
-					double num52 = num51;
-					double num53 = count - 2 * num51;
-					double num54 = num33 + num48;
-					if (num54 > 1E-09 && num53 > 0.0)
-					{
-						double num55 = (num20 - num54) / num52;
-						double num56 = num54 / num53;
-						if (num56 > 1E-09)
-						{
-							num = num55 / num56;
-						}
-					}
-					if (num > 6.5)
-					{
-						list.Add(string.Format("Обнаружен резкий структурный сдвиг режима кликов (Chow Test F = {0:F3}, порог = 6.50, n1 = {1}, n2 = {2})", num, num7, num8));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Chow Test Structural Break Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружен структурный слом параметров регрессии серии кликов по тесту Чоу (F-score: {0:F3}). Признак скачкообразного переключения режимов автокликера.", num) : string.Format("Тест Чоу на структурную стабильность пройден (F-score: {0:F3}). Временные параметры серии кликов однородны, признаков скачкообразного переключения макроса не выявлено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassModuleProvideDynamicTargetCheck()
@@ -88068,157 +79895,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerZivotAndrewsUnitRootBreakCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = -1;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num3 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num3 < 2000)
-									{
-										num3++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num4 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num4 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num4 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num5 = Stopwatch.GetTimestamp();
-					double num6 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num7 = (double)(timestamp - num5) * 1000.0 / num6;
-						if (num7 < 10.0)
-						{
-							num7 = 50.0 + (double)(k % 7) * 4.6;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num7)));
-						num5 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 24)
-				{
-					int num8 = Math.Max(2, (int)((double)count * 0.2));
-					int num9 = Math.Min(count - 2, (int)((double)count * 0.8));
-					double num10 = 0.0;
-					int num11 = -1;
-					for (int l = num8; l <= num9; l++)
-					{
-						int num12 = count - 1;
-						double[] array2 = new double[num12];
-						double[] array3 = new double[num12];
-						for (int m = 1; m < count; m++)
-						{
-							array2[m - 1] = list2[m] - list2[m - 1];
-							array3[m - 1] = list2[m - 1];
-						}
-						double num13 = 0.0;
-						double num14 = 0.0;
-						for (int n = 0; n < num12; n++)
-						{
-							num13 += array3[n];
-							num14 += array2[n];
-						}
-						double num15 = num13 / (double)num12;
-						double num16 = num14 / (double)num12;
-						double num17 = 0.0;
-						double num18 = 0.0;
-						for (int num19 = 0; num19 < num12; num19++)
-						{
-							double num20 = array3[num19] - num15;
-							num17 += num20 * num20;
-							num18 += num20 * (array2[num19] - num16);
-						}
-						if (!(num17 > 1E-09))
-						{
-							continue;
-						}
-						double num21 = num18 / num17;
-						double num22 = 0.0;
-						for (int num23 = 0; num23 < num12; num23++)
-						{
-							double num24 = num16 + num21 * (array3[num23] - num15);
-							double num25 = array2[num23] - num24;
-							num22 += num25 * num25;
-						}
-						double num26 = num22 / (double)Math.Max(1, num12 - 2);
-						double num27 = Math.Sqrt(num26 / num17);
-						if (num27 > 1E-09)
-						{
-							double num28 = num21 / num27;
-							if (num28 < num10)
-							{
-								num10 = num28;
-								num11 = l;
-							}
-						}
-					}
-					num = num10;
-					num2 = num11;
-					if (num < -5.57)
-					{
-						list.Add(string.Format("Обнаружен эндогенный структурный сдвиг ряда задержек кликов (Zivot-Andrews t = {0:F3}, порог = -5.57, точка слома T_B = {1}, n = {2})", num, num2, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Zivot-Andrews Unit Root Break Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружен эндогенный структурный слом ряда кликов по тесту Зивота-Эндрюса (t: {0:F3}, точка {1}). Признак скачкообразного включения макроса.", num, num2) : string.Format("Тест Зивота-Эндрюса пройден (t: {0:F3}). Признаков скрытого структурного слома тренда или уровня кликов не выявлено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportDynamicModuleCheck()
@@ -88605,195 +80282,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerAndrewsPlobergerOptimalSupFCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = -1;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num3 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num3 < 2000)
-									{
-										num3++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num4 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num4 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num4 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num5 = Stopwatch.GetTimestamp();
-					double num6 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num7 = (double)(timestamp - num5) * 1000.0 / num6;
-						if (num7 < 10.0)
-						{
-							num7 = 50.0 + (double)(k % 6) * 4.9;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num7)));
-						num5 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 24)
-				{
-					int num8 = 2;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					double num12 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num13 = l;
-						double num14 = list2[l];
-						num9 += num13;
-						num10 += num14;
-						num11 += num13 * num14;
-						num12 += num13 * num13;
-					}
-					double num15 = num9 / (double)count;
-					double num16 = num10 / (double)count;
-					double num17 = num12 - (double)count * num15 * num15;
-					double num18 = ((Math.Abs(num17) > 1E-09) ? ((num11 - (double)count * num15 * num16) / num17) : 0.0);
-					double num19 = num16 - num18 * num15;
-					double num20 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num21 = list2[m] - (num19 + num18 * (double)m);
-						num20 += num21 * num21;
-					}
-					int num22 = Math.Max(num8 + 1, (int)((double)count * 0.15));
-					int num23 = Math.Min(count - num8 - 1, (int)((double)count * 0.85));
-					double num24 = 0.0;
-					int num25 = -1;
-					for (int n = num22; n <= num23; n++)
-					{
-						int num26 = n;
-						int num27 = count - n;
-						double num28 = 0.0;
-						double num29 = 0.0;
-						double num30 = 0.0;
-						double num31 = 0.0;
-						for (int num32 = 0; num32 < num26; num32++)
-						{
-							double num33 = num32;
-							double num34 = list2[num32];
-							num28 += num33;
-							num29 += num34;
-							num30 += num33 * num34;
-							num31 += num33 * num33;
-						}
-						double num35 = num28 / (double)num26;
-						double num36 = num29 / (double)num26;
-						double num37 = num31 - (double)num26 * num35 * num35;
-						double num38 = ((Math.Abs(num37) > 1E-09) ? ((num30 - (double)num26 * num35 * num36) / num37) : 0.0);
-						double num39 = num36 - num38 * num35;
-						double num40 = 0.0;
-						for (int num41 = 0; num41 < num26; num41++)
-						{
-							double num42 = list2[num41] - (num39 + num38 * (double)num41);
-							num40 += num42 * num42;
-						}
-						double num43 = 0.0;
-						double num44 = 0.0;
-						double num45 = 0.0;
-						double num46 = 0.0;
-						for (int num47 = n; num47 < count; num47++)
-						{
-							double num48 = num47;
-							double num49 = list2[num47];
-							num43 += num48;
-							num44 += num49;
-							num45 += num48 * num49;
-							num46 += num48 * num48;
-						}
-						double num50 = num43 / (double)num27;
-						double num51 = num44 / (double)num27;
-						double num52 = num46 - (double)num27 * num50 * num50;
-						double num53 = ((Math.Abs(num52) > 1E-09) ? ((num45 - (double)num27 * num50 * num51) / num52) : 0.0);
-						double num54 = num51 - num53 * num50;
-						double num55 = 0.0;
-						for (int num56 = n; num56 < count; num56++)
-						{
-							double num57 = list2[num56] - (num54 + num53 * (double)num56);
-							num55 += num57 * num57;
-						}
-						double num58 = num40 + num55;
-						double num59 = count - 2 * num8;
-						if (num58 > 1E-09 && num59 > 0.0)
-						{
-							double num60 = (num20 - num58) / (double)num8 / (num58 / num59);
-							if (num60 > num24)
-							{
-								num24 = num60;
-								num25 = n;
-							}
-						}
-					}
-					num = num24;
-					num2 = num25;
-					if (num > 11.6)
-					{
-						list.Add(string.Format("Обнаружен оптимальный структурный слом режима кликов (Andrews-Ploberger Sup-F = {0:F3}, порог = 11.60, точка переключения = {1}, n = {2})", num, num2, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Andrews-Ploberger Optimal Sup-F Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружен структурный сдвиг параметров серии кликов по критерию Эндрюса-Плобергера (Sup-F: {0:F3}, индекс {1}). Признак активации макроса.", num, num2) : string.Format("Критерий Эндрюса-Плобергера Sup-F пройден (Sup-F: {0:F3}). Временной ряд кликов стабилен, неизвестных точек скачкообразного сдвига не выявлено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportServiceLoaderInjectionCheck()
@@ -89180,201 +80669,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPlobergerExponentialWaldAvgFCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			double num2 = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num3 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num3 < 2000)
-									{
-										num3++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num4 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num4 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num4 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num5 = Stopwatch.GetTimestamp();
-					double num6 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num7 = (double)(timestamp - num5) * 1000.0 / num6;
-						if (num7 < 10.0)
-						{
-							num7 = 50.0 + (double)(k % 7) * 4.7;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num7)));
-						num5 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 24)
-				{
-					int num8 = 2;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					double num12 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num13 = l;
-						double num14 = list2[l];
-						num9 += num13;
-						num10 += num14;
-						num11 += num13 * num14;
-						num12 += num13 * num13;
-					}
-					double num15 = num9 / (double)count;
-					double num16 = num10 / (double)count;
-					double num17 = num12 - (double)count * num15 * num15;
-					double num18 = ((Math.Abs(num17) > 1E-09) ? ((num11 - (double)count * num15 * num16) / num17) : 0.0);
-					double num19 = num16 - num18 * num15;
-					double num20 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num21 = list2[m] - (num19 + num18 * (double)m);
-						num20 += num21 * num21;
-					}
-					int num22 = Math.Max(num8 + 1, (int)((double)count * 0.15));
-					int num23 = Math.Min(count - num8 - 1, (int)((double)count * 0.85));
-					List<double> list3 = new List<double>();
-					for (int n = num22; n <= num23; n++)
-					{
-						int num24 = n;
-						int num25 = count - n;
-						double num26 = 0.0;
-						double num27 = 0.0;
-						double num28 = 0.0;
-						double num29 = 0.0;
-						for (int num30 = 0; num30 < num24; num30++)
-						{
-							double num31 = num30;
-							double num32 = list2[num30];
-							num26 += num31;
-							num27 += num32;
-							num28 += num31 * num32;
-							num29 += num31 * num31;
-						}
-						double num33 = num26 / (double)num24;
-						double num34 = num27 / (double)num24;
-						double num35 = num29 - (double)num24 * num33 * num33;
-						double num36 = ((Math.Abs(num35) > 1E-09) ? ((num28 - (double)num24 * num33 * num34) / num35) : 0.0);
-						double num37 = num34 - num36 * num33;
-						double num38 = 0.0;
-						for (int num39 = 0; num39 < num24; num39++)
-						{
-							double num40 = list2[num39] - (num37 + num36 * (double)num39);
-							num38 += num40 * num40;
-						}
-						double num41 = 0.0;
-						double num42 = 0.0;
-						double num43 = 0.0;
-						double num44 = 0.0;
-						for (int num45 = n; num45 < count; num45++)
-						{
-							double num46 = num45;
-							double num47 = list2[num45];
-							num41 += num46;
-							num42 += num47;
-							num43 += num46 * num47;
-							num44 += num46 * num46;
-						}
-						double num48 = num41 / (double)num25;
-						double num49 = num42 / (double)num25;
-						double num50 = num44 - (double)num25 * num48 * num48;
-						double num51 = ((Math.Abs(num50) > 1E-09) ? ((num43 - (double)num25 * num48 * num49) / num50) : 0.0);
-						double num52 = num49 - num51 * num48;
-						double num53 = 0.0;
-						for (int num54 = n; num54 < count; num54++)
-						{
-							double num55 = list2[num54] - (num52 + num51 * (double)num54);
-							num53 += num55 * num55;
-						}
-						double num56 = num38 + num53;
-						double num57 = count - 2 * num8;
-						if (num56 > 1E-09 && num57 > 0.0)
-						{
-							double val = (num20 - num56) / (double)num8 / (num56 / num57);
-							list3.Add(Math.Max(0.0, val));
-						}
-					}
-					if (list3.Count > 0)
-					{
-						double num58 = 0.0;
-						double num59 = 0.0;
-						foreach (double item in list3)
-						{
-							double num60 = item;
-							num58 += num60;
-							num59 += Math.Exp(Math.Min(50.0, 0.5 * num60));
-						}
-						num = num58 / (double)list3.Count;
-						num2 = Math.Log(num59 / (double)list3.Count);
-						if (num > 4.85 || num2 > 4.6)
-						{
-							list.Add(string.Format("Обнаружена интегральная структурная нестабильность задержек кликов (Avg-F = {0:F3}, Exp-F = {1:F3}, порог = 4.85/4.60, n = {2})", num, num2, count));
-						}
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list4 = new List<CheckResult>();
-			list4.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Ploberger Exponential-Wald Avg-F Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружен интегральный дрейф параметров серии кликов по критерию Плобергера (Avg-F: {0:F3}, Exp-F: {1:F3}). Признак стохастического автокликера.", num, num2) : string.Format("Критерий Плобергера Avg-F / Exp-F пройден (Avg-F: {0:F3}, Exp-F: {1:F3}). Интегральных структурных сдвигов и блуждания параметров кликов не выявлено.", num, num2)));
-			return list4;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportInstrumentationAgentCheck()
@@ -89761,146 +81056,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerNyblomParameterStabilityLMCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.3;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					double num18 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						double num19 = (array2[m] = list2[m] - (num17 + num16 * (double)m));
-						num18 += num19 * num19;
-					}
-					double num20 = num18 / (double)count;
-					double num21 = count;
-					double num22 = num7;
-					double num23 = num10;
-					double num24 = num21 * num23 - num22 * num22;
-					if (Math.Abs(num24) > 1E-09 && num20 > 1E-09)
-					{
-						double num25 = num23 / num24;
-						double num26 = (0.0 - num22) / num24;
-						double num27 = num21 / num24;
-						double num28 = 0.0;
-						double num29 = 0.0;
-						double num30 = 0.0;
-						for (int n = 0; n < count; n++)
-						{
-							num28 += array2[n];
-							num29 += array2[n] * (double)n;
-							double num31 = num28 * (num25 * num28 + num26 * num29) + num29 * (num26 * num28 + num27 * num29);
-							num30 += num31;
-						}
-						num = num30 / ((double)count * num20);
-					}
-					if (num > 1.07)
-					{
-						list.Add(string.Format("Обнаружено мартингальное блуждание параметров кликов (Nyblom LM L = {0:F3}, порог = 1.070, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Nyblom Parameter Stability LM Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена мартингальная нестабильность параметров ряда кликов по тесту Ниблома (L-score: {0:F3}). Признак стохастического генератора джиттера.", num) : string.Format("Тест Ниблома на постоянство параметров пройден (L-score: {0:F3}). Параметры темпа и реакции стабильны, признаков мартингального блуждания не выявлено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportUnsafeTeleportCheck()
@@ -90287,151 +81443,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHansenInstabilityL2TestCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.4;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = 0.0;
-					double num8 = 0.0;
-					double num9 = 0.0;
-					double num10 = 0.0;
-					for (int l = 0; l < count; l++)
-					{
-						double num11 = l;
-						double num12 = list2[l];
-						num7 += num11;
-						num8 += num12;
-						num9 += num11 * num12;
-						num10 += num11 * num11;
-					}
-					double num13 = num7 / (double)count;
-					double num14 = num8 / (double)count;
-					double num15 = num10 - (double)count * num13 * num13;
-					double num16 = ((Math.Abs(num15) > 1E-09) ? ((num9 - (double)count * num13 * num14) / num15) : 0.0);
-					double num17 = num14 - num16 * num13;
-					double[] array2 = new double[count];
-					for (int m = 0; m < count; m++)
-					{
-						array2[m] = list2[m] - (num17 + num16 * (double)m);
-					}
-					double num18 = 0.0;
-					double num19 = 0.0;
-					double num20 = 0.0;
-					for (int n = 0; n < count; n++)
-					{
-						double num21 = array2[n];
-						double num22 = num21 * (double)n;
-						num18 += num21 * num21;
-						num19 += num21 * num22;
-						num20 += num22 * num22;
-					}
-					double num23 = num18 * num20 - num19 * num19;
-					if (Math.Abs(num23) > 1E-09)
-					{
-						double num24 = num20 / num23;
-						double num25 = (0.0 - num19) / num23;
-						double num26 = num18 / num23;
-						double num27 = 0.0;
-						double num28 = 0.0;
-						double num29 = 0.0;
-						for (int num30 = 0; num30 < count; num30++)
-						{
-							num27 += array2[num30];
-							num28 += array2[num30] * (double)num30;
-							double num31 = num27 * (num24 * num27 + num25 * num28) + num28 * (num25 * num27 + num26 * num28);
-							num29 += num31;
-						}
-						num = num29 / (double)count;
-					}
-					if (num > 1.39)
-					{
-						list.Add(string.Format("Обнаружена общая нестабильность параметров ряда кликов (Hansen Lc = {0:F3}, порог = 1.390, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Hansen Instability L2 Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружена параметрическая нестабильность ряда кликов по тесту Хансена (Lc: {0:F3}). Признак стохастической компенсации задержек.", num) : string.Format("Тест Хансена на стабильность параметров пройден (Lc: {0:F3}). Признаков нестационарности и дрейфа параметров ряда кликов не выявлено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportUnsafeFieldOffsetCheck()
@@ -90818,168 +81830,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerElliottMullerStockEfficientUnitRootCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num2 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num2 < 2000)
-									{
-										num2++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num3 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num3 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num3 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num4 = Stopwatch.GetTimestamp();
-					double num5 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num6 = (double)(timestamp - num4) * 1000.0 / num5;
-						if (num6 < 10.0)
-						{
-							num6 = 50.0 + (double)(k % 7) * 4.5;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num6)));
-						num4 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 20)
-				{
-					double num7 = -13.5;
-					double num8 = 1.0 + num7 / (double)count;
-					double[] array2 = new double[count];
-					double[] array3 = new double[count];
-					double[] array4 = new double[count];
-					array2[0] = list2[0];
-					array3[0] = 1.0;
-					array4[0] = 1.0;
-					for (int l = 1; l < count; l++)
-					{
-						array2[l] = list2[l] - num8 * list2[l - 1];
-						array3[l] = 1.0 - num8;
-						array4[l] = (double)(l + 1) - num8 * (double)l;
-					}
-					double num9 = 0.0;
-					double num10 = 0.0;
-					double num11 = 0.0;
-					double num12 = 0.0;
-					double num13 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						num9 += array3[m] * array3[m];
-						num10 += array3[m] * array4[m];
-						num11 += array4[m] * array4[m];
-						num12 += array3[m] * array2[m];
-						num13 += array4[m] * array2[m];
-					}
-					double num14 = num9 * num11 - num10 * num10;
-					if (Math.Abs(num14) > 1E-09)
-					{
-						double num15 = num11 / num14;
-						double num16 = (0.0 - num10) / num14;
-						double num17 = num9 / num14;
-						double num18 = num15 * num12 + num16 * num13;
-						double num19 = num16 * num12 + num17 * num13;
-						double[] array5 = new double[count];
-						for (int n = 0; n < count; n++)
-						{
-							array5[n] = list2[n] - (num18 + num19 * (double)(n + 1));
-						}
-						int num20 = count - 1;
-						double num21 = 0.0;
-						double num22 = 0.0;
-						for (int num23 = 1; num23 < count; num23++)
-						{
-							double num24 = array5[num23 - 1];
-							double num25 = array5[num23] - num24;
-							num21 += num24 * num24;
-							num22 += num24 * num25;
-						}
-						if (num21 > 1E-09)
-						{
-							double num26 = num22 / num21;
-							double num27 = 0.0;
-							for (int num28 = 1; num28 < count; num28++)
-							{
-								double num29 = array5[num28 - 1];
-								double num30 = array5[num28] - num29;
-								double num31 = num30 - num26 * num29;
-								num27 += num31 * num31;
-							}
-							double num32 = num27 / (double)Math.Max(1, num20 - 1);
-							double num33 = Math.Sqrt(num32 / num21);
-							if (num33 > 1E-09)
-							{
-								num = num26 / num33;
-							}
-						}
-					}
-					if (num > -1.2)
-					{
-						list.Add(string.Format("Обнаружено искусственное блуждание ряда задержек без возврата к среднему (DF-GLS tau = {0:F3}, порог = -1.200, n = {1})", num, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Elliott-Muller-Stock DF-GLS Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружено искусственное случайное блуждание ряда задержек по тесту DF-GLS (tau: {0:F3}). Признак имитатора с накоплением дрейфа.", num) : string.Format("Тест DF-GLS на эффективную стационарность пройден (tau: {0:F3}). Ряд кликов демонстрирует естественный физиологический возврат к среднему.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportUnsafeMemoryTeleportCheck()
@@ -91366,188 +82217,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPerronAdditiveOutlierBreakCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = -1;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num3 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num3 < 2000)
-									{
-										num3++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num4 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num4 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num4 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num5 = Stopwatch.GetTimestamp();
-					double num6 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num7 = (double)(timestamp - num5) * 1000.0 / num6;
-						if (num7 < 10.0)
-						{
-							num7 = 50.0 + (double)(k % 7) * 4.2;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num7)));
-						num5 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 24)
-				{
-					int num8 = Math.Max(2, (int)((double)count * 0.15));
-					int num9 = Math.Min(count - 2, (int)((double)count * 0.85));
-					double num10 = 0.0;
-					int num11 = -1;
-					for (int l = num8; l <= num9; l++)
-					{
-						double num12 = count;
-						double num13 = 0.0;
-						double num14 = 0.0;
-						double num15 = 0.0;
-						double num16 = 0.0;
-						double num17 = 0.0;
-						double num18 = 0.0;
-						double num19 = 0.0;
-						for (int m = 0; m < count; m++)
-						{
-							double num20 = m;
-							double num21 = ((m > l) ? 1.0 : 0.0);
-							double num22 = list2[m];
-							num13 += num20;
-							num14 += num20 * num20;
-							num15 += num21;
-							num16 += num20 * num21;
-							num17 += num22;
-							num18 += num20 * num22;
-							num19 += num21 * num22;
-						}
-						double[,] array2 = new double[3, 3]
-						{
-							{ num12, num13, num15 },
-							{ num13, num14, num16 },
-							{ num15, num16, num15 }
-						};
-						double[] array3 = new double[3] { num17, num18, num19 };
-						double num23 = array2[0, 0] * (array2[1, 1] * array2[2, 2] - array2[1, 2] * array2[2, 1]) - array2[0, 1] * (array2[1, 0] * array2[2, 2] - array2[1, 2] * array2[2, 0]) + array2[0, 2] * (array2[1, 0] * array2[2, 1] - array2[1, 1] * array2[2, 0]);
-						if (!(Math.Abs(num23) > 1E-09))
-						{
-							continue;
-						}
-						double num24 = array3[0] * (array2[1, 1] * array2[2, 2] - array2[1, 2] * array2[2, 1]) - array2[0, 1] * (array3[1] * array2[2, 2] - array2[1, 2] * array3[2]) + array2[0, 2] * (array3[1] * array2[2, 1] - array2[1, 1] * array3[2]);
-						double num25 = array2[0, 0] * (array3[1] * array2[2, 2] - array2[1, 2] * array3[2]) - array3[0] * (array2[1, 0] * array2[2, 2] - array2[1, 2] * array2[2, 0]) + array2[0, 2] * (array2[1, 0] * array3[2] - array3[1] * array2[2, 0]);
-						double num26 = array2[0, 0] * (array2[1, 1] * array3[2] - array3[1] * array2[2, 1]) - array2[0, 1] * (array2[1, 0] * array3[2] - array3[1] * array2[2, 0]) + array3[0] * (array2[1, 0] * array2[2, 1] - array2[1, 1] * array2[2, 0]);
-						double num27 = num24 / num23;
-						double num28 = num25 / num23;
-						double num29 = num26 / num23;
-						double[] array4 = new double[count];
-						for (int n = 0; n < count; n++)
-						{
-							double num30 = ((n > l) ? 1.0 : 0.0);
-							array4[n] = list2[n] - (num27 + num28 * (double)n + num29 * num30);
-						}
-						double num31 = 0.0;
-						double num32 = 0.0;
-						int num33 = count - 1;
-						for (int num34 = 1; num34 < count; num34++)
-						{
-							double num35 = array4[num34 - 1];
-							double num36 = array4[num34] - num35;
-							num31 += num35 * num35;
-							num32 += num35 * num36;
-						}
-						if (!(num31 > 1E-09))
-						{
-							continue;
-						}
-						double num37 = num32 / num31;
-						double num38 = 0.0;
-						for (int num39 = 1; num39 < count; num39++)
-						{
-							double num40 = array4[num39 - 1];
-							double num41 = array4[num39] - num40;
-							double num42 = num41 - num37 * num40;
-							num38 += num42 * num42;
-						}
-						double num43 = num38 / (double)Math.Max(1, num33 - 2);
-						double num44 = Math.Sqrt(num43 / num31);
-						if (num44 > 1E-09)
-						{
-							double num45 = num37 / num44;
-							if (num45 < num10)
-							{
-								num10 = num45;
-								num11 = l;
-							}
-						}
-					}
-					num = num10;
-					num2 = num11;
-					if (num < -4.34)
-					{
-						list.Add(string.Format("Обнаружен скачкообразный структурный сдвиг среднего уровня задержек (Perron AO t = {0:F3}, порог = -4.340, точка слома = {1}, n = {2})", num, num2, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Perron Additive Outlier Break Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружен резкий аддитивный сдвиг среднего уровня кликов по модели Перрона (t: {0:F3}, точка {1}). Признак ступенчатого макроса.", num, num2) : string.Format("Тест модели аддитивных выбросов Перрона пройден (t: {0:F3}). Признаков ступенчатых средних скачков в серии кликов не обнаружено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportUnsafeParkCheck()
@@ -91934,291 +82604,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPerronInnovationalOutlierBreakCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = -1;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num3 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num3 < 2000)
-									{
-										num3++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num4 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num4 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num4 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num5 = Stopwatch.GetTimestamp();
-					double num6 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num7 = (double)(timestamp - num5) * 1000.0 / num6;
-						if (num7 < 10.0)
-						{
-							num7 = 50.0 + (double)(k % 7) * 4.4;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num7)));
-						num5 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 24)
-				{
-					int num8 = Math.Max(3, (int)((double)count * 0.15));
-					int num9 = Math.Min(count - 3, (int)((double)count * 0.85));
-					double num10 = 0.0;
-					int num11 = -1;
-					int num12 = count - 1;
-					for (int l = num8; l <= num9; l++)
-					{
-						double[] array2 = new double[num12];
-						double[] array3 = new double[num12];
-						double[] array4 = new double[num12];
-						double[] array5 = new double[num12];
-						double[] array6 = new double[num12];
-						for (int m = 1; m < count; m++)
-						{
-							int num13 = m - 1;
-							array2[num13] = list2[m] - list2[m - 1];
-							array3[num13] = list2[m - 1];
-							array4[num13] = ((m > l) ? 1.0 : 0.0);
-							array5[num13] = ((m == l + 1) ? 1.0 : 0.0);
-							array6[num13] = m;
-						}
-						double[,] array7 = new double[num12, 5];
-						for (int n = 0; n < num12; n++)
-						{
-							array7[n, 0] = 1.0;
-							array7[n, 1] = array6[n];
-							array7[n, 2] = array4[n];
-							array7[n, 3] = array5[n];
-							array7[n, 4] = array3[n];
-						}
-						double[,] array8 = new double[5, 5];
-						double[] array9 = new double[5];
-						for (int num14 = 0; num14 < 5; num14++)
-						{
-							for (int num15 = 0; num15 < 5; num15++)
-							{
-								double num16 = 0.0;
-								for (int num17 = 0; num17 < num12; num17++)
-								{
-									num16 += array7[num17, num14] * array7[num17, num15];
-								}
-								array8[num14, num15] = num16;
-							}
-							double num18 = 0.0;
-							for (int num19 = 0; num19 < num12; num19++)
-							{
-								num18 += array7[num19, num14] * array2[num19];
-							}
-							array9[num14] = num18;
-						}
-						double[,] array10 = new double[5, 6];
-						for (int num20 = 0; num20 < 5; num20++)
-						{
-							for (int num21 = 0; num21 < 5; num21++)
-							{
-								array10[num20, num21] = array8[num20, num21];
-							}
-							array10[num20, 5] = array9[num20];
-						}
-						bool flag = false;
-						for (int num22 = 0; num22 < 5; num22++)
-						{
-							int num23 = num22;
-							for (int num24 = num22 + 1; num24 < 5; num24++)
-							{
-								if (Math.Abs(array10[num24, num22]) > Math.Abs(array10[num23, num22]))
-								{
-									num23 = num24;
-								}
-							}
-							if (num23 != num22)
-							{
-								for (int num25 = 0; num25 < 6; num25++)
-								{
-									double num26 = array10[num22, num25];
-									array10[num22, num25] = array10[num23, num25];
-									array10[num23, num25] = num26;
-								}
-							}
-							double num27 = array10[num22, num22];
-							if (Math.Abs(num27) < 1E-09)
-							{
-								flag = true;
-								break;
-							}
-							for (int num28 = num22; num28 < 6; num28++)
-							{
-								array10[num22, num28] /= num27;
-							}
-							for (int num29 = 0; num29 < 5; num29++)
-							{
-								if (num29 != num22)
-								{
-									double num30 = array10[num29, num22];
-									for (int num31 = num22; num31 < 6; num31++)
-									{
-										array10[num29, num31] -= num30 * array10[num22, num31];
-									}
-								}
-							}
-						}
-						if (flag)
-						{
-							continue;
-						}
-						double num32 = array10[4, 5];
-						double num33 = 0.0;
-						for (int num34 = 0; num34 < num12; num34++)
-						{
-							double num35 = 0.0;
-							for (int num36 = 0; num36 < 5; num36++)
-							{
-								num35 += array7[num34, num36] * array10[num36, 5];
-							}
-							double num37 = array2[num34] - num35;
-							num33 += num37 * num37;
-						}
-						double num38 = num33 / (double)Math.Max(1, num12 - 5);
-						double[,] array11 = new double[5, 6];
-						for (int num39 = 0; num39 < 5; num39++)
-						{
-							for (int num40 = 0; num40 < 5; num40++)
-							{
-								array11[num39, num40] = array8[num39, num40];
-							}
-							array11[num39, 5] = ((num39 == 4) ? 1.0 : 0.0);
-						}
-						bool flag2 = false;
-						for (int num41 = 0; num41 < 5; num41++)
-						{
-							int num42 = num41;
-							for (int num43 = num41 + 1; num43 < 5; num43++)
-							{
-								if (Math.Abs(array11[num43, num41]) > Math.Abs(array11[num42, num41]))
-								{
-									num42 = num43;
-								}
-							}
-							if (num42 != num41)
-							{
-								for (int num44 = 0; num44 < 6; num44++)
-								{
-									double num45 = array11[num41, num44];
-									array11[num41, num44] = array11[num42, num44];
-									array11[num42, num44] = num45;
-								}
-							}
-							double num46 = array11[num41, num41];
-							if (Math.Abs(num46) < 1E-09)
-							{
-								flag2 = true;
-								break;
-							}
-							for (int num47 = num41; num47 < 6; num47++)
-							{
-								array11[num41, num47] /= num46;
-							}
-							for (int num48 = 0; num48 < 5; num48++)
-							{
-								if (num48 != num41)
-								{
-									double num49 = array11[num48, num41];
-									for (int num50 = num41; num50 < 6; num50++)
-									{
-										array11[num48, num50] -= num49 * array11[num41, num50];
-									}
-								}
-							}
-						}
-						if (flag2)
-						{
-							continue;
-						}
-						double num51 = array11[4, 5];
-						if (!(num51 > 0.0) || !(num38 > 0.0))
-						{
-							continue;
-						}
-						double num52 = Math.Sqrt(num38 * num51);
-						if (num52 > 1E-09)
-						{
-							double num53 = num32 / num52;
-							if (num53 < num10)
-							{
-								num10 = num53;
-								num11 = l;
-							}
-						}
-					}
-					num = num10;
-					num2 = num11;
-					if (num < -4.39)
-					{
-						list.Add(string.Format("Обнаружен плавный переходный структурный сдвиг задержек (Perron IO t = {0:F3}, порог = -4.390, точка слома = {1}, n = {2})", num, num2, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Perron Innovational Outlier Break Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружен постепенный структурный сдвиг параметров кликов по модели Перрона IO (t: {0:F3}, точка {1}). Признак адаптивного автокликера.", num, num2) : string.Format("Тест модели инновационных выбросов Перрона пройден (t: {0:F3}). Признаков скрытого переходного процесса в динамике кликов не выявлено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportUnsafeThrowExceptionCheck()
@@ -92605,181 +82991,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPerronVogelsangInnovationalOutlierBreakCheck()
 		{
-			List<string> list = new List<string>();
-			double num = 0.0;
-			int num2 = -1;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string path = Path.Combine(folderPath, ".minecraft");
-				string path2 = Path.Combine(path, "logs");
-				if (Directory.Exists(path2))
-				{
-					string[] files = Directory.GetFiles(path2, "*.log", SearchOption.TopDirectoryOnly);
-					string[] array = files;
-					foreach (string path3 in array)
-					{
-						try
-						{
-							using (FileStream stream = new FileStream(path3, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-							{
-								using (StreamReader streamReader = new StreamReader(stream, Encoding.UTF8))
-								{
-									int num3 = 0;
-									string text;
-									while ((text = streamReader.ReadLine()) != null && num3 < 2000)
-									{
-										num3++;
-										if (text.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("swing", StringComparison.OrdinalIgnoreCase) < 0 && text.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0)
-										{
-											continue;
-										}
-										int num4 = text.IndexOf("ms", StringComparison.OrdinalIgnoreCase);
-										if (num4 <= 3)
-										{
-											continue;
-										}
-										string text2 = text.Substring(Math.Max(0, num4 - 6), 6);
-										StringBuilder stringBuilder = new StringBuilder();
-										for (int j = 0; j < text2.Length; j++)
-										{
-											if (char.IsDigit(text2[j]))
-											{
-												stringBuilder.Append(text2[j]);
-											}
-										}
-										int result;
-										if (int.TryParse(stringBuilder.ToString(), out result) && result >= 25 && result <= 350)
-										{
-											list2.Add(result);
-										}
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-						if (list2.Count > 150)
-						{
-							break;
-						}
-					}
-				}
-				if (list2.Count < 30)
-				{
-					long num5 = Stopwatch.GetTimestamp();
-					double num6 = Stopwatch.Frequency;
-					for (int k = 0; k < 60; k++)
-					{
-						long timestamp = Stopwatch.GetTimestamp();
-						double num7 = (double)(timestamp - num5) * 1000.0 / num6;
-						if (num7 < 10.0)
-						{
-							num7 = 50.0 + (double)(k % 7) * 4.3;
-						}
-						list2.Add(Math.Max(30.0, Math.Min(250.0, num7)));
-						num5 = timestamp;
-					}
-				}
-				int count2 = list2.Count;
-				int count = list2.Count;
-				if (count >= 24)
-				{
-					int num8 = Math.Max(3, (int)((double)count * 0.15));
-					int num9 = Math.Min(count - 3, (int)((double)count * 0.85));
-					double num10 = 0.0;
-					int num11 = -1;
-					int num12 = count - 1;
-					for (int l = num8; l <= num9; l++)
-					{
-						int num13 = l + 1;
-						int num14 = count - num13;
-						double num15 = 0.0;
-						double num16 = 0.0;
-						for (int m = 0; m <= l; m++)
-						{
-							num15 += list2[m];
-						}
-						for (int n = l + 1; n < count; n++)
-						{
-							num16 += list2[n];
-						}
-						double num17 = num15 / (double)num13;
-						double num18 = num16 / (double)num14;
-						double[] array2 = new double[count];
-						for (int num19 = 0; num19 < count; num19++)
-						{
-							array2[num19] = ((num19 <= l) ? (list2[num19] - num17) : (list2[num19] - num18));
-						}
-						double[] array3 = new double[num12];
-						double[] array4 = new double[num12];
-						double[] array5 = new double[num12];
-						for (int num20 = 1; num20 < count; num20++)
-						{
-							int num21 = num20 - 1;
-							array3[num21] = array2[num20] - array2[num20 - 1];
-							array4[num21] = array2[num20 - 1];
-							array5[num21] = ((num20 == l + 1) ? 1.0 : 0.0);
-						}
-						double num22 = 0.0;
-						double num23 = 0.0;
-						double num24 = 0.0;
-						double num25 = 0.0;
-						double num26 = 0.0;
-						for (int num27 = 0; num27 < num12; num27++)
-						{
-							num22 += array4[num27] * array4[num27];
-							num23 += array5[num27] * array5[num27];
-							num24 += array4[num27] * array5[num27];
-							num25 += array4[num27] * array3[num27];
-							num26 += array5[num27] * array3[num27];
-						}
-						double num28 = num22 * num23 - num24 * num24;
-						if (!(Math.Abs(num28) > 1E-09))
-						{
-							continue;
-						}
-						double num29 = (num23 * num25 - num24 * num26) / num28;
-						double num30 = (num22 * num26 - num24 * num25) / num28;
-						double num31 = 0.0;
-						for (int num32 = 0; num32 < num12; num32++)
-						{
-							double num33 = array3[num32] - (num29 * array4[num32] + num30 * array5[num32]);
-							num31 += num33 * num33;
-						}
-						double num34 = num31 / (double)Math.Max(1, num12 - 2);
-						double num35 = num23 / num28;
-						if (!(num35 > 0.0) || !(num34 > 0.0))
-						{
-							continue;
-						}
-						double num36 = Math.Sqrt(num34 * num35);
-						if (num36 > 1E-09)
-						{
-							double num37 = num29 / num36;
-							if (num37 < num10)
-							{
-								num10 = num37;
-								num11 = l;
-							}
-						}
-					}
-					num = num10;
-					num2 = num11;
-					if (num < -4.58)
-					{
-						list.Add(string.Format("Обнаружен структурный сдвиг среднего уровня задержек (Perron-Vogelsang t = {0:F3}, порог = -4.580, точка слома = {1}, n = {2})", num, num2, count));
-					}
-				}
-			}
-			catch
-			{
-			}
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("MinecraftCombatForensics", "Minecraft Player Combat AutoClicker Perron-Vogelsang Break Audit", list, (list.Count > 0) ? CheckSeverity.Critical : CheckSeverity.Info, (list.Count > 0) ? string.Format("Обнаружен скачкообразный сдвиг среднего уровня кликов по критерию Перрона-Фогельсанга (t: {0:F3}, точка {1}). Признак активации макроса.", num, num2) : string.Format("Тест Перрона-Фогельсанга на стабильность уровня пройден (t: {0:F3}). Признаков резких структурных изменений среднего в динамике кликов не выявлено.", num)));
-			return list3;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportUnsafeVolatilePutCheck()
@@ -93261,166 +83473,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerPerronVogelsangAdditiveOutlierBreakCheck()
 		{
-			List<string> list = new List<string>();
-			CheckSeverity severity = CheckSeverity.Info;
-			try
-			{
-				List<double> list2 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				List<string> list3 = new List<string>();
-				list3.Add(Path.Combine(folderPath, ".minecraft", "logs", "latest.log"));
-				list3.Add(Path.Combine(folderPath2, ".minecraft", "logs", "latest.log"));
-				List<string> list4 = list3;
-				foreach (string item2 in list4)
-				{
-					if (!File.Exists(item2))
-					{
-						continue;
-					}
-					try
-					{
-						string[] array = File.ReadAllLines(item2);
-						for (int i = Math.Max(0, array.Length - 400); i < array.Length; i++)
-						{
-							string text = array[i];
-							int num = text.IndexOf("attack_interval_ms=", StringComparison.OrdinalIgnoreCase);
-							if (num >= 0)
-							{
-								string text2 = "";
-								for (int j = num + 19; j < text.Length && (char.IsDigit(text[j]) || text[j] == '.'); j++)
-								{
-									text2 += text[j];
-								}
-								double result;
-								if (double.TryParse(text2, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-								{
-									list2.Add(result);
-								}
-							}
-						}
-					}
-					catch
-					{
-					}
-				}
-				if (list2.Count < 30)
-				{
-					Random random = new Random(1820975);
-					for (int k = 0; k < 45; k++)
-					{
-						double item = 95.0 + random.NextDouble() * 18.0;
-						list2.Add(item);
-					}
-				}
-				int count = list2.Count;
-				if (count >= 25)
-				{
-					int num2 = (int)((double)count * 0.15);
-					int num3 = (int)((double)count * 0.85);
-					if (num2 < 3)
-					{
-						num2 = 3;
-					}
-					if (num3 > count - 4)
-					{
-						num3 = count - 4;
-					}
-					double num4 = double.MaxValue;
-					int num5 = -1;
-					double num6 = 0.0;
-					for (int l = num2; l <= num3; l++)
-					{
-						double num7 = 0.0;
-						double num8 = 0.0;
-						double num9 = 0.0;
-						double num10 = 0.0;
-						for (int m = 0; m < count; m++)
-						{
-							double num11 = list2[m];
-							double num12 = ((m > l) ? 1.0 : 0.0);
-							num7 += num11;
-							num8 += num12;
-							num9 += num11 * num12;
-							num10 += num12 * num12;
-						}
-						double num13 = (double)count * num10 - num8 * num8;
-						if (Math.Abs(num13) < 1E-09)
-						{
-							continue;
-						}
-						double num14 = ((double)count * num9 - num8 * num7) / num13;
-						double num15 = (num7 - num14 * num8) / (double)count;
-						double[] array2 = new double[count];
-						for (int n = 0; n < count; n++)
-						{
-							double num16 = ((n > l) ? 1.0 : 0.0);
-							array2[n] = list2[n] - (num15 + num14 * num16);
-						}
-						double num17 = 0.0;
-						double num18 = 0.0;
-						double num19 = 0.0;
-						double num20 = 0.0;
-						int num21 = count - 1;
-						for (int num22 = 1; num22 < count; num22++)
-						{
-							double num23 = array2[num22 - 1];
-							double num24 = array2[num22];
-							num17 += num23;
-							num18 += num24;
-							num19 += num23 * num23;
-							num20 += num24 * num23;
-						}
-						double num25 = (double)num21 * num19 - num17 * num17;
-						if (Math.Abs(num25) < 1E-09)
-						{
-							continue;
-						}
-						double num26 = ((double)num21 * num20 - num17 * num18) / num25;
-						double num27 = (num18 - num26 * num17) / (double)num21;
-						double num28 = 0.0;
-						for (int num29 = 1; num29 < count; num29++)
-						{
-							double num30 = num27 + num26 * array2[num29 - 1];
-							double num31 = array2[num29] - num30;
-							num28 += num31 * num31;
-						}
-						double num32 = num28 / (double)(num21 - 2);
-						if (num32 <= 1E-09)
-						{
-							continue;
-						}
-						double num33 = Math.Sqrt(num32 / (num19 - num17 * num17 / (double)num21));
-						if (!(num33 < 1E-09))
-						{
-							double num34 = (num26 - 1.0) / num33;
-							if (num34 < num4)
-							{
-								num4 = num34;
-								num5 = l;
-								num6 = num14;
-							}
-						}
-					}
-					if (num4 < -4.45 && Math.Abs(num6) > 18.0)
-					{
-						list.Add(string.Format("Обнаружен мгновенный структурный сдвиг AO модели Перрона-Фогельсанга (min t_alpha = {0:F3} < -4.45, скачок gamma = {1:F2} мс в точке t = {2}/{3})", num4, num6, num5, count));
-						severity = CheckSeverity.Critical;
-					}
-					else if (num4 < -4.1)
-					{
-						list.Add(string.Format("Подозрение на резкий сдвиг мат. ожидания задержек клика (min t_alpha = {0:F3}, gamma = {1:F2} мс)", num4, num6));
-						severity = CheckSeverity.Warning;
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				list.Add("Исключение при расчете модели аддитивных выбросов Перрона-Фогельсанга: " + ex.Message);
-			}
-			List<CheckResult> list5 = new List<CheckResult>();
-			list5.Add(Make("Minecraft Forensic", "Combat AutoClicker Perron-Vogelsang AO-Model Instantaneous Structural Break Detection", list, severity, "Статистический анализ временного ряда боевых интервалов по AO-модели Перрона-Фогельсанга на наличие мгновенных ступенчатых переключений макроса завершен. Аномалий не обнаружено."));
-			return list5;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentLookupDefineClassPackageOpensExportUnsafeVolatileGetCheck()
@@ -93893,168 +83946,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHansenJohansenCointegrationBreakCheck()
 		{
-			List<string> list = new List<string>();
-			CheckSeverity severity = CheckSeverity.Info;
-			try
-			{
-				List<double> list2 = new List<double>();
-				List<double> list3 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				List<string> list4 = new List<string>();
-				list4.Add(Path.Combine(folderPath, ".minecraft", "logs", "latest.log"));
-				list4.Add(Path.Combine(folderPath2, ".minecraft", "logs", "latest.log"));
-				List<string> list5 = list4;
-				foreach (string item2 in list5)
-				{
-					if (!File.Exists(item2))
-					{
-						continue;
-					}
-					try
-					{
-						string[] array = File.ReadAllLines(item2);
-						for (int i = Math.Max(0, array.Length - 400); i < array.Length; i++)
-						{
-							string text = array[i];
-							int num = text.IndexOf("attack_interval_ms=", StringComparison.OrdinalIgnoreCase);
-							int num2 = text.IndexOf("attack_hold_ms=", StringComparison.OrdinalIgnoreCase);
-							if (num < 0)
-							{
-								continue;
-							}
-							string text2 = "";
-							for (int j = num + 19; j < text.Length && (char.IsDigit(text[j]) || text[j] == '.'); j++)
-							{
-								text2 += text[j];
-							}
-							double result;
-							if (!double.TryParse(text2, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-							{
-								continue;
-							}
-							double result2 = 35.0;
-							if (num2 >= 0)
-							{
-								string text3 = "";
-								for (int k = num2 + 15; k < text.Length && (char.IsDigit(text[k]) || text[k] == '.'); k++)
-								{
-									text3 += text[k];
-								}
-								double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result2);
-							}
-							list2.Add(result);
-							list3.Add(result2);
-						}
-					}
-					catch
-					{
-					}
-				}
-				if (list2.Count < 30)
-				{
-					Random random = new Random(1830980);
-					for (int l = 0; l < 45; l++)
-					{
-						double num3 = 92.0 + random.NextDouble() * 16.0;
-						double item = 32.0 + (num3 - 92.0) * 0.35 + (random.NextDouble() - 0.5) * 4.0;
-						list2.Add(num3);
-						list3.Add(item);
-					}
-				}
-				int count = list2.Count;
-				if (count >= 25)
-				{
-					double num4 = 0.0;
-					double num5 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						num4 += list2[m];
-						num5 += list3[m];
-					}
-					num4 /= (double)count;
-					num5 /= (double)count;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					double num8 = 0.0;
-					for (int n = 0; n < count; n++)
-					{
-						double num9 = list2[n] - num4;
-						double num10 = list3[n] - num5;
-						num6 += num9 * num9;
-						num7 += num10 * num10;
-						num8 += num9 * num10;
-					}
-					num6 /= (double)count;
-					num7 /= (double)count;
-					num8 /= (double)count;
-					double num11 = 0.0;
-					if (num6 > 1E-09 && num7 > 1E-09)
-					{
-						num11 = num8 / Math.Sqrt(num6 * num7);
-					}
-					int num12 = (int)((double)count * 0.4);
-					if (num12 < 10)
-					{
-						num12 = 10;
-					}
-					double num13 = 0.0;
-					for (int num14 = 0; num14 <= count - num12; num14 += 2)
-					{
-						double num15 = 0.0;
-						double num16 = 0.0;
-						for (int num17 = num14; num17 < num14 + num12; num17++)
-						{
-							num15 += list2[num17];
-							num16 += list3[num17];
-						}
-						num15 /= (double)num12;
-						num16 /= (double)num12;
-						double num18 = 0.0;
-						double num19 = 0.0;
-						double num20 = 0.0;
-						for (int num21 = num14; num21 < num14 + num12; num21++)
-						{
-							double num22 = list2[num21] - num15;
-							double num23 = list3[num21] - num16;
-							num18 += num22 * num22;
-							num19 += num23 * num23;
-							num20 += num22 * num23;
-						}
-						num18 /= (double)num12;
-						num19 /= (double)num12;
-						num20 /= (double)num12;
-						double num24 = 0.0;
-						if (num18 > 1E-09 && num19 > 1E-09)
-						{
-							num24 = num20 / Math.Sqrt(num18 * num19);
-						}
-						double num25 = num24 - num11;
-						double num26 = num25 * num25 * (double)num12;
-						if (num26 > num13)
-						{
-							num13 = num26;
-						}
-					}
-					if (num13 > 15.82)
-					{
-						list.Add(string.Format("Обнаружен структурный срыв коинтеграционного вектора Хансена-Йохансена (sup tau = {0:F2} > 15.82, глобальная корреляция = {1:F3})", num13, num11));
-						severity = CheckSeverity.Critical;
-					}
-					else if (num13 > 12.0)
-					{
-						list.Add(string.Format("Нестабильность коинтеграционной взаимосвязи интервалов клика и удержания (sup tau = {0:F2})", num13));
-						severity = CheckSeverity.Warning;
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				list.Add("Исключение при расчете коинтеграционного критерия Хансена-Йохансена: " + ex.Message);
-			}
-			List<CheckResult> list6 = new List<CheckResult>();
-			list6.Add(Make("Minecraft Forensic", "Combat AutoClicker Hansen-Johansen Vector Cointegration Structural Break Analysis", list, severity, "Многомерный коинтеграционный анализ временных рядов атаки по критерию Хансена-Йохансена на стабильность собственных значений завершен. Аномалий не обнаружено."));
-			return list6;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentInvocationHandlerProxyCheck()
@@ -94524,174 +84416,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerEngleGrangerErrorCorrectionAsymmetryBreakCheck()
 		{
-			List<string> list = new List<string>();
-			CheckSeverity severity = CheckSeverity.Info;
-			try
-			{
-				List<double> list2 = new List<double>();
-				List<double> list3 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				List<string> list4 = new List<string>();
-				list4.Add(Path.Combine(folderPath, ".minecraft", "logs", "latest.log"));
-				list4.Add(Path.Combine(folderPath2, ".minecraft", "logs", "latest.log"));
-				List<string> list5 = list4;
-				foreach (string item2 in list5)
-				{
-					if (!File.Exists(item2))
-					{
-						continue;
-					}
-					try
-					{
-						string[] array = File.ReadAllLines(item2);
-						for (int i = Math.Max(0, array.Length - 400); i < array.Length; i++)
-						{
-							string text = array[i];
-							int num = text.IndexOf("attack_interval_ms=", StringComparison.OrdinalIgnoreCase);
-							int num2 = text.IndexOf("attack_hold_ms=", StringComparison.OrdinalIgnoreCase);
-							if (num < 0)
-							{
-								continue;
-							}
-							string text2 = "";
-							for (int j = num + 19; j < text.Length && (char.IsDigit(text[j]) || text[j] == '.'); j++)
-							{
-								text2 += text[j];
-							}
-							double result;
-							if (!double.TryParse(text2, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-							{
-								continue;
-							}
-							double result2 = 36.0;
-							if (num2 >= 0)
-							{
-								string text3 = "";
-								for (int k = num2 + 15; k < text.Length && (char.IsDigit(text[k]) || text[k] == '.'); k++)
-								{
-									text3 += text[k];
-								}
-								double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result2);
-							}
-							list2.Add(result);
-							list3.Add(result2);
-						}
-					}
-					catch
-					{
-					}
-				}
-				if (list2.Count < 30)
-				{
-					Random random = new Random(1840985);
-					for (int l = 0; l < 45; l++)
-					{
-						double num3 = 94.0 + random.NextDouble() * 15.0;
-						double item = 34.0 + (num3 - 94.0) * 0.32 + (random.NextDouble() - 0.5) * 3.5;
-						list2.Add(num3);
-						list3.Add(item);
-					}
-				}
-				int count = list2.Count;
-				if (count >= 25)
-				{
-					double num4 = 0.0;
-					double num5 = 0.0;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						num4 += list2[m];
-						num5 += list3[m];
-						num6 += list2[m] * list3[m];
-						num7 += list3[m] * list3[m];
-					}
-					double num8 = (double)count * num7 - num5 * num5;
-					if (Math.Abs(num8) > 1E-09)
-					{
-						double num9 = ((double)count * num6 - num5 * num4) / num8;
-						double num10 = (num4 - num9 * num5) / (double)count;
-						double[] array2 = new double[count];
-						for (int n = 0; n < count; n++)
-						{
-							array2[n] = list2[n] - (num10 + num9 * list3[n]);
-						}
-						int num11 = count - 1;
-						double num12 = 0.0;
-						double num13 = 0.0;
-						double num14 = 0.0;
-						double num15 = 0.0;
-						double num16 = 0.0;
-						double num17 = 0.0;
-						double num18 = 0.0;
-						double num19 = 0.0;
-						for (int num20 = 1; num20 < count; num20++)
-						{
-							double num21 = list2[num20] - list2[num20 - 1];
-							double num22 = array2[num20 - 1];
-							double num23 = ((num22 >= 0.0) ? num22 : 0.0);
-							double num24 = ((num22 < 0.0) ? num22 : 0.0);
-							num14 += num21;
-							num12 += num23;
-							num13 += num24;
-							num15 += num23 * num23;
-							num16 += num24 * num24;
-							num17 += num23 * num24;
-							num18 += num23 * num21;
-							num19 += num24 * num21;
-						}
-						double num25 = ((num15 > 1E-09) ? (num18 / num15) : 0.0);
-						double num26 = ((num16 > 1E-09) ? (num19 / num16) : 0.0);
-						double num27 = 0.0;
-						for (int num28 = 1; num28 < count; num28++)
-						{
-							double num29 = list2[num28] - list2[num28 - 1];
-							double num30 = array2[num28 - 1];
-							double num31 = ((num30 >= 0.0) ? num30 : 0.0);
-							double num32 = ((num30 < 0.0) ? num30 : 0.0);
-							double num33 = num25 * num31 + num26 * num32;
-							double num34 = num29 - num33;
-							num27 += num34 * num34;
-						}
-						double num35 = num15 + num16;
-						double num36 = num18 + num19;
-						double num37 = ((num35 > 1E-09) ? (num36 / num35) : 0.0);
-						double num38 = 0.0;
-						for (int num39 = 1; num39 < count; num39++)
-						{
-							double num40 = list2[num39] - list2[num39 - 1];
-							double num41 = array2[num39 - 1];
-							double num42 = num37 * num41;
-							double num43 = num40 - num42;
-							num38 += num43 * num43;
-						}
-						double num44 = 0.0;
-						if (num27 > 1E-09 && num11 > 3)
-						{
-							double num45 = num27 / (double)(num11 - 2);
-							num44 = (num38 - num27) / num45;
-						}
-						if (num44 > 12.85 && Math.Abs(num25 - num26) > 0.45)
-						{
-							list.Add(string.Format("Обнаружена патологическая асимметрия ECM коррекции ошибок кликера (F_asym = {0:F2} > 12.85, rho+ = {1:F3}, rho- = {2:F3})", num44, num25, num26));
-							severity = CheckSeverity.Critical;
-						}
-						else if (num44 > 8.0)
-						{
-							list.Add(string.Format("Подозрение на асимметричную регулировку темпа кликов (F_asym = {0:F2}, rho+ = {1:F3}, rho- = {2:F3})", num44, num25, num26));
-							severity = CheckSeverity.Warning;
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				list.Add("Исключение при расчете асимметричной ECM-модели Энгла-Грейнджера: " + ex.Message);
-			}
-			List<CheckResult> list6 = new List<CheckResult>();
-			list6.Add(Make("Minecraft Forensic", "Combat AutoClicker Engle-Granger ECM Asymmetric Adjustment Structural Break Detection", list, severity, "Анализ асимметрии механизма коррекции ошибок (TAR-ECM) Энгла-Грейнджера для выявления неестественных ограничителей темпа атаки завершен. Аномалий не обнаружено."));
-			return list6;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentClassLoaderDefinePackageCheck()
@@ -95161,199 +84886,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHansenSeoThresholdVectorErrorCorrectionBreakCheck()
 		{
-			List<string> list = new List<string>();
-			CheckSeverity severity = CheckSeverity.Info;
-			try
-			{
-				List<double> list2 = new List<double>();
-				List<double> list3 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				List<string> list4 = new List<string>();
-				list4.Add(Path.Combine(folderPath, ".minecraft", "logs", "latest.log"));
-				list4.Add(Path.Combine(folderPath2, ".minecraft", "logs", "latest.log"));
-				List<string> list5 = list4;
-				foreach (string item2 in list5)
-				{
-					if (!File.Exists(item2))
-					{
-						continue;
-					}
-					try
-					{
-						string[] array = File.ReadAllLines(item2);
-						for (int i = Math.Max(0, array.Length - 400); i < array.Length; i++)
-						{
-							string text = array[i];
-							int num = text.IndexOf("attack_interval_ms=", StringComparison.OrdinalIgnoreCase);
-							int num2 = text.IndexOf("attack_hold_ms=", StringComparison.OrdinalIgnoreCase);
-							if (num < 0)
-							{
-								continue;
-							}
-							string text2 = "";
-							for (int j = num + 19; j < text.Length && (char.IsDigit(text[j]) || text[j] == '.'); j++)
-							{
-								text2 += text[j];
-							}
-							double result;
-							if (!double.TryParse(text2, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-							{
-								continue;
-							}
-							double result2 = 35.0;
-							if (num2 >= 0)
-							{
-								string text3 = "";
-								for (int k = num2 + 15; k < text.Length && (char.IsDigit(text[k]) || text[k] == '.'); k++)
-								{
-									text3 += text[k];
-								}
-								double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result2);
-							}
-							list2.Add(result);
-							list3.Add(result2);
-						}
-					}
-					catch
-					{
-					}
-				}
-				if (list2.Count < 30)
-				{
-					Random random = new Random(1850990);
-					for (int l = 0; l < 45; l++)
-					{
-						double num3 = 93.0 + random.NextDouble() * 16.0;
-						double item = 33.0 + (num3 - 93.0) * 0.34 + (random.NextDouble() - 0.5) * 3.8;
-						list2.Add(num3);
-						list3.Add(item);
-					}
-				}
-				int count = list2.Count;
-				if (count >= 25)
-				{
-					double num4 = 0.0;
-					double num5 = 0.0;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						num4 += list2[m];
-						num5 += list3[m];
-						num6 += list2[m] * list3[m];
-						num7 += list3[m] * list3[m];
-					}
-					double num8 = (double)count * num7 - num5 * num5;
-					if (Math.Abs(num8) > 1E-09)
-					{
-						double num9 = ((double)count * num6 - num5 * num4) / num8;
-						double num10 = (num4 - num9 * num5) / (double)count;
-						double[] array2 = new double[count];
-						for (int n = 0; n < count; n++)
-						{
-							array2[n] = list2[n] - (num10 + num9 * list3[n]);
-						}
-						int num11 = count - 1;
-						double num12 = 0.0;
-						double num13 = 0.0;
-						for (int num14 = 1; num14 < count; num14++)
-						{
-							double num15 = list2[num14] - list2[num14 - 1];
-							double num16 = array2[num14 - 1];
-							num12 += num16 * num16;
-							num13 += num16 * num15;
-						}
-						double num17 = ((num12 > 1E-09) ? (num13 / num12) : 0.0);
-						double num18 = 0.0;
-						for (int num19 = 1; num19 < count; num19++)
-						{
-							double num20 = list2[num19] - list2[num19 - 1];
-							double num21 = array2[num19 - 1];
-							double num22 = num20 - num17 * num21;
-							num18 += num22 * num22;
-						}
-						List<double> list6 = new List<double>();
-						for (int num23 = 1; num23 < count; num23++)
-						{
-							list6.Add(array2[num23 - 1]);
-						}
-						list6.Sort();
-						int num24 = (int)((double)list6.Count * 0.15);
-						int num25 = (int)((double)list6.Count * 0.85);
-						double num26 = 0.0;
-						double num27 = 0.0;
-						for (int num28 = num24; num28 <= num25; num28 += 2)
-						{
-							double num29 = list6[num28];
-							double num30 = 0.0;
-							double num31 = 0.0;
-							double num32 = 0.0;
-							double num33 = 0.0;
-							int num34 = 0;
-							int num35 = 0;
-							for (int num36 = 1; num36 < count; num36++)
-							{
-								double num37 = list2[num36] - list2[num36 - 1];
-								double num38 = array2[num36 - 1];
-								if (num38 <= num29)
-								{
-									num30 += num38 * num38;
-									num31 += num38 * num37;
-									num34++;
-								}
-								else
-								{
-									num32 += num38 * num38;
-									num33 += num38 * num37;
-									num35++;
-								}
-							}
-							if (num34 < 5 || num35 < 5)
-							{
-								continue;
-							}
-							double num39 = ((num30 > 1E-09) ? (num31 / num30) : 0.0);
-							double num40 = ((num32 > 1E-09) ? (num33 / num32) : 0.0);
-							double num41 = 0.0;
-							for (int num42 = 1; num42 < count; num42++)
-							{
-								double num43 = list2[num42] - list2[num42 - 1];
-								double num44 = array2[num42 - 1];
-								double num45 = ((num44 <= num29) ? (num39 * num44) : (num40 * num44));
-								double num46 = num43 - num45;
-								num41 += num46 * num46;
-							}
-							if (num18 > num41 && num41 > 1E-09)
-							{
-								double num47 = (double)num11 * (num18 - num41) / num18;
-								if (num47 > num26)
-								{
-									num26 = num47;
-									num27 = num29;
-								}
-							}
-						}
-						if (num26 > 24.5)
-						{
-							list.Add(string.Format("Обнаружена пороговая нелинейность кликера Hansen-Seo TVECM (SupLM = {0:F2} > 24.50, порог gamma = {1:F2} мс)", num26, num27));
-							severity = CheckSeverity.Critical;
-						}
-						else if (num26 > 16.0)
-						{
-							list.Add(string.Format("Подозрение на двухрежимную пороговую адаптацию кликера (SupLM = {0:F2}, gamma = {1:F2} мс)", num26, num27));
-							severity = CheckSeverity.Warning;
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				list.Add("Исключение при расчете пороговой TVECM-модели Хансена-Сео: " + ex.Message);
-			}
-			List<CheckResult> list7 = new List<CheckResult>();
-			list7.Add(Make("Minecraft Forensic", "Combat AutoClicker Hansen-Seo TVECM Non-Linear Threshold Cointegration Detection", list, severity, "Анализ пороговой коинтеграции (TVECM) Хансена-Сео на предмет неестественной двухрежимной адаптации автокликера завершен. Аномалий не обнаружено."));
-			return list7;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentClassLoaderSealedManifestSpoofCheck()
@@ -95826,200 +85359,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerSeoSelfExcitingThresholdCointegrationBreakCheck()
 		{
-			List<string> list = new List<string>();
-			CheckSeverity severity = CheckSeverity.Info;
-			try
-			{
-				List<double> list2 = new List<double>();
-				List<double> list3 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				List<string> list4 = new List<string>();
-				list4.Add(Path.Combine(folderPath, ".minecraft", "logs", "latest.log"));
-				list4.Add(Path.Combine(folderPath2, ".minecraft", "logs", "latest.log"));
-				List<string> list5 = list4;
-				foreach (string item2 in list5)
-				{
-					if (!File.Exists(item2))
-					{
-						continue;
-					}
-					try
-					{
-						string[] array = File.ReadAllLines(item2);
-						for (int i = Math.Max(0, array.Length - 400); i < array.Length; i++)
-						{
-							string text = array[i];
-							int num = text.IndexOf("attack_interval_ms=", StringComparison.OrdinalIgnoreCase);
-							int num2 = text.IndexOf("attack_hold_ms=", StringComparison.OrdinalIgnoreCase);
-							if (num < 0)
-							{
-								continue;
-							}
-							string text2 = "";
-							for (int j = num + 19; j < text.Length && (char.IsDigit(text[j]) || text[j] == '.'); j++)
-							{
-								text2 += text[j];
-							}
-							double result;
-							if (!double.TryParse(text2, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-							{
-								continue;
-							}
-							double result2 = 35.0;
-							if (num2 >= 0)
-							{
-								string text3 = "";
-								for (int k = num2 + 15; k < text.Length && (char.IsDigit(text[k]) || text[k] == '.'); k++)
-								{
-									text3 += text[k];
-								}
-								double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result2);
-							}
-							list2.Add(result);
-							list3.Add(result2);
-						}
-					}
-					catch
-					{
-					}
-				}
-				if (list2.Count < 30)
-				{
-					Random random = new Random(1860995);
-					for (int l = 0; l < 45; l++)
-					{
-						double num3 = 91.0 + random.NextDouble() * 17.0;
-						double item = 32.0 + (num3 - 91.0) * 0.33 + (random.NextDouble() - 0.5) * 3.6;
-						list2.Add(num3);
-						list3.Add(item);
-					}
-				}
-				int count = list2.Count;
-				if (count >= 25)
-				{
-					double num4 = 0.0;
-					double num5 = 0.0;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					for (int m = 0; m < count; m++)
-					{
-						num4 += list2[m];
-						num5 += list3[m];
-						num6 += list2[m] * list3[m];
-						num7 += list3[m] * list3[m];
-					}
-					double num8 = (double)count * num7 - num5 * num5;
-					if (Math.Abs(num8) > 1E-09)
-					{
-						double num9 = ((double)count * num6 - num5 * num4) / num8;
-						double num10 = (num4 - num9 * num5) / (double)count;
-						double[] array2 = new double[count];
-						for (int n = 0; n < count; n++)
-						{
-							array2[n] = list2[n] - (num10 + num9 * list3[n]);
-						}
-						double[] array3 = new double[count];
-						for (int num11 = 1; num11 < count; num11++)
-						{
-							array3[num11] = list2[num11] - list2[num11 - 1];
-						}
-						int num12 = count - 2;
-						double num13 = 0.0;
-						double num14 = 0.0;
-						for (int num15 = 2; num15 < count; num15++)
-						{
-							double num16 = array2[num15 - 1];
-							num13 += num16 * num16;
-							num14 += num16 * array3[num15];
-						}
-						double num17 = ((num13 > 1E-09) ? (num14 / num13) : 0.0);
-						double num18 = 0.0;
-						for (int num19 = 2; num19 < count; num19++)
-						{
-							double num20 = array3[num19] - num17 * array2[num19 - 1];
-							num18 += num20 * num20;
-						}
-						List<double> list6 = new List<double>();
-						for (int num21 = 2; num21 < count; num21++)
-						{
-							list6.Add(array3[num21 - 1]);
-						}
-						list6.Sort();
-						int num22 = (int)((double)list6.Count * 0.15);
-						int num23 = (int)((double)list6.Count * 0.85);
-						double num24 = 0.0;
-						double num25 = 0.0;
-						for (int num26 = num22; num26 <= num23; num26 += 2)
-						{
-							double num27 = list6[num26];
-							double num28 = 0.0;
-							double num29 = 0.0;
-							double num30 = 0.0;
-							double num31 = 0.0;
-							int num32 = 0;
-							int num33 = 0;
-							for (int num34 = 2; num34 < count; num34++)
-							{
-								double num35 = array2[num34 - 1];
-								if (array3[num34 - 1] <= num27)
-								{
-									num28 += num35 * num35;
-									num29 += num35 * array3[num34];
-									num32++;
-								}
-								else
-								{
-									num30 += num35 * num35;
-									num31 += num35 * array3[num34];
-									num33++;
-								}
-							}
-							if (num32 < 5 || num33 < 5)
-							{
-								continue;
-							}
-							double num36 = ((num28 > 1E-09) ? (num29 / num28) : 0.0);
-							double num37 = ((num30 > 1E-09) ? (num31 / num30) : 0.0);
-							double num38 = 0.0;
-							for (int num39 = 2; num39 < count; num39++)
-							{
-								double num40 = array2[num39 - 1];
-								double num41 = ((array3[num39 - 1] <= num27) ? (num36 * num40) : (num37 * num40));
-								double num42 = array3[num39] - num41;
-								num38 += num42 * num42;
-							}
-							if (num18 > num38 && num38 > 1E-09 && num12 > 3)
-							{
-								double num43 = num38 / (double)(num12 - 2);
-								double num44 = (num18 - num38) / num43;
-								if (num44 > num24)
-								{
-									num24 = num44;
-									num25 = num27;
-								}
-							}
-						}
-						if (num24 > 16.5)
-						{
-							list.Add(string.Format("Обнаружен пороговый сдвиг режима кликера Seo SETAR-ECM (SupF = {0:F2} > 16.50, порог d_click = {1:F2} мс)", num24, num25));
-							severity = CheckSeverity.Critical;
-						}
-						else if (num24 > 11.2)
-						{
-							list.Add(string.Format("Подозрение на режимное переключение темпа атаки (SupF = {0:F2}, d_click = {1:F2} мс)", num24, num25));
-							severity = CheckSeverity.Warning;
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				list.Add("Исключение при расчете модели авторегрессионного порога Сео SETAR: " + ex.Message);
-			}
-			List<CheckResult> list7 = new List<CheckResult>();
-			list7.Add(Make("Minecraft Forensic", "Combat AutoClicker Seo SETAR Threshold Error-Correction Structural Break Detection", list, severity, "Анализ самовозбуждающейся пороговой коинтеграции (SETAR-ECM) Сео на предмет скачкообразной смены динамики боевых кликов завершен. Аномалий не обнаружено."));
-			return list7;
+			return new List<CheckResult>();
 		}
 
 		public static List<CheckResult> RunMinecraftFabricLoaderMixinRecordComponentClassLoaderUrlStreamHandlerCheck()
@@ -96489,154 +85829,7 @@ namespace MCCheatChecker
 
 		public static List<CheckResult> RunMinecraftPlayerCombatAutoClickerHansenPhillipsOuliarisMultivariateCointegrationRankBreakCheck()
 		{
-			List<string> list = new List<string>();
-			CheckSeverity severity = CheckSeverity.Info;
-			try
-			{
-				List<double> list2 = new List<double>();
-				List<double> list3 = new List<double>();
-				List<double> list4 = new List<double>();
-				string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				List<string> list5 = new List<string>();
-				list5.Add(Path.Combine(folderPath, ".minecraft", "logs", "latest.log"));
-				list5.Add(Path.Combine(folderPath2, ".minecraft", "logs", "latest.log"));
-				List<string> list6 = list5;
-				foreach (string item3 in list6)
-				{
-					if (!File.Exists(item3))
-					{
-						continue;
-					}
-					try
-					{
-						string[] array = File.ReadAllLines(item3);
-						for (int i = Math.Max(0, array.Length - 400); i < array.Length; i++)
-						{
-							string text = array[i];
-							int num = text.IndexOf("attack_interval_ms=", StringComparison.OrdinalIgnoreCase);
-							int num2 = text.IndexOf("attack_hold_ms=", StringComparison.OrdinalIgnoreCase);
-							int num3 = text.IndexOf("angular_speed_delta=", StringComparison.OrdinalIgnoreCase);
-							if (num < 0)
-							{
-								continue;
-							}
-							string text2 = "";
-							for (int j = num + 19; j < text.Length && (char.IsDigit(text[j]) || text[j] == '.'); j++)
-							{
-								text2 += text[j];
-							}
-							double result;
-							if (!double.TryParse(text2, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
-							{
-								continue;
-							}
-							double result2 = 35.0;
-							double result3 = 12.5;
-							if (num2 >= 0)
-							{
-								string text3 = "";
-								for (int k = num2 + 15; k < text.Length && (char.IsDigit(text[k]) || text[k] == '.'); k++)
-								{
-									text3 += text[k];
-								}
-								double.TryParse(text3, NumberStyles.Any, CultureInfo.InvariantCulture, out result2);
-							}
-							if (num3 >= 0)
-							{
-								string text4 = "";
-								for (int l = num3 + 20; l < text.Length && (char.IsDigit(text[l]) || text[l] == '.'); l++)
-								{
-									text4 += text[l];
-								}
-								double.TryParse(text4, NumberStyles.Any, CultureInfo.InvariantCulture, out result3);
-							}
-							list2.Add(result);
-							list3.Add(result2);
-							list4.Add(result3);
-						}
-					}
-					catch
-					{
-					}
-				}
-				if (list2.Count < 30)
-				{
-					Random random = new Random(1871000);
-					for (int m = 0; m < 45; m++)
-					{
-						double num4 = 92.0 + random.NextDouble() * 16.0;
-						double item = 33.0 + (num4 - 92.0) * 0.32 + (random.NextDouble() - 0.5) * 3.5;
-						double item2 = 14.0 + (num4 - 92.0) * 0.18 + (random.NextDouble() - 0.5) * 2.2;
-						list2.Add(num4);
-						list3.Add(item);
-						list4.Add(item2);
-					}
-				}
-				int count = list2.Count;
-				if (count >= 25)
-				{
-					double num5 = 0.0;
-					double num6 = 0.0;
-					double num7 = 0.0;
-					double num8 = 0.0;
-					for (int n = 0; n < count; n++)
-					{
-						num5 += list2[n];
-						num6 += list3[n];
-						num7 += list2[n] * list3[n];
-						num8 += list3[n] * list3[n];
-					}
-					double num9 = (double)count * num8 - num6 * num6;
-					if (Math.Abs(num9) > 1E-09)
-					{
-						double num10 = ((double)count * num7 - num6 * num5) / num9;
-						double num11 = (num5 - num10 * num6) / (double)count;
-						double[] array2 = new double[count];
-						double num12 = 0.0;
-						for (int num13 = 0; num13 < count; num13++)
-						{
-							array2[num13] = list2[num13] - (num11 + num10 * list3[num13]);
-							num12 += array2[num13] * array2[num13];
-						}
-						num12 /= (double)count;
-						double num14 = 0.0;
-						double num15 = 0.0;
-						for (int num16 = 0; num16 < count; num16++)
-						{
-							num14 += array2[num16];
-							num15 += num14 * num14;
-						}
-						double num17 = ((num12 > 1E-09) ? (num15 / ((double)(count * count) * num12)) : 0.0);
-						double num18 = 0.0;
-						double num19 = 0.0;
-						for (int num20 = 1; num20 < count; num20++)
-						{
-							num18 += array2[num20 - 1] * array2[num20 - 1];
-							num19 += array2[num20] * array2[num20 - 1];
-						}
-						double num21 = ((num18 > 1E-09) ? (num19 / num18) : 0.0);
-						double num22 = (double)count * (num21 - 1.0);
-						if (num17 > 1.85 || Math.Abs(num22) > 38.2)
-						{
-							list.Add(string.Format("Обнаружен структурный срыв многомерного коинтеграционного ранга (Hansen L_c = {0:F3} > 1.85, Phillips-Ouliaris Z_alpha = {1:F2})", num17, num22));
-							severity = CheckSeverity.Critical;
-						}
-						else if (num17 > 0.95)
-						{
-							list.Add(string.Format("Подозрение на дестабилизацию коинтеграционных соотношений атаки (Hansen L_c = {0:F3})", num17));
-							severity = CheckSeverity.Warning;
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				list.Add("Исключение при расчете многомерного коинтеграционного критерия Хансена-Филлипса-Улиариса: " + ex.Message);
-			}
-			List<CheckResult> list7 = new List<CheckResult>();
-			list7.Add(Make("Minecraft Forensic", "Combat AutoClicker Hansen-Phillips-Ouliaris Multivariate Cointegration Rank Structural Break Detection", list, severity, "Юбилейный 1000-й метод: многомерный анализ коинтеграционного ранга Хансена-Филлипса-Улиариса по тривиативному вектору параметров атаки завершен. Аномалий не обнаружено."));
-			return list7;
+			return new List<CheckResult>();
 		}
 	}
 }

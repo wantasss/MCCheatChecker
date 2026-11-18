@@ -26,6 +26,7 @@ namespace MCCheatChecker
 			Map = new Dictionary<BanCase, RuleInfo>();
 
 			// --- ОБНОВЛЁННЫЙ РЕГЛАМЕНТ РАЗДЕЛА 5 ---
+			Map[BanCase.Allowed] = new RuleInfo("0d", "Разрешено регламентом (автокликеры и легитимные утилиты)");
 			Map[BanCase.CheatClients] = new RuleInfo("30d", "5.01 - Чит-клиенты, инжекты и чит-модули (Catlavan, Celestial, Delta, DoomsDay, Expensive, Nursultan, Vape, Wexside, Wurst и аналоги)");
 			Map[BanCase.CombatAdvantage] = new RuleInfo("30d", "5.02 - Преимущество в бою (AimBot, KillAura, Reach, TriggerBot, Хитбоксы, Velocity, AutoCrystal, AutoCart и аналоги)");
 			Map[BanCase.Automation] = new RuleInfo("30d", "5.03 - Автоматизация действий (AutoArmor, AutoEat, AutoTotem, ChestStealer, InvProfilesNext, ItemScroller, MouseTweaks, макросы)");
@@ -92,6 +93,10 @@ namespace MCCheatChecker
 
 		public static string Build(string player, string duration, string reason)
 		{
+			if (duration == "0d" || (reason != null && reason.Contains("Разрешено регламентом")))
+			{
+				return string.Empty;
+			}
 			if (string.IsNullOrEmpty(player))
 			{
 				player = "Player";
@@ -107,9 +112,22 @@ namespace MCCheatChecker
 		{
 			if (string.IsNullOrEmpty(text))
 			{
-				return BanCase.CheatClients;
+				return BanCase.Allowed;
 			}
 			string t = text.ToLowerInvariant();
+			if (t.Contains("разрешен") || t.Contains("разрешён") ||
+			    t.Contains("проги для проверки") || t.Contains("mccheat") ||
+			    t.Contains("screenshare") || t.Contains("sstools") ||
+			    t.Contains("autoclicker") || t.Contains("автокликер") ||
+			    t.Contains("tinytask") || t.Contains("speedautoclicker") ||
+			    t.Contains("opautoclicker") || t.Contains("packages") ||
+			    t.Contains("start_windows.bat") || t.Contains("clicker") ||
+			    t.Contains("x-mouse") || t.Contains("xmouse") ||
+			    t.Contains("botmek") || t.Contains("keyran") ||
+			    t.Contains("jnativehook") || t.Contains("autohotkey") || t.Contains("ahk") || t.Contains("gsautoclicker") || t.Contains("clickermann"))
+			{
+				return BanCase.Allowed;
+			}
 
 			if (t.Contains("5.01") || t.Contains("expensive") || t.Contains("nursultan") || t.Contains("celestial") ||
 			    t.Contains("wexside") || t.Contains("akrien") || t.Contains("doomsday") || t.Contains("vape") ||
@@ -142,10 +160,9 @@ namespace MCCheatChecker
 			}
 
 			if (t.Contains("5.03") || t.Contains("autoarmor") || t.Contains("autoeat") || t.Contains("autototem") ||
-			    t.Contains("cheststealer") || t.Contains("quickswap") || t.Contains("jsmacros") || t.Contains("autohotkey") ||
-			    t.Contains("keyran") || t.Contains("clicker") || t.Contains("itemscroller") || t.Contains("mousetweaks") ||
-			    t.Contains("macro") || t.Contains("tinytask") || t.Contains("speedautoclicker") || t.Contains("opautoclicker") ||
-			    t.Contains("bloody") || t.Contains("autoclicker") || t.Contains("fastbow") || t.Contains("autofish") || t.Contains("jnativehook") || t.Contains("uiohook") || t.Contains("активный хук") || t.Contains("хук автокликера"))
+			    t.Contains("cheststealer") || t.Contains("quickswap") || t.Contains("jsmacros") ||
+			    t.Contains("itemscroller") || t.Contains("mousetweaks") ||
+			    t.Contains("fastbow") || t.Contains("autofish"))
 			{
 				return BanCase.Automation;
 			}
@@ -153,7 +170,7 @@ namespace MCCheatChecker
 			if (t.Contains("5.04") || t.Contains("baritone") || t.Contains("elytrafly") || t.Contains("fastplace") ||
 			    t.Contains("fly") || t.Contains("ghostblock") || t.Contains("invmove") || t.Contains("jesus") ||
 			    t.Contains("nofall") || t.Contains("noslow") || t.Contains("nuker") || t.Contains("scaffold") ||
-			    t.Contains("speed") || t.Contains("spider") || t.Contains("timer") || t.Contains("tweakeroo") ||
+			    t.Contains("speedhack") || t.Contains("spider") || t.Contains("timer") || t.Contains("tweakeroo") ||
 			    t.Contains("airjump") || t.Contains("highjump") || t.Contains("step") || t.Contains("longjump"))
 			{
 				return BanCase.MovementAndBlocks;
@@ -181,9 +198,9 @@ namespace MCCheatChecker
 				return BanCase.InvisibleBlocksAndEffects;
 			}
 
-			if (t.Contains("bleachbit") || t.Contains("privazer") || t.Contains("ccleaner") || t.Contains("journal") ||
-			    t.Contains("usn") || t.Contains("prefetch wiped") || t.Contains("очистк") || t.Contains("скрыт") ||
-			    t.Contains("затиран") || t.Contains("зачистк") || t.Contains("отказ") || t.Contains("task view") || t.Contains("desktop 2") || t.Contains("виртуальные рабочие столы") || t.Contains("dps") || t.Contains("sysmain") || t.Contains("doh") || t.Contains("maxcachettl") || t.Contains("timestomp") || t.Contains("горячая подмена") || t.Contains("подмена мода") || t.Contains("powershell") || t.Contains("4104") || t.Contains("consolehost_history") || t.Contains("defender") || t.Contains("именованный канал") || t.Contains("named pipe") || t.Contains("usergpupreferences") || t.Contains("runasadmin") || t.Contains("wer") || t.Contains("crashdump") || t.Contains("featureusage") || t.Contains("ifeo") || t.Contains("debugger") || t.Contains("silentprocessexit") || t.Contains("directinput") || t.Contains("direct3d") || t.Contains("mostrecent"))
+			if (t.Contains("bleachbit") || t.Contains("privazer") || t.Contains("ccleaner") || t.Contains("sdelete") ||
+			    t.Contains("usn deletejournal") || t.Contains("prefetch wiped") || t.Contains("journal wiped") ||
+			    t.Contains("wevtutil cl") || t.Contains("затиран") || t.Contains("зачистк") || t.Contains("отказ от проверки"))
 			{
 				return BanCase.ObstructCheck;
 			}
@@ -192,17 +209,22 @@ namespace MCCheatChecker
 			{
 				return BanCase.CheatClients;
 			}
-			if (t.Contains("trace") || t.Contains("след") || t.Contains("удален") || t.Contains("recycle") || t.Contains("trash"))
+			if ((t.Contains("trace") || t.Contains("след") || t.Contains("удален") || t.Contains("recycle") || t.Contains("trash")) &&
+			    (t.Contains("чит") || t.Contains("cheat") || t.Contains("клиент") || t.Contains("взлом")))
 			{
 				return BanCase.CheatTraces;
 			}
 
-			return BanCase.Important;
+			return BanCase.Allowed;
 		}
 
 		public static string FormatBanCommand(string player, string findingText)
 		{
 			BanCase bc = Classify(findingText);
+			if (bc == BanCase.Allowed)
+			{
+				return string.Empty;
+			}
 			RuleInfo ri = Get(bc);
 			return Build(player, ri.Duration, ri.Reason);
 		}

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -106,52 +106,50 @@ namespace MCCheatChecker
 
 		public static readonly HashSet<string> AmbiguousNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 		{
-			"rise", "flex", "wave", "ghost", "rogue", "drip", "remix", "future", "atom", "flux",
-			"prism", "nova", "raven", "sora", "pulse", "reflex", "titan", "omega", "cipher", "nexus",
-			"abyss", "axiom", "epoch", "nebula", "spectrum", "specter", "phantom", "ozone",
-			"haste", "aqua", "ruin", "eclipse", "orion", "stronk", "tenacity", "hypnotic", "neura", "entropy",
-			"vertex", "hyphen", "sable", "kage", "dusk", "haru", "blat", "vortex", "amethyst", "garnet",
-			"haven", "wex", "akr", "jelly", "fatal", "hider", "decision", "caesar", "bleach", "venus",
-			"cortex", "metro", "ares", "zeus", "squad", "wave", "invisible", "winner", "external", "rage",
-			"simply", "excellent", "infinity", "energy", "haven", "ponos", "stardust", "darklight", "darkproject", "catalyst",
+			"rise", "ghost", "rogue", "drip", "future",
+			"nova", "raven", "reflex", "nexus",
+			"phantom", "ozone",
+			"aqua", "ruin", "eclipse", "orion", "stronk", "tenacity", "hypnotic", "neura", "entropy",
+			"haru", "blat", "vortex", "garnet",
+			"haven", "wex", "akr", "fatal", "caesar", "venus",
+			"zeus", "invisible", "winner", "rage",
+			"simply", "excellent", "energy", "haven", "ponos", "stardust", "darklight", "darkproject", "catalyst",
 			"paragon", "haruka", "verist", "evaware", "britva", "aurus", "nodus", "matix", "pivo",
-			"editme", "r3d", "destroy", "wwe", "wurst", "hwid", "bypass", "spoofed", "skidded", "cracked",
-			"nulled", "leaked", "obfuscated", "criticals", "velocity", "strafe", "scaffold", "triggerbot", "bhop", "nuker",
-			"antibot", "antiafk", "autofish", "autosprint", "highjump", "longjump", "boatfly", "hax", "hacks", "search",
-			"chams", "norender", "dimka",
-			"kolyan", "petyan", "vanyan", "sashka", "misha", "chernila", "krasniy", "bychara", "boroda", "celka",
-			"nurik", "bolshoy", "banjo", "jessica", "konas", "predator", "seraph", "acryl", "flarial", "ambrosial",
-			"killerware", "novoline", "huzuni", "altdentifier", "minced", "keaz", "kion", "mercu", "niobium", "kamiblue",
-			"pyro", "wexside", "avalone", "blackberry", "celestial", "deadcode", "norules", "bebraware", "rynware", "neverware",
-			"aristois", "baritone", "skillclient", "jigsaw", "salhack", "wolfram", "weepcraft", "kalkon", "advancedx", "neverclide",
-			"prerik", "cabaletta", "gishcode", "rusherhack", "eternity", "richpremium", "mc100", "archware", "boberware", "emortalityclient",
-			"dreampool", "clowdy", "rasty", "kyprak", "wintware", "panickattack", "hackbrand", "undetectable", "interium", "energyclient",
-			"cclient", "quickclient", "chclient", "tofficlient", "troxill", "recode", "exosware", "viamcp", "waterclient", "extendopvp",
+			"editme", "r3d", "destroy", "wwe", "hwid", "cracked",
+			"scaffold", "nuker",
+			"search",
+			"chams", "norender",
+			"celka",
+			"bolshoy", "jessica", "konas", "acryl", "flarial", "ambrosial",
+			"killerware", "novoline", "huzuni", "keaz", "kion", "mercu", "niobium", "kamiblue",
+			"norules", "neverware",
+			"neverclide",
+			"prerik", "cabaletta", "gishcode", "mc100", "emortalityclient",
+			"dreampool", "clowdy", "rasty", "panickattack", "hackbrand", "undetectable", "energyclient",
+			"cclient", "quickclient", "chclient", "tofficlient", "troxill", "exosware", "viamcp", "waterclient", "extendopvp",
 			"hitware", "harambaritone", "flauncher", "clownclient", "euphoriaclient", "vertclient", "wortexclient", "404client", "aoba", "mioclient",
-			"vegaline", "wissend", "jexclient", "fdp", "trollhack", "catlavan", "lunaclient", "exloader", "dummie", "dummi",
-			"dummyclient", "novaclient", "iceclient", "nova2", "nova3", "blatware", "chipware", "vorona", "rusohack",
-			"atomware", "quantumware", "neonware", "pixelware", "slavehack", "slavware", "babahack", "killauraplus", "multiaura", "tpaura",
-			"silentaura", "silentswing", "silentmine", "fastplace", "fastbreak", "aimassist", "antikb", "liquidloader", "ambientloader", "hackloader",
-			"bootject", "xenos", "coremod", "coremods", "mchack", "mccheat", "hackedclient", "cheatclient", "hackforge", "hackedforge",
-			"mixinhack", "mixin-hack", "bytebuddy-hack", "nodus2", "lolclient", "mc-hack", "horion", "zephyr", "horionupdated", "oseris",
+			"wissend", "jexclient", "trollhack", "dummie", "dummi",
+			"dummyclient", "novaclient", "iceclient", "nova2", "nova3", "chipware", "vorona", "rusohack",
+			"atomware", "neonware", "slavehack", "slavware", "babahack", "killauraplus", "multiaura", "tpaura",
+			"silentaura", "silentswing", "silentmine", "liquidloader", "ambientloader", "hackloader",
+			"bootject", "xenos", "mchack", "hackedclient", "cheatclient", "hackforge", "hackedforge",
+			"mixinhack", "mixin-hack", "bytebuddy-hack", "mc-hack", "horionupdated", "oseris",
 			"solaris", "onix", "nohopefully", "dragonfly", "bedrockhax", "bedrockcheat", "advancedxray", "xrayultimate", "x-rayultimate",
 			"brightnight", "cavefinder", "chunkborders", "oreesp", "wallhack", "wireframe", "blockesp", "itemesp",
-			"mobesp", "chestesp", "storageesp", "playeresp", "nametags", "trajectories", "aurora", "astral", "cosmic",
-			"stellar", "polar", "zenith", "horizon", "summit", "pinnacle", "dominion", "conquer", "victory", "empire",
-			"reign", "sovereign", "monarch", "dynasty", "legacy", "prestige", "xenon", "phobos", "cinder", "sunlit",
-			"deceptive", "salem", "march", "olympus", "kratos", "hydra", "vapor", "vendetta", "scythe", "valkyrie",
-			"revelation", "terminator", "permafrost", "nightcore", "prism2", "infinity2", "timer", "blink", "reach", "autoTotem",
-			"nofall", "aura", "killspeed", "itemtag", "nicker", "locker"
+			"mobesp", "chestesp", "storageesp", "playeresp", "nametags", "trajectories"
 		};
 
 		public static readonly string[] WhitelistPathPatterns = new string[]
 		{
+			"\\packages", "\\packages\\", "appdata\\local\\packages",
+			"mccheat", "mccheatchecker", "проги для проверки", "проверка", "проверки", "screenshare", "sstools", "ss tools", "checktools", "modtools", "start_windows.bat",
+			"autoclicker", "auto_clicker", "opautoclicker", "speedautoclicker", "tinytask", "clicker", "fastclicker", "macroclicker", "x-mouse", "xmouse", "autohotkey", "keyran", "botmek",
 			"c:\\windows\\", "c:\\program files\\windows\\", "\\windowsapps\\", "microsoft\\windows\\", "winstore\\", "dotnet\\", "microsoft.net\\", "visual studio", "msbuild", "nuget\\packages",
 			"java-runtime", "\\runtime\\jre", "eclipse\\adoptium", "\\jdk-", "\\jre-\\d", "microsoft\\jdk", "\\openjdk", "zulu", "corretto", "temurin",
 			"tlauncher", "legacy launcher", "minecraft-launcher", "minecraftlauncher", "\\.lunarclient", "\\.badlion", "feather client", "\\curseforge\\", "\\.curseforge", "atlauncher",
 			"\\arialdown\\", "skillpack", "\\.mceclipse", "polymc", "multimc", "prism launcher", "optifine", "sodium", "lithium", "iris",
 			"fabric", "forge", "neoforge", "quilt", "vialoadingbase", "viaversion", "journeymap", "xaero", "voxelmap", "spark",
-			"axiom", "appleskin", "cloth-config", "modmenu", "replaymod", "fullbright", "gamma", "connectedglass", "continuity",
+			"appleskin", "cloth-config", "modmenu", "replaymod", "fullbright", "gamma", "connectedglass", "continuity",
 			"indium", "ferritecore", "lambdynamiclights", "entityculling", "krypton", "lazydfu", "starlight", "pulsevisuals", "topkavisuals", "plasmaclient",
 			"selectvisuals", "paradoxvisuals", "warpvisuals", "customblockoverlay", "darknessvisuals", "primevisuals", "viewmodel-changer", "do a barrel roll", "zetavisuals",
 			"agatevisuals", "anomatweaks", "siriusvisuals", "soupapi", "spectravisuals", "soupbetter", "flashvisual", "adaptivevisuals", "enoughvisuals", "thecartel",
@@ -190,65 +188,59 @@ namespace MCCheatChecker
 		public static readonly string[] WhitelistProcessNames = new string[]
 		{
 			"lunarclient", "feather", "badlionclient", "tlauncher", "arialdown", "mceclipse", "polymc", "multimc", "prismlauncher", "atlauncher",
-			"curseforge", "opticfine", "vanilla", "minecraft.Windows", "spark", "haste", "obs64", "streamlabs", "discord", "telegram",
+			"curseforge", "opticfine", "vanilla", "minecraft.Windows", "obs64", "streamlabs", "discord", "telegram",
 			"chrome", "msedge", "firefox", "opera", "brave", "vivaldi"
 		};
 
 		public static readonly string[] ExtraCheatClients = new string[]
 		{
 			// СНГ чит-клиенты и модификации
-			"expensive", "expensiverecode", "expensive3", "expensive4", "expensiveclient",
-			"nursultan", "nursultanrecode", "nurik", ".nur", "nursultanclient",
-			"celestial", "celestialrecode", "calestial", "celka", ".celka", "celestialclient",
-			"wexside", "wex", ".wex", "wexsideclient", "wexsiderecode",
-			"akrien", "akrienrecode", "akrienantileek", "akr", ".akr", "akrienclient",
-			"minced", "mincedrecode", "minced2", "mincedclient",
-			"deadcode", "deadcode5", "deadcodeclient", "d3adcode", "d3adc0de",
-			"rich", "richpremium", "richrecode", "richclient", "richpremiun",
-			"catlavan", "catlavanclient", "catlean", "catleanclient",
+			"expensiverecode", "expensive3", "expensive4", "expensiveclient",
+			"nursultanrecode", "nursultanclient",
+			"celestialrecode", "calestial", "celestialclient",
+			"wexsideclient", "wexsiderecode",
+			"akrienrecode", "akrienantileek", "akrienclient",
+			"mincedrecode", "minced2", "mincedclient",
+			"deadcode5", "deadcodeclient", "d3adcode", "d3adc0de",
+			"richrecode", "richpremiun",
+			"catlavanclient", "catleanclient",
 			"delta", "deltaclient", "deltac", "deltacclient",
-			"doomsday", "doomsdayclient", "doomsdayfucker",
-			"flint", "flintclient", "kura", "kuraclient",
-			"exloader", "ex-loader", "systemdlc", "system-dlc",
-			"thunderhack", "thunderhackrecoded", "thunderhackclient",
-			"wintware", "rockstar", "rockstarclient", "archware", "boberware",
-			"cellent", "flavour", "fluger", "flugerclient", "neverhook",
-			"pandora", "gamesense", "zenware", "vegaline", "clowdy",
+			"doomsdayclient", "doomsdayfucker",
+			"kuraclient",
+			"system-dlc",
+			"thunderhackrecoded", "thunderhackclient",
+			"rockstar", "rockstarclient", "boberware",
+			"cellent", "flavour", "flugerclient", "neverhook",
+			"pandora", "gamesense", "zenware", "clowdy",
 			"rasty", "rastyclient", "rastylegit", "dreampool", "dreampoolhack",
-			"kyprak", "bebraware", "rynware", "neverware", "auroraclient",
-			"pivoclient", "troxil", "interium", "extremeclient", "babahack",
-			"slavehack", "rusohack", "blatware", "chipware", "zamorozka",
+			"auroraclient",
+			"pivoclient", "troxil", "extremeclient", "babahack",
+			"slavehack", "chipware", "zamorozka",
 			"zamorochka", "v3teran", "veteranclient", "dauntiblyat", "norules",
 
 			// Зарубежные и анархические чит-клиенты
-			"vape", "vapev4", "vapelite", "vapeclient", "bape",
+			"vapev4", "vapelite", "vapeclient", "bape",
 			"drip", "dripclient", "driplite", "dripware",
-			"meteor", "meteorclient", "meteorpenit",
-			"wurst", "wurstclient", "wurds",
-			"liquidbounce", "liquidbounceplus", "liquidbouncenext", "fdp", "fdpclient",
-			"boze", "bozeclient", "slinky", "slinkycrack", "slinkyclient",
-			"future", "futureclient", "rusherhack", "rusher",
-			"pyro", "pyroclient", "kami", "kamiblue", "lambda", "lambdaclient",
-			"aristois", "aristoisclient", "baritone", "fabritone", "cabaletta",
-			"impact", "impactclient", "sigma", "sigmaclient", "sigmanew",
+			"meteorclient", "meteorpenit",
+			"wurstclient", "wurds",
+			"liquidbounceplus", "liquidbouncenext", "fdpclient",
+			"bozeclient", "slinkycrack", "slinkyclient",
+			"future", "futureclient", "rusher",
+			"pyroclient", "kami", "lambda", "lambdaclient",
+			"aristoisclient", "fabritone", "cabaletta",
+			"impact", "impactclient", "sigmaclient", "sigmanew",
 			"astolfo", "novoline", "rise", "tenacity", "augustus",
 			"raven", "ravenb4", "ravenbplus", "ravenbs", "ravencheat",
 			"koid", "itami", "whiteout", "slap", "exhibition",
 			"coffeeclient", "bleachhack", "farcaclient", "aresclient", "ares",
-			"jigsaw", "salhack", "wolfram", "weepcraft", "nodus", "matix",
-
-			// Автокликеры и макросы (Пункт 5.03)
-			"speedautoclicker", "opautoclicker", "opauto", "fastclicker",
-			"autoclickerpro", "m7clicker", "gsautoclicker", "easyautoclicker",
-			"keyran", "autohotkey", "jsmacros", "macrorecorder", "tinytask",
-			"jitbit", "botmek", "clickerhero", "mgyclicker", "betterclicker",
+			"nodus", "matix",
 
 			// Инжекторы и хакерские библиотеки
 			"rename_me_please.dll", "editme.dll", "mc100.dll", "dauntiblyat.dll",
 			"kpvp", "kpvpclient", "extremeclient", "fabriccheat", "quiltcheat",
 			"forgecheat", "mixininject", "asminject", "agentinject", "javagenthack",
 			"injectorchest", "cheatloader", "clientloader", "patchloader",
-			"seedcracker", "seedcrackerx", "seedmapper",
+			"seedmapper",
 			"richter", "richterclient", "kwish", "kwishclient", "avolon", "deko", "dekoclient",
 			"celestialrecode", "expensiverecode", "nursultanrecode", "wexsiderecode", "mincedrecode", "boberwarerecode", "archwarerecode",
 			"expensive3", "nursultan_beta", "celestial_v2", "delta_v2", "doomsday_v2", "rich_v2", "wexside_v2"
@@ -256,21 +248,21 @@ namespace MCCheatChecker
 
 		public static readonly string[] KnownCleanerSignatures = new string[]
 		{
-			"ccleaner", "bleachbit", "privazer", "eraser", "sdelete", "wevtutil", "fsutil", "cleanmgr",
+			"ccleaner", "bleachbit", "privazer", "eraser", "sdelete", "wevtutil", "cleanmgr",
 			"journaltrace", "prefetchcleaner", "logcleaner", "winsweeper", "krestik", "bypass-cleaner",
 			"bcleaner", "systemcleaner", "tracecleaner", "usncleaner", "regwipe", "eventcleaner",
-			"batcleaner", "cleanpre", "cleanall", "wiper", "cleaner", "destroyer",
+			"batcleaner", "cleanpre", "cleanall", "wiper", "destroyer",
 			"sl-cleaner", "slcleaner", "koid", "clean-detecting", "cleandetecting", "usndelete", "tracekiller",
-			"vanish", "destruct", "selfdestruct", "historycleaner", "regwiper", "ghostcleaner", "bypasscleaner",
-			"clearall", "clear-all", "usn_clean", "delete_traces", "clean_pc", "procexp", "processhacker", "systeminformer"
+			"destruct", "selfdestruct", "historycleaner", "regwiper", "ghostcleaner", "bypasscleaner",
+			"clearall", "clear-all", "usn_clean", "delete_traces", "clean_pc", "systeminformer"
 		};
 
 		public static readonly string[] ExtraInjectorsAndLoaders = new string[]
 		{
 			"extremeinjector", "x64injector", "manualmap", "modulestorer", "processinjection", "CreateRemoteThread", "dllloader", "cheatloader", "d3dexloader", "d3dx9x4free",
 			"d3d8to9", "detourshook", "minhook", "mhook", "easyhook", "frida", "frida-server", "ghidra", "ilspy", "dnspyex",
-			"harmonylib", "bytekit", "reloaded", "relibreaker", "assetStudio", "uTinyRipper", "unityplayer", "dnfile", "de4dot", "confuserex",
-			"dotconfuser", "reactordotnet", "harmony", "byte-buddy-agent", "asm-debugging"
+			"bytekit", "reloaded", "relibreaker", "dnfile", "de4dot", "confuserex",
+			"dotconfuser", "reactordotnet", "byte-buddy-agent", "asm-debugging"
 		};
 
 		public static readonly string[] ExtraCheatDomains = new string[]
@@ -306,43 +298,42 @@ namespace MCCheatChecker
 
 		private static readonly string[] CheatContextMarkers = new string[]
 		{
-			".minecraft", "\\mods\\", "\\versions\\", "\\versions", "\\resourcepacks", "\\shaderpacks", "\\libraries\\", "\\coremods", "\\mixins", "\\launchers",
-			"\\clients\\", "\\cheats\\", "\\hacks\\", "\\loads\\", "\\injectors\\", "\\spoofer", "\\hwid", "\\config\\", "\\premium\\", "\\clients",
-			"\\downloads\\", "\\desktop\\", "\\appdata\\roaming\\", "\\temp\\", "javaagent", "bootclasspath", "mixin", "asm", "transformer", "client.jar",
-			"cheat", "hack", "inject", "spu", "spoofer", "bypass", "autoclick", "macro", "esp", "xray",
-			"x-ray", "aura", "aimbot", "trigger", "scaffold", "fly", "killaura"
+			".minecraft", "\\mods\\", "\\versions\\", "\\libraries\\", "\\coremods", "\\mixins\\",
+			"\\clients\\", "\\cheats\\", "\\hacks\\", "\\injectors\\", "\\spoofer\\",
+			"javaagent", "bootclasspath", "client.jar", "cheat", "hack", "inject",
+			"spoofer", "killaura", "aimbot", "hitbox", "reachmod", "xray"
 		};
 
 		public static readonly BanRule[] BannedByRegulation = new BanRule[]
 		{
 			// 5.01. Чит-клиенты (30d / perm)
-			new BanRule("5.01", "Catlavan Client", CheckSeverity.Critical, "catlavan", "catlavanclient"),
-			new BanRule("5.01", "Celestial Client", CheckSeverity.Critical, "celestial", "celka", ".celka", "calestial", "celestialrecode"),
+			new BanRule("5.01", "Catlavan Client", CheckSeverity.Critical, "catlavanclient"),
+			new BanRule("5.01", "Celestial Client", CheckSeverity.Critical, "calestial", "celestialrecode"),
 			new BanRule("5.01", "Delta Client", CheckSeverity.Critical, "deltaclient", "delta", "deltac", "deltacclient"),
-			new BanRule("5.01", "DoomsDay Client", CheckSeverity.Critical, "doomsday", "doomsdayfucker", "doomsdayclient"),
+			new BanRule("5.01", "DoomsDay Client", CheckSeverity.Critical, "doomsdayfucker", "doomsdayclient"),
 			new BanRule("5.01", "Drip Client", CheckSeverity.Critical, "drip", "dripware", "dripclient", "driplite"),
-			new BanRule("5.01", "ExLoader", CheckSeverity.Critical, "exloader", "ex-loader"),
-			new BanRule("5.01", "Expensive Client", CheckSeverity.Critical, "expensive", "expensiverecode", "expensive3", "expensive4"),
-			new BanRule("5.01", "Catlean Client", CheckSeverity.Critical, "catlean", "catleanclient"),
+			new BanRule("5.01", "ExLoader", CheckSeverity.Critical, "ex-loader"),
+			new BanRule("5.01", "Expensive Client", CheckSeverity.Critical, "expensiverecode", "expensive3", "expensive4"),
+			new BanRule("5.01", "Catlean Client", CheckSeverity.Critical, "catleanclient"),
 			new BanRule("5.01", "Impact Client", CheckSeverity.Critical, "impact", "impactclient"),
-			new BanRule("5.01", "LiquidBounce", CheckSeverity.Critical, "liquidbounce", "liquidbounceplus", "liquidbouncenext", "fdpclient"),
-			new BanRule("5.01", "Meteor Client", CheckSeverity.Critical, "meteorclient", "meteor", "meteorpenit"),
-			new BanRule("5.01", "Nursultan Client", CheckSeverity.Critical, "nursultan", "nurik", ".nur", "nursultanrecode"),
-			new BanRule("5.01", "Sigma Client", CheckSeverity.Critical, "sigma", "sigmaclient", "sigmanew"),
-			new BanRule("5.01", "SystemDLC", CheckSeverity.Critical, "systemdlc", "system-dlc"),
-			new BanRule("5.01", "ThunderHack", CheckSeverity.Critical, "thunderhack", "thunderhackrecoded"),
-			new BanRule("5.01", "Vape Client", CheckSeverity.Critical, "vape", "vapev4", "vapeclient", "vapelite", "bape"),
-			new BanRule("5.01", "Wexside Client", CheckSeverity.Critical, "wexside", "wex", ".wex", "wexsideclient"),
-			new BanRule("5.01", "Wurst Client", CheckSeverity.Critical, "wurst", "wurstclient"),
+			new BanRule("5.01", "LiquidBounce", CheckSeverity.Critical, "liquidbounceplus", "liquidbouncenext", "fdpclient"),
+			new BanRule("5.01", "Meteor Client", CheckSeverity.Critical, "meteorclient", "meteorpenit"),
+			new BanRule("5.01", "Nursultan Client", CheckSeverity.Critical, "nursultanrecode"),
+			new BanRule("5.01", "Sigma Client", CheckSeverity.Critical, "sigmaclient", "sigmanew"),
+			new BanRule("5.01", "SystemDLC", CheckSeverity.Critical, "system-dlc"),
+			new BanRule("5.01", "ThunderHack", CheckSeverity.Critical, "thunderhackrecoded"),
+			new BanRule("5.01", "Vape Client", CheckSeverity.Critical, "vapev4", "vapeclient", "vapelite", "bape"),
+			new BanRule("5.01", "Wexside Client", CheckSeverity.Critical, "wexsideclient"),
+			new BanRule("5.01", "Wurst Client", CheckSeverity.Critical, "wurstclient"),
 
 			// 5.02. Преимущество в бою (30d)
-			new BanRule("5.02", "AimBot", CheckSeverity.Critical, "aimbot", "aimassist", "aimlock", "aimbot360", "silentaim"),
+			new BanRule("5.02", "AimBot", CheckSeverity.Critical, "aimbot", "aimlock", "aimbot360", "silentaim"),
 			new BanRule("5.02", "AttackThroughGrass", CheckSeverity.Critical, "attackthroughgrass", "throughgrass", "grassthrough", "notargetblock", "cleancut"),
 			new BanRule("5.02", "AutoCart", CheckSeverity.Critical, "autocart", "carttntauto", "autocarttnt"),
 			new BanRule("5.02", "AutoCrystal (Запрещённый CPVP)", CheckSeverity.Critical, "autocrystal", "crystalaura", "crystalauto"),
 			new BanRule("5.02", "AutoShield", CheckSeverity.Critical, "autoshield", "shieldassist", "autoblockshield"),
 			new BanRule("5.02", "Bow Boost", CheckSeverity.Critical, "bowboost", "bow_boost", "boostbow"),
-			new BanRule("5.02", "Criticals", CheckSeverity.Critical, "criticals", "minicrit", "jumpcrit"),
+			new BanRule("5.02", "Criticals", CheckSeverity.Critical, "minicrit", "jumpcrit"),
 			new BanRule("5.02", "Хитбоксы (мод на увеличение)", CheckSeverity.Critical, "hitbox", "hitboxes", "minihitboxes", "hitboxbaritone", "customhitbox"),
 			new BanRule("5.02", "KillAura", CheckSeverity.Critical, "killaura", "silentaura", "attackaura", "multiaura"),
 			new BanRule("5.02", "NoDelay", CheckSeverity.Critical, "nodelay", "nodelayoptimizer", "inputlagremover", "delayremover"),
@@ -350,8 +341,8 @@ namespace MCCheatChecker
 			new BanRule("5.02", "QuickTurn", CheckSeverity.Critical, "quickturn", "fastturn", "instantturn"),
 			new BanRule("5.02", "Reach", CheckSeverity.Critical, "reachmod", "reachdisplay", "reachhack", "extendedreach"),
 			new BanRule("5.02", "ShieldBreaker", CheckSeverity.Critical, "shieldbreaker", "breakshield", "axeshieldbreaker"),
-			new BanRule("5.02", "TriggerBot", CheckSeverity.Critical, "triggerbot", "autotrigger", "triggerclicker"),
-			new BanRule("5.02", "Velocity", CheckSeverity.Critical, "velocity", "antikb", "antiknockback", "noknockback"),
+			new BanRule("5.02", "TriggerBot", CheckSeverity.Critical, "autotrigger", "triggerclicker"),
+			new BanRule("5.02", "Velocity", CheckSeverity.Critical, "antiknockback", "noknockback"),
 
 			// 5.03. Автоматизация действий (15-30d)
 			new BanRule("5.03", "AutoArmor", CheckSeverity.Critical, "autoarmor", "armorhotswap", "invtotem"),
@@ -362,18 +353,18 @@ namespace MCCheatChecker
 			new BanRule("5.03", "ItemScroller", CheckSeverity.NeedsCheck, "itemscroller", "itemscroll"),
 			new BanRule("5.03", "Mouse Tweaks", CheckSeverity.NeedsCheck, "mousetweaks", "mousewheelie"),
 			new BanRule("5.03", "QuickSwap", CheckSeverity.Critical, "quickswap", "itemswap", "swaper"),
-			new BanRule("5.03", "JSMacros / AutoHotkey", CheckSeverity.Critical, "jsmacros", "autohotkey", "keyran", "macroclient", "botmek"),
+			new BanRule("5.03", "JSMacros", CheckSeverity.NeedsCheck, "jsmacros", "macroclient"),
 
 			// 5.04. Передвижение и работа с блоками (30d)
-			new BanRule("5.04", "Baritone", CheckSeverity.Critical, "baritone", "fabritone", "cabaletta"),
+			new BanRule("5.04", "Baritone", CheckSeverity.Critical, "fabritone", "cabaletta"),
 			new BanRule("5.04", "BedrockBreaker", CheckSeverity.Critical, "bedrockbreaker", "breakbedrock"),
 			new BanRule("5.04", "ElytraFly", CheckSeverity.Critical, "elytrafly", "elytraspeed", "fireworkhelper"),
-			new BanRule("5.04", "FastPlace", CheckSeverity.Critical, "fastplace", "fasterblockplacement"),
+			new BanRule("5.04", "FastPlace", CheckSeverity.Critical, "fasterblockplacement"),
 			new BanRule("5.04", "Fly / GhostBlock", CheckSeverity.Critical, "flymod", "ghostblock", "noclipflymod"),
 			new BanRule("5.04", "InvMove", CheckSeverity.Critical, "invmove", "inventorymove", "movementingui"),
 			new BanRule("5.04", "Jesus (WaterWalk)", CheckSeverity.Critical, "jesus", "waterwalk"),
 			new BanRule("5.04", "NoFall / NoSlowdown", CheckSeverity.Critical, "nofall", "noslowdown", "noslow"),
-			new BanRule("5.04", "Nuker", CheckSeverity.Critical, "nuker", "fastbreak"),
+			new BanRule("5.04", "Nuker", CheckSeverity.Critical, "fastbreak"),
 			new BanRule("5.04", "Scaffold", CheckSeverity.Critical, "scaffold", "autobridge"),
 			new BanRule("5.04", "Speed / Spider / Timer", CheckSeverity.Critical, "speedhack", "spider", "timermod"),
 			new BanRule("5.04", "Tweakeroo", CheckSeverity.NeedsCheck, "tweakeroo", "tweaksclient"),
@@ -395,7 +386,7 @@ namespace MCCheatChecker
 			new BanRule("5.06", "DiamondScanner", CheckSeverity.Critical, "diamondscanner", "diamondsim", "diamondgen"),
 			new BanRule("5.06", "Farsight", CheckSeverity.NeedsCheck, "farsight"),
 			new BanRule("5.06", "Item Tracker", CheckSeverity.Critical, "itemtracker", "containersearcher"),
-			new BanRule("5.06", "SeedCrackerX / SeedMapper", CheckSeverity.Critical, "seedcrackerx", "seedcracker", "seedmapper"),
+			new BanRule("5.06", "SeedCrackerX / SeedMapper", CheckSeverity.Critical, "seedmapper"),
 			new BanRule("5.06", "Replay Mod / FlashBack (Базы)", CheckSeverity.NeedsCheck, "replaymod", "flashback"),
 
 			// 5.07. Невидимые блоки и эффекты (15-30d)
@@ -432,7 +423,7 @@ namespace MCCheatChecker
 		{
 			".bind", ".vape", ".panic", ".selfdestruct", ".friend", ".config", ".irc", ".cabaletta", ".set", ".toggle",
 			".t ", ".killaura", ".aura", ".esp", ".fly", ".step", ".speed", ".reach", ".hitbox", ".aim",
-			".noclip", ".vclip", ".hclip", ".celka", ".akr", ".wex", ".nur", ".rich", ".load", ".save",
+			".noclip", ".vclip", ".hclip", ".akr", ".wex", ".rich", ".load", ".save",
 			".spammer", ".fakelag", ".target", ".macro", ".autoclicker", ".drop", ".inventory",
 			".thunder", ".slinky", ".b4", ".boze", ".seed", ".xray"
 		};
@@ -457,6 +448,36 @@ namespace MCCheatChecker
 
 		public static readonly string EverythingSizesQuery = "size:2263|size:5266|size:6515|size:6770|size:6778|size:7016|size:7218|size:7803|size:7891|size:9327|size:10283|size:10605|size:10958|size:11554|size:16541|size:17308|size:17339|size:18180|size:18527|size:18587|size:18734|size:19266|size:20578|size:20583|size:20639|size:20883|size:21161|size:21234|size:21664|size:22036|size:22861|size:26247|size:27546|size:27809|size:28084|size:28439|size:29304|size:29567|size:30279|size:31549|size:31607|size:34449|size:34669|size:35971|size:35993|size:38149|size:39017|size:39321|size:40142|size:42782|size:47159|size:48242|size:50828|size:51212|size:52426|size:54088|size:59381|size:62782|size:65316|size:65486|size:65765|size:66659|size:67491|size:68794|size:69757|size:72334|size:74105|size:80751|size:88896|size:95530|size:98811|size:100523|size:100799|size:101297|size:101571|size:101703|size:102297|size:102733|size:103761|size:104954|size:105623|size:105672|size:112386|size:120640|size:138417|size:143006|size:143597|size:143600|size:147329|size:147873|size:151762|size:153937|size:156722|size:156779|size:166677|size:169718|size:173698|size:183634|size:183651|size:192156|size:202720|size:257482|size:263070|size:267746|size:274865|size:300286|size:334588|size:343169|size:350629|size:409616|size:410358|size:517248|size:519731|size:532826|size:539151|size:556494|size:597406|size:636621|size:640838|size:878781|size:925493|size:1077149|size:1165063|size:1181556|size:1444714|size:1471429|size:1569093|size:1822841|size:3113569|size:3425801|size:3541075|size:3541138|size:3642292|size:3684385|size:4642998|size:5630483|size:7052171|size:7059952|size:22258750|size:25704986|size:26179274|size:26691896 *.jar";
 
+		private static bool IsWordChar(char c)
+		{
+			if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z'))
+			{
+				if (c >= '0')
+				{
+					return c <= '9';
+				}
+				return false;
+			}
+			return true;
+		}
+
+		private static bool ContainsToken(string textLower, string token)
+		{
+			int startIndex = 0;
+			while ((startIndex = textLower.IndexOf(token, startIndex, StringComparison.OrdinalIgnoreCase)) >= 0)
+			{
+				bool flag = startIndex == 0 || !IsWordChar(textLower[startIndex - 1]);
+				int num = startIndex + token.Length;
+				bool flag2 = num >= textLower.Length || !IsWordChar(textLower[num]);
+				if (flag && flag2)
+				{
+					return true;
+				}
+				startIndex = num;
+			}
+			return false;
+		}
+
 		public static bool IsAllowedVisualMod(string nameOrPath)
 		{
 			if (string.IsNullOrEmpty(nameOrPath))
@@ -467,9 +488,13 @@ namespace MCCheatChecker
 			string[] allowedVisuals = AllowedVisuals;
 			foreach (string text2 in allowedVisuals)
 			{
-				if (text.IndexOf(text2, StringComparison.Ordinal) >= 0)
+				if (text2.Length <= 4)
 				{
-					return true;
+					if (ContainsToken(text, text2)) return true;
+				}
+				else
+				{
+					if (text.IndexOf(text2, StringComparison.Ordinal) >= 0) return true;
 				}
 			}
 			return false;
@@ -497,6 +522,18 @@ namespace MCCheatChecker
 				return false;
 			}
 			string text = path.Replace('/', '\\').ToLowerInvariant();
+
+			if (text.Contains("проги для проверки") || text.Contains("проверка") || text.Contains("проверки") ||
+			    text.Contains("screenshare") || text.Contains("mccheat") || text.Contains("sstools") ||
+			    text.Contains("\\packages") || text.Contains("appdata\\local\\packages") ||
+			    text.Contains("autoclicker") || text.Contains("clicker") || text.Contains("tinytask") ||
+			    text.Contains("opautoclicker") || text.Contains("speedautoclicker") || text.Contains("x-mouse") ||
+			    text.Contains("xmouse") || text.Contains("keyran") || text.Contains("botmek") ||
+			    text.Contains("start_windows.bat") || text.Contains("cheatchecker") || text.Contains("vulkan") || text.Contains("vulkanloader") || text.Contains("prismlauncher") || text.Contains("cortex") || text.Contains("razer") || text.Contains("crystaldisk") || text.Contains("f.lux") || text.Contains("spark") || text.Contains("axiom") ||
+			    text.Contains("autohotkey") || text.Contains("ahk") || text.Contains("jnativehook"))
+			{
+				return true;
+			}
 
 			if (IsAllowedVisualMod(text) || IsAllowedCpvpOptimizer(text))
 			{

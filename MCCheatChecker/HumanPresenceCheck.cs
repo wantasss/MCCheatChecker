@@ -27,11 +27,7 @@ namespace MCCheatChecker
 
 		private static readonly string[] JigglerNames = new string[]
 		{
-			"mouse jiggler", "screen jiggler", "power jiggler", "keepalive", "awake", "caffeine", "fakemouse", "mousemove", "cursor jiggler", "idle buster",
-			"idle killer", "lockdown", "antibot", "antibotclicker", "clicker", "autoclicker", "auto clicker", "macro mouse", "macro clicker", "speed autoclicker",
-			"kmbox", "makcu", "cuda clicker", "usb clicker", "rpi clicker", "raspberry clicker", "pico clicker", "arduino clicker", "hid clicker", "bot maker",
-			"opautoclicker", "gs autoclicker", "speedautoclicker", "tinytask", "autoit", "autohotkey", "ahk", "macro recorder", "keyran", "rewasd",
-			"anti-afk", "antiafk", "afk bot", "rp2040", "ch340", "cp2102", "interception"
+			"mouse jiggler", "screen jiggler", "power jiggler", "fakemouse", "kmbox", "makcu", "interception"
 		};
 
 		private static readonly string[] PowerPolicyKeys = new string[2] { "Control Panel\\PowerSettings\\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\\7bc4a2f9-d3fc-4b3c-8508-02768899b6fb", "Control Panel\\PowerSettings\\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\\bc5038f7-23e0-4960-96da-33abaf5935ee" };
@@ -90,14 +86,14 @@ namespace MCCheatChecker
 			checkResult.Severity = CheckSeverity.Info;
 			if (num3 > 15)
 			{
-				checkResult.Detected = true;
-				checkResult.Severity = CheckSeverity.Warning;
+				checkResult.Detected = false;
+				checkResult.Severity = CheckSeverity.Info;
 				checkResult.Detail = "Без ввода более 15 минут — возможно, за ПК сидит не игрок";
 				checkResult.Evidence = "Idle: " + num3 + " мин " + num2 % 60 + " сек | Uptime: " + FormatUptime(tickCount);
 			}
 			else if (num3 > 5)
 			{
-				checkResult.Detected = true;
+				checkResult.Detected = false;
 				checkResult.Severity = CheckSeverity.Info;
 				checkResult.Detail = "Без ввода более 5 минут — проверь, что игрок ещё на месте";
 				checkResult.Evidence = "Idle: " + num3 + " мин " + num2 % 60 + " сек | Uptime: " + FormatUptime(tickCount);
@@ -189,7 +185,7 @@ namespace MCCheatChecker
 						catch { }
 						if (text.Contains("remote_control"))
 						{
-							list2.Add("🚨 [5.08 - Удалённый контроль AnyDesk]: " + Path.GetFileName(path) + " содержит параметр remote_control — разрешён удалённый доступ");
+							list2.Add("ℹ️ [Сессия AnyDesk активна]: " + Path.GetFileName(path) + " (разрешён удалённый доступ для проверки)");
 						}
 						if (text.Contains("run_as_daemon") || text.Contains("service"))
 						{
@@ -285,7 +281,7 @@ namespace MCCheatChecker
 				{
 					if (text.IndexOf(value, StringComparison.Ordinal) >= 0)
 					{
-						list.Add("🚨 [5.01 - Активный процесс джигглера/автокликера]: " + process.ProcessName + " (PID " + process.Id + ")");
+						info.Add("ℹ️ [Разрешено регламентом] Автокликер/джигглер: " + process.ProcessName + " (PID " + process.Id + ")");
 						break;
 					}
 				}
@@ -298,9 +294,7 @@ namespace MCCheatChecker
 			};
 			string[] array2 = new string[]
 			{
-				"mouse jiggler.exe", "screen jiggler.exe", "power jiggler.exe", "keepalive.exe", "awake.exe", "caffeine.exe", "fakemouse.exe", "kmbox.exe", "makcu.exe", "cuda.exe",
-				"botmaker.exe", "idle buster.exe", "antibot.exe", "idle killer.exe", "usb clicker.exe", "hid clicker.exe", "opautoclicker.exe", "gsautoclicker.exe",
-				"tinytask.exe", "keyran.exe", "rewasd.exe", "autohotkey.exe", "speedautoclicker.exe", "macrorecorder.exe", "clicker.exe", "kmbox_net.exe", "kmbox_b.exe"
+				"mouse jiggler.exe", "screen jiggler.exe", "power jiggler.exe", "fakemouse.exe", "kmbox.exe", "makcu.exe", "kmbox_net.exe", "kmbox_b.exe"
 			};
 			string[] array3 = array;
 			foreach (string text2 in array3)
@@ -315,12 +309,13 @@ namespace MCCheatChecker
 					foreach (string text3 in files)
 					{
 						string text4 = Path.GetFileName(text3).ToLowerInvariant();
+						if (CheatDatabases.IsWhitelistedPath(text3) || text4.Contains("mccheat") || text4.Contains("packages") || text4.Contains("проги для проверки")) continue;
 						string[] array4 = array2;
 						foreach (string text5 in array4)
 						{
 							if (text4 == text5)
 							{
-								list.Add("🚨 [5.01 - Файл джигглера/автокликера]: " + text3 + " (изменён: " + File.GetLastWriteTime(text3).ToString("dd.MM.yyyy HH:mm") + ")");
+								info.Add("ℹ️ [Разрешено регламентом] Файл автокликера: " + text3);
 								break;
 							}
 						}
@@ -329,12 +324,13 @@ namespace MCCheatChecker
 					foreach (string text6 in directories)
 					{
 						string text7 = Path.GetFileName(text6).ToLowerInvariant();
+						if (CheatDatabases.IsWhitelistedPath(text6) || text7.Contains("mccheat") || text7.Contains("packages") || text7.Contains("проги для проверки")) continue;
 						string[] jigglerNames2 = JigglerNames;
 						foreach (string text8 in jigglerNames2)
 						{
 							if (!(text7 != text8) || text7.StartsWith(text8 + " ") || text7.StartsWith(text8 + "-"))
 							{
-								list.Add("🚨 [5.01 - Папка джигглера/автокликера]: " + text6 + " (сигнатура: " + text8 + ")");
+								info.Add("ℹ️ [Разрешено регламентом] Папка автокликера: " + text6);
 								break;
 							}
 						}
@@ -385,8 +381,8 @@ namespace MCCheatChecker
 			checkResult.Detected = false;
 			if (num < 180000)
 			{
-				checkResult.Detected = true;
-				checkResult.Severity = CheckSeverity.Warning;
+				checkResult.Detected = false;
+				checkResult.Severity = CheckSeverity.Info;
 				checkResult.Detail = "Система перезапущена менее 3 минут назад — игрок перезагрузил ПК после вызова";
 				checkResult.Evidence = "Uptime: " + FormatUptime(num);
 			}

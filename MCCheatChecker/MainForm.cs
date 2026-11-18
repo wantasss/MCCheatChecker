@@ -28499,9 +28499,11 @@ namespace MCCheatChecker
 					openFileBtn.Enabled = false;
 				}
 				copyEvidenceBtn.Enabled = true;
-				if (copyBanCmdBtn != null) copyBanCmdBtn.Enabled = checkResult.Detected;
-				RuleBook.RuleInfo ruleInfo = RuleBook.Get(RuleBook.Classify(checkResult.Name + " " + checkResult.Detail + " " + checkResult.Evidence));
+				BanCase bc = RuleBook.Classify(checkResult.Name + " " + checkResult.Detail + " " + checkResult.Evidence);
+				RuleBook.RuleInfo ruleInfo = RuleBook.Get(bc);
 				string recCmd = RuleBook.Build(PlayerOrFallback(), ruleInfo.Duration, ruleInfo.Reason);
+				bool isThreat = checkResult.Detected && checkResult.Severity != CheckSeverity.Info && bc != BanCase.Allowed && !string.IsNullOrEmpty(recCmd);
+				if (copyBanCmdBtn != null) copyBanCmdBtn.Enabled = isThreat;
 
 				StringBuilder stringBuilder = new StringBuilder();
 				stringBuilder.AppendLine("═════════════════════════════════════════════════════════════");
@@ -28510,11 +28512,17 @@ namespace MCCheatChecker
 				stringBuilder.AppendLine("  Категория:   " + checkResult.Category);
 				stringBuilder.AppendLine("  Проверка:    " + checkResult.Name);
 				stringBuilder.AppendLine("  Статус:      " + (checkResult.Detected ? string.Concat("ОБНАРУЖЕНО (", checkResult.Severity, ")") : "ЧИСТО"));
-				if (checkResult.Detected)
+				if (isThreat)
 				{
 					stringBuilder.AppendLine("  Регламент:   " + ruleInfo.Reason);
 					stringBuilder.AppendLine("  Срок бана:   " + ruleInfo.Duration);
 					stringBuilder.AppendLine("  Команда:     " + recCmd);
+				}
+				else if (bc == BanCase.Allowed || checkResult.Severity == CheckSeverity.Info)
+				{
+					stringBuilder.AppendLine("  Регламент:   Разрешено регламентом сервера (автокликеры / легитимные утилиты)");
+					stringBuilder.AppendLine("  Срок бана:   Нет бана (Легитимно)");
+					stringBuilder.AppendLine("  Команда:     (Бан не требуется)");
 				}
 				stringBuilder.AppendLine("  Путь:        " + (string.IsNullOrEmpty(text) ? "(нет пути)" : text));
 				stringBuilder.AppendLine("  Описание:    " + checkResult.Detail);
@@ -28823,11 +28831,14 @@ namespace MCCheatChecker
 			string banCmd = "";
 
 			CheckResult sel = (resultsListView.SelectedItems.Count > 0) ? (resultsListView.SelectedItems[0].Tag as CheckResult) : null;
-			if (sel != null && sel.Detected)
+			if (sel != null && sel.Detected && sel.Severity != CheckSeverity.Info)
 			{
 				BanCase bc = RuleBook.Classify(sel.Name + " " + sel.Detail + " " + sel.Evidence);
-				RuleBook.RuleInfo ri = RuleBook.Get(bc);
-				banCmd = RuleBook.Build(player, ri.Duration, ri.Reason);
+				if (bc != BanCase.Allowed)
+				{
+					RuleBook.RuleInfo ri = RuleBook.Get(bc);
+					banCmd = RuleBook.Build(player, ri.Duration, ri.Reason);
+				}
 			}
 			else if (lastReport != null && lastReport.Results != null)
 			{
@@ -29321,8 +29332,8 @@ namespace MCCheatChecker
 		{
 			string[] array = new string[]
 			{
-				"cheatengine", "processhacker", "x64dbg", "x32dbg", "dnspy", "speedautoclicker", "autoclicker", "mangoclicker", "opautoclicker", "wireshark",
-				"fiddler", "fiddlerclassic", "tinytask", "keyran", "botmek", "jitbit", "systeminformer", "glasswire", "netlimiter", "charles", "clumsy", "autoit3", "ahk2exe", "autohotkey"
+				"cheatengine", "processhacker", "x64dbg", "x32dbg", "dnspy", "wireshark",
+				"fiddler", "fiddlerclassic", "systeminformer", "glasswire", "netlimiter", "charles", "clumsy"
 			};
 			int num = 0;
 			List<string> list = new List<string>();
