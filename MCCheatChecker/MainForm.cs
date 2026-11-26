@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -59,6 +60,12 @@ namespace MCCheatChecker
 		private DarkButton screenshotBtn;
 
 		private DarkButton exportBtn;
+
+		private DarkButton ssToggleBtn;
+		private DarkButton hubQuickBtn;
+		private DarkButton triageQuickBtn;
+		private DarkButton dossierQuickBtn;
+		private Label lblIntegrity;
 
 		private DarkMenu exportMenu;
 
@@ -299,10 +306,16 @@ namespace MCCheatChecker
 
 		private bool modsSortAsc = true;
 
-		private static readonly string[] CategoryNames = new string[16]
+		private static readonly string[] CategoryNames = new string[]
 		{
-			"Все", "Критические", "Удалённые программы", "Визуалы (Следует проверить)", "Minecraft Bedrock", "Процессы", "Minecraft", "Файлы и папки", "Реестр", "История",
-			"Автокликеры / Макросы", "Следы запуска", "Подписки / Лицензии", "Аппаратная часть", "Присутствие человека", "Утилиты очистки"
+			"Все", "Критические",
+			"5.01 - Чит-клиенты", "5.02 - Преимущество в бою", "5.03 - Автоматизация",
+			"5.04 - Передвижение", "5.05 - Визуалы и обзор", "5.06 - X-Ray и сиды",
+			"5.07 - Скрытые блоки", "5.08 - Следы и зачистка",
+			"Удалённые программы", "Визуалы (Следует проверить)", "Minecraft Bedrock",
+			"Процессы", "Minecraft", "Файлы и папки", "Реестр", "История",
+			"Автокликеры / Макросы", "Следы запуска", "Подписки / Лицензии",
+			"Аппаратная часть", "Присутствие человека", "Утилиты очистки"
 		};
 
 		private int sortColumn = -1;
@@ -312,6 +325,7 @@ namespace MCCheatChecker
 		public MainForm()
 		{
 			DoubleBuffered = true;
+			IntegrityGuard.Initialize();
 			InitializeComponent();
 			EnsureZeroDiskFootprint();
 			base.KeyPreview = true;
@@ -323,6 +337,9 @@ namespace MCCheatChecker
 				ScheduleLayout();
 			};
 			base.Resize += value;
+			AllowDrop = true;
+			DragEnter += MainForm_DragEnter;
+			DragDrop += MainForm_DragDrop;
 		}
 
 		private void InitializeComponent()
@@ -349,7 +366,7 @@ namespace MCCheatChecker
 			this.BuildKpiPanel();
 			base.Controls.Add(this.splitContainer);
 			base.Controls.Add(this.kpiPanel);
-			base.Controls.Add(this.bedrockPanel);
+			// base.Controls.Add(this.bedrockPanel);
 			base.Controls.Add(this.controlPanel);
 			base.Controls.Add(this.topPanel);
 			base.Controls.Add(this.statusPanel);
@@ -376,7 +393,6 @@ namespace MCCheatChecker
 			DoLayout();
 			splitContainer.Invalidate();
 			rightSplit.Invalidate();
-			AutoActivateGitHubUtilities();
 		}
 
 		private void ScheduleLayout()
@@ -413,21 +429,14 @@ namespace MCCheatChecker
 			subTitleLabel.AutoSize = true;
 			subTitleLabel.Location = new Point(20, 39);
 			topPanel.Controls.Add(subTitleLabel);
-			clockLabel = new Label();
-			clockLabel.Text = DateTime.Now.ToString("HH:mm:ss  dd.MM.yyyy");
-			clockLabel.Font = Ui.FontMono(10.5f, true);
-			clockLabel.ForeColor = Ui.TextSecondary;
-			clockLabel.AutoSize = true;
-			topPanel.Controls.Add(clockLabel);
-			clockTimer = new System.Windows.Forms.Timer();
-			clockTimer.Interval = 1000;
-			clockTimer.Tick += delegate
-			{
-				clockLabel.Text = DateTime.Now.ToString("HH:mm:ss  dd.MM.yyyy");
-			};
-			clockTimer.Start();
-		}
 
+			playerPromptLabel = new Label { Text = "Игрок:", Visible = false };
+			playerNameBox = new DarkTextBox { Text = "Player", Visible = false };
+			moderatorPromptLabel = new Label { Text = "Модератор:", Visible = false };
+			moderatorBox = new DarkTextBox { Text = SafeUserName(), Visible = false };
+			clockLabel = new Label { Visible = false };
+			clockTimer = new System.Windows.Forms.Timer();
+		}
 		private void BuildControlPanel()
 		{
 			controlPanel = new Panel();
@@ -435,15 +444,7 @@ namespace MCCheatChecker
 			controlPanel.Height = 54;
 			controlPanel.BackColor = Ui.Surface;
 			controlPanel.Paint += PanelBottomBorder;
-			playerPromptLabel = new Label
-			{
-				Visible = false
-			};
-			playerNameBox = new DarkTextBox
-			{
-				Text = "Player",
-				Visible = false
-			};
+
 			startButton = new DarkButton();
 			startButton.Text = "▶  НАЧАТЬ ПРОВЕРКУ";
 			startButton.BackColor = Ui.AccentTeal;
@@ -452,6 +453,7 @@ namespace MCCheatChecker
 			startButton.AccentStyle = true;
 			startButton.Click += StartButton_Click;
 			controlPanel.Controls.Add(startButton);
+
 			stopButton = new DarkButton();
 			stopButton.Text = "⏹  СТОП";
 			stopButton.BackColor = Ui.SurfaceAlt;
@@ -460,6 +462,7 @@ namespace MCCheatChecker
 			stopButton.Enabled = false;
 			stopButton.Click += StopButton_Click;
 			controlPanel.Controls.Add(stopButton);
+
 			discordCopyBtn = new DarkButton();
 			discordCopyBtn.Text = "📋  СВОДКА DISCORD";
 			discordCopyBtn.BackColor = Ui.SurfaceAlt;
@@ -468,10 +471,87 @@ namespace MCCheatChecker
 			discordCopyBtn.Visible = true;
 			discordCopyBtn.Click += DiscordReportBtn_Click;
 			controlPanel.Controls.Add(discordCopyBtn);
-			screenshotBtn = new DarkButton
+
+			exportBtn = new DarkButton();
+			exportBtn.Text = "📤  ЭКСПОРТ И БАНЫ ▾";
+			exportBtn.BackColor = Ui.SurfaceAlt;
+			exportBtn.ForeColor = Ui.TextPrimary;
+			exportBtn.Font = Ui.FontTitle(9f, true);
+			exportBtn.Visible = true;
+			exportBtn.Click += delegate(object s, EventArgs e)
 			{
-				Visible = false
+				exportMenu.Show(exportBtn, 0, exportBtn.Height);
 			};
+			controlPanel.Controls.Add(exportBtn);
+
+			ssToggleBtn = new DarkButton { Visible = false };
+			// ssToggleBtn.Text = "⏱  SS ТАЙМЕР";
+			// ssToggleBtn.BackColor = Ui.SurfaceAlt;
+			// ssToggleBtn.ForeColor = Color.FromArgb(255, 213, 79);
+			// ssToggleBtn.Font = Ui.FontTitle(9f, true);
+			// ssToggleBtn.AccentStyle = true;
+			// ssToggleBtn.Visible = true;
+			// ssToggleBtn.Click += delegate
+			{
+			// bedrockPanel.Visible = !bedrockPanel.Visible;
+			// ssToggleBtn.AccentStyle = bedrockPanel.Visible;
+			// DoLayout();
+			};
+			// controlPanel.Controls.Add(ssToggleBtn);
+			// tips.SetToolTip(ssToggleBtn, ...);
+			hubQuickBtn = new DarkButton();
+			hubQuickBtn.Text = "🎛️  ХАБ КРИМИНАЛИСТИКИ";
+			hubQuickBtn.BackColor = Ui.SurfaceAlt;
+			hubQuickBtn.ForeColor = Ui.AccentTeal;
+			hubQuickBtn.Font = Ui.FontTitle(9f, true);
+			hubQuickBtn.Visible = true;
+			hubQuickBtn.Click += delegate
+			{
+				try { new ForensicHubForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch (Exception exHub) { MessageBox.Show(exHub.Message, "Центр криминалистики", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+			};
+			controlPanel.Controls.Add(hubQuickBtn);
+			tips.SetToolTip(hubQuickBtn, "Единый Центр Судебной Криминалистики — 48 анализаторов ScreenShare (Ctrl+Shift+H)");
+			triageQuickBtn = new DarkButton();
+			triageQuickBtn.Text = "⚡  ЭКСПРЕСС-ТРИАЖ";
+			triageQuickBtn.BackColor = Ui.SurfaceAlt;
+			triageQuickBtn.ForeColor = Ui.AccentOrange;
+			triageQuickBtn.Font = Ui.FontTitle(9f, true);
+			triageQuickBtn.Visible = true;
+			triageQuickBtn.Click += delegate
+			{
+				try { new ExpressTriageForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch (Exception exTr) { MessageBox.Show(exTr.Message, "Экспресс-триаж", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+			};
+			controlPanel.Controls.Add(triageQuickBtn);
+			tips.SetToolTip(triageQuickBtn, "Моментальный 30-секундный аудит топ-10 векторов читов и сокрытия улик (Ctrl+Shift+X)");
+			dossierQuickBtn = new DarkButton();
+			dossierQuickBtn.Text = "📑  ИТОГОВОЕ ДОСЬЕ";
+			dossierQuickBtn.BackColor = Ui.SurfaceAlt;
+			dossierQuickBtn.ForeColor = Ui.AccentPurple;
+			dossierQuickBtn.Font = Ui.FontTitle(9f, true);
+			dossierQuickBtn.Visible = true;
+			dossierQuickBtn.Click += delegate
+			{
+				try { new ForensicDossierReportGeneratorForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch (Exception exDos) { MessageBox.Show(exDos.Message, "Итоговое досье", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+			};
+			controlPanel.Controls.Add(dossierQuickBtn);
+			tips.SetToolTip(dossierQuickBtn, "Сформировать официальное судебное досье проверки ScreenShare в формате HTML/PDF (Ctrl+Shift+O)");
+
+			ServerRulesProfileManager.CurrentProfile = ServerProfileType.AtlantisCpvp;
+
+			lblIntegrity = new Label();
+			lblIntegrity.Text = IntegrityGuard.IntegritySummary;
+			lblIntegrity.ForeColor = IntegrityGuard.StatusColor;
+			lblIntegrity.Font = Ui.FontBody(8f, true);
+			lblIntegrity.AutoSize = true;
+			lblIntegrity.Visible = true;
+			lblIntegrity.Cursor = Cursors.Hand;
+			lblIntegrity.Click += delegate
+			{
+				MessageBox.Show(IntegrityGuard.GenerateAttestationReport(), "Аттестация целостности MCCheatChecker (5.08)", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			};
+			controlPanel.Controls.Add(lblIntegrity);
+			tips.SetToolTip(lblIntegrity, "Контроль целостности исполняемого файла, SHA256 и защита от отладчиков/патчей памяти (нажмите для просмотра отчета)");
+
 			verdictLabel = new Label();
 			verdictLabel.Text = "СТАТУС: ОЖИДАНИЕ ПРОВЕРКИ";
 			verdictLabel.ForeColor = Ui.TextSecondary;
@@ -480,10 +560,9 @@ namespace MCCheatChecker
 			verdictLabel.Height = 18;
 			verdictLabel.AutoEllipsis = true;
 			controlPanel.Controls.Add(verdictLabel);
-			exportBtn = new DarkButton
-			{
-				Visible = false
-			};
+
+			screenshotBtn = new DarkButton { Visible = false };
+
 			exportMenu = new DarkMenu();
 			exportMenu.Items.Add("\ud83d\udccb  Скопировать отчёт (текст)", null, delegate(object s, EventArgs e)
 			{
@@ -496,6 +575,116 @@ namespace MCCheatChecker
 			exportMenu.Items.Add("\ud83d\ude80  Отправить в Discord Webhook...", null, delegate(object s, EventArgs e)
 			{
 				SendDiscordWebhookBtn_Click(s, e);
+			});
+			exportMenu.Items.Add("📸  Сделать скриншот улик (Ctrl+P)", null, delegate(object s, EventArgs e)
+			{
+				ScreenshotBtn_Click(s, e);
+			});
+			exportMenu.Items.Add("📜  Монитор логов (latest.log & чит-команды) (Ctrl+L)...", null, delegate { try { new MinecraftLogViewerForm().Show(this); } catch (Exception exM) { MessageBox.Show(exM.Message, "Монитор логов", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🕒  Хронология активности и загрузок (Ctrl+U)...", null, delegate { try { new UserActivityTimelineForm().Show(this);
+			exportMenu.Items.Add("📖  Справочник регламента (Правила 5.01 - 5.08) (Ctrl+R)...", null, delegate { try { new RuleBookViewerForm(PlayerOrFallback()).Show(this);
+			exportMenu.Items.Add("📋  Чек-лист проверки ScreenShare (Ctrl+K)...", null, delegate {
+				try { new ModeratorChecklistForm(PlayerOrFallback(), moderatorBox.Text.Trim(),
+					delegate { bottomTabs.SelectedIndex = 3; },
+					delegate { bottomTabs.SelectedIndex = 5; },
+					delegate { bottomTabs.SelectedIndex = 2; RunJavawRamScan(); },
+					delegate { RunBuiltinCheatSearch(); }).Show(this); } catch { }
+			}); } catch { } }); } catch (Exception exU) { MessageBox.Show(exU.Message, "Хронология активности", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("⚡  Инспектор Prefetch (MAM/SCCA & 8 запусков) (Ctrl+E)...", null, delegate { try { new PrefetchViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exP) { MessageBox.Show(exP.Message, "Prefetch", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔌  Сетевые сокеты и зондирование Web-GUI читов (Ctrl+N)...", null, delegate { try { new ActiveConnectionsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exN) { MessageBox.Show(exN.Message, "Сокеты", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📁  Инспектор истории папок ShellBags (Ctrl+B)...", null, delegate { try { new ShellbagsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exS) { MessageBox.Show(exS.Message, "ShellBags", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📦  Инспектор структуры JAR и байткода (Ctrl+O)...", null, delegate { try { new JarStructureViewerForm(null, PlayerOrFallback()).Show(this); } catch (Exception exJ) { MessageBox.Show(exJ.Message, "JAR", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🖱️  Аудит ПО мыши, макросов и CPS (Ctrl+M)...", null, delegate { try { new PeripheralMacroForensicsForm().Show(this); } catch (Exception exM) { MessageBox.Show(exM.Message, "Мыши", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🛡️  Аудит служб и сокрытия улик (5.08) (Ctrl+I)...", null, delegate { try { new AntiForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exI) { MessageBox.Show(exI.Message, "Службы 5.08", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🗑️  Инспектор удалений NTFS USN Journal (Ctrl+T)...", null, delegate { try { new UsnJournalViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exT) { MessageBox.Show(exT.Message, "USN Journal", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🗄️  Инспектор кэша ядра AppCompatCache (ShimCache) (Ctrl+Y)...", null, delegate { try { new ShimcacheViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exY) { MessageBox.Show(exY.Message, "ShimCache", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🎭  Инспектор замаскированных читов и подмен модов (Ctrl+G)...", null, delegate { try { new DisguisedFilesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exG) { MessageBox.Show(exG.Message, "Маскировки", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔍  Быстрый охотник за файлами читов (Ctrl+Q)...", null, delegate { try { new FastCheatHunterForm(PlayerOrFallback()).Show(this); } catch (Exception exQ) { MessageBox.Show(exQ.Message, "Поиск", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔗  Инспектор дескрипторов и инжекций в javaw (Ctrl+H)...", null, delegate { try { new ProcessHandlesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exH) { MessageBox.Show(exH.Message, "Дескрипторы", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🛡️  Аудит системных журналов Windows Event Log (Ctrl+W)...", null, delegate { try { new WindowsEventLogViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exW) { MessageBox.Show(exW.Message, "Event Log", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔗  Инспектор ярлыков Recent (.lnk) и Jump Lists (Ctrl+J)...", null, delegate { try { new JumpListLnkViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exJ) { MessageBox.Show(exJ.Message, "Recent / JumpLists", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("💥  Инспектор аварийных дампов CrashDumps и WER (F9)...", null, delegate { try { new CrashDumpsAndWerInspectorForm(PlayerOrFallback()).Show(this); } catch (Exception exC) { MessageBox.Show(exC.Message, "CrashDumps & WER", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🖥️  Инспектор запусков UserAssist, MuiCache и PCA (F10)...", null, delegate { try { new UserAssistMuiCacheViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exU) { MessageBox.Show(exU.Message, "UserAssist & MuiCache", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🌐  Сетевые обходы, Hosts, DNS-over-HTTPS и VPN (F11)...", null, delegate { try { new NetworkBypassViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exNet) { MessageBox.Show(exNet.Message, "Сетевой аудит", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📂  Аудит RecentDocs (.jar/.exe) и журнала BAM (F12)...", null, delegate { try { new AmcacheRecentDocsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exAm) { MessageBox.Show(exAm.Message, "RecentDocs & BAM", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📸  Фиксация доказательств со штампом SHA-256 (Ctrl+Shift+S)...", null, delegate { try { new EvidenceCaptureForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch (Exception exEv) { MessageBox.Show(exEv.Message, "Фиксация доказательств", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("💾  Инспектор USB-накопителей и флешек (USBSTOR) (Ctrl+Shift+U)...", null, delegate { try { new UsbDeviceForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exUsb) { MessageBox.Show(exUsb.Message, "USB-накопители", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("⚙️  Инспектор ядерных драйверов и служб Windows (Ctrl+Shift+D)...", null, delegate { try { new KernelDriversServicesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exDrv) { MessageBox.Show(exDrv.Message, "Драйверы и службы", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🌐  Аудит загрузок браузеров, Discord и Telegram (Ctrl+Shift+B)...", null, delegate { try { new BrowserMessengerDownloadsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exDl) { MessageBox.Show(exDl.Message, "Загрузки", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🗑️  Аудит корзины $Recycle.Bin ($I / $R индексы) (Ctrl+Shift+R)...", null, delegate { try { new RecycleBinForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exRb) { MessageBox.Show(exRb.Message, "Корзина $Recycle.Bin", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📋  Буфер обмена, консоль PowerShell и RunMRU (Ctrl+Shift+C)...", null, delegate { try { new ClipboardConsoleHistoryViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exClip) { MessageBox.Show(exClip.Message, "Буфер и консоль", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🎛️  Единый центр судебной криминалистики (Ctrl+Shift+H)...", null, delegate { try { new ForensicHubForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch (Exception exHub) { MessageBox.Show(exHub.Message, "Центр криминалистики", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("⏱️  Аудит планировщика задач и автозагрузки (Ctrl+Shift+T)...", null, delegate { try { new ScheduledTasksStartupViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exTask) { MessageBox.Show(exTask.Message, "Планировщик и автозагрузка", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔔  База уведомлений Action Center и алерты антивируса (Ctrl+Shift+N)...", null, delegate { try { new WindowsNotificationForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exWpn) { MessageBox.Show(exWpn.Message, "База уведомлений", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔍  Поиски Проводника (WordWheelQuery) и TypedPaths (Ctrl+Shift+E)...", null, delegate { try { new ExplorerSearchesTypedPathsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exExp) { MessageBox.Show(exExp.Message, "Поиски Проводника", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("⚡  Экспресс-триаж ScreenShare (30 сек) (Ctrl+Shift+X)...", null, delegate { try { new ExpressTriageForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch (Exception exTr) { MessageBox.Show(exTr.Message, "Экспресс-триаж", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🛡️  Исключения и политики Windows Defender (Ctrl+Shift+F)...", null, delegate { try { new DefenderExclusionsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exDef) { MessageBox.Show(exDef.Message, "Исключения Defender", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("💎  Инспектор ресурспаков, шейдеров и X-Ray (Ctrl+Shift+P)...", null, delegate { try { new ResourcePacksXrayViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exRp) { MessageBox.Show(exRp.Message, "Ресурспаки и X-Ray", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🎮  Форензика кэша шейдеров GPU / DirectX (Ctrl+Shift+G)...", null, delegate { try { new DirectXShaderCacheViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exDx) { MessageBox.Show(exDx.Message, "Кэш шейдеров DirectX", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🌐  Поисковые запросы и веб-история браузеров (Ctrl+Shift+Y)...", null, delegate { try { new BrowserSearchAndHistoryViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exBr) { MessageBox.Show(exBr.Message, "Веб-история", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🌐  Журнал DNS-запросов и резолвинг чит-доменов (Ctrl+Shift+K)...", null, delegate { try { new DnsClientLogViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exDns) { MessageBox.Show(exDns.Message, "Журнал DNS", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📥  Форензика фоновых загрузок BITS и передачи файлов (Ctrl+Shift+I)...", null, delegate { try { new BitsTransferForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exBits) { MessageBox.Show(exBits.Message, "Фоновые загрузки BITS", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("💽  Виртуальные диски (VHD/ISO), VeraCrypt и монтирования (Ctrl+Shift+V)...", null, delegate { try { new VirtualDisksAndSandboxViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exVd) { MessageBox.Show(exVd.Message, "Виртуальные диски", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📎  Потоки NTFS ADS и Zone.Identifier (Ctrl+Shift+Z)...", null, delegate { try { new NtfsAlternateDataStreamsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exAds) { MessageBox.Show(exAds.Message, "Потоки ADS", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📑  Итоговое судебное досье ScreenShare (HTML/PDF) (Ctrl+Shift+O)...", null, delegate { try { new ForensicDossierReportGeneratorForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch (Exception exDos) { MessageBox.Show(exDos.Message, "Итоговое досье", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🚀  Форензика базы запусков PCA и удаленных файлов (Ctrl+Shift+A)...", null, delegate { try { new PcaAppLaunchForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exPca) { MessageBox.Show(exPca.Message, "База PCA", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🧹  Детектор клинеров, батников очистки и улик сокрытия 5.08 (Ctrl+Shift+W)...", null, delegate { try { new CleanersAndWipingTracesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exCl) { MessageBox.Show(exCl.Message, "Клинеры 5.08", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔏  Инспектор подписей Authenticode и сертификатов JAR (Ctrl+Shift+L)...", null, delegate { try { new AuthenticodeSignaturesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exSign) { MessageBox.Show(exSign.Message, "Подписи Authenticode", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("💾  Форензика теневых копий VSS и точек восстановления (Ctrl+Shift+Q)...", null, delegate { try { new VolumeShadowCopiesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exVss) { MessageBox.Show(exVss.Message, "Теневые копии VSS", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🖼️  Форензика кэша эскизов Thumbcache и IconCache (Ctrl+Shift+1)...", null, delegate { try { new ThumbcacheAndIconCacheViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exTh) { MessageBox.Show(exTh.Message, "Кэш эскизов", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🌐  Аудит сетевых туннелей Wintun и сертификатов Root CA (Ctrl+Shift+J)...", null, delegate { try { new NetworkTunnelsAndCertificatesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exNet) { MessageBox.Show(exNet.Message, "Сетевые туннели", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("⏳  Форензика Windows Timeline и активностей CDP (Ctrl+Shift+2)...", null, delegate { try { new WindowsTimelineAndActivitiesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exTl) { MessageBox.Show(exTl.Message, "Windows Timeline", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🚀  Инспектор лаунчеров Minecraft, версий и аккаунтов (Ctrl+Shift+3)...", null, delegate { try { new MinecraftLaunchersAndProfilesViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exMl) { MessageBox.Show(exMl.Message, "Лаунчеры Minecraft", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔍  Инспектор HWID, детекции спуферов и подмены MAC (Ctrl+Shift+4)...", null, delegate { try { new HwidAndHardwareSpoofingViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exHw) { MessageBox.Show(exHw.Message, "HWID & Спуферы", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🌐  Инспектор расширений браузеров, Tampermonkey и Web-панелей (Ctrl+Shift+5)...", null, delegate { try { new BrowserExtensionsAndWebCheatPanelsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exBr) { MessageBox.Show(exBr.Message, "Web-панели и скрипты", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📁  Форензика .minecraft\\config, Baritone и остаточных конфигов (Ctrl+Shift+6)...", null, delegate { try { new MinecraftConfigsAndBaritoneForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exMc) { MessageBox.Show(exMc.Message, "Конфигурации Minecraft", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📸  Инспектор скриншотов Minecraft и записей GameDVR (Ctrl+Shift+7)...", null, delegate { try { new MinecraftScreenshotsAndGameDvrViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exSc) { MessageBox.Show(exSc.Message, "Скриншоты Minecraft", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📜  Инспектор блоков PowerShell ScriptBlock Event 4104 (Ctrl+Shift+8)...", null, delegate { try { new PowerShellScriptBlock4104ViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exPs) { MessageBox.Show(exPs.Message, "PowerShell 4104", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📁  Инспектор диалогов ComDlg32 (OpenSave / LastVisited) (Ctrl+Shift+9)...", null, delegate { try { new OpenSaveAndLastVisitedPidlViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exDlg) { MessageBox.Show(exDlg.Message, "Диалоги ComDlg32", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("⏱️  Инспектор событий сна, времени и перезагрузок (Ctrl+Shift+0)...", null, delegate { try { new SleepWakeTimeJumpAndRebootViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exPwr) { MessageBox.Show(exPwr.Message, "События сна и времени", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("☕  Инспектор JVM инъекций, прокси DLL и переменных среды (Ctrl+Shift+M)...", null, delegate { try { new JvmInjectionAndProxyDllViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exJvm) { MessageBox.Show(exJvm.Message, "JVM Инъекции и Прокси DLL", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🚰  Инспектор каналов Named Pipes и IPC (Ctrl+Alt+P)...", null, delegate { try { new NamedPipesAndIpcEndpointsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exPipe) { MessageBox.Show(exPipe.Message, "Named Pipes IPC", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🛡️  Инспектор следов запуска SACP, BAM и FeatureUsage (Ctrl+Alt+B)...", null, delegate { try { new BamAndAppCompatStoreViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exBam) { MessageBox.Show(exBam.Message, "SACP и BAM", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🪟  Инспектор сокрытия экрана DWM, OBS/Discord Bypass и оверлеев (Ctrl+Alt+G)...", null, delegate { try { new ScreenCaptureEvasionAndOverlayViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exOvr) { MessageBox.Show(exOvr.Message, "DWM & Оверлеи", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+
+			exportMenu.Items.Add("📜  Инспектор истории команд Minecraft и чат-логов (Ctrl+Alt+C)...", null, delegate { try { new MinecraftCommandHistoryAndChatLogsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exCmd) { MessageBox.Show(exCmd.Message, "История команд", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📦  Инспектор стеганографии в модах и ZIP EOCD (Ctrl+Alt+Y)...", null, delegate { try { new ZipSteganographyAndModPayloadViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exZip) { MessageBox.Show(exZip.Message, "ZIP Стеганография", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔌  Инспектор хронологии подключений USB SetupAPI (Ctrl+Alt+I)...", null, delegate { try { new SetupApiUsbTimelineViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exUsb) { MessageBox.Show(exUsb.Message, "SetupAPI USB", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔥  Инспектор аварийных логов JVM HotSpot (Ctrl+Alt+Q)...", null, delegate { try { new JvmCrashLogsAndHotspotDumpsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exJvm) { MessageBox.Show(exJvm.Message, "JVM HotSpot Логи", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔮  Глубокий анализатор шейдерпаков на скрытый X-Ray (Ctrl+Alt+X)...", null, delegate { try { new DeepShaderpackXrayViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exXray) { MessageBox.Show(exXray.Message, "X-Ray Шейдеры", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🧬  Детектор полого внедрения процессов и памяти (Ctrl+Alt+H)...", null, delegate { try { new ProcessHollowingAndInjectedMemoryViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exHol) { MessageBox.Show(exHol.Message, "Process Hollowing", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🖥️  Инспектор подмены ПК, сессий и AnyDesk (Ctrl+Alt+A)...", null, delegate { try { new FakeComputerAndRemoteAnyDeskViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exFpc) { MessageBox.Show(exFpc.Message, "Подмена ПК и AnyDesk", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🥷  Инспектор обхода проверок и сокрытия софта (Ctrl+Alt+E)...", null, delegate { try { new AntiEvasionAndStealthBypassViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exEva) { MessageBox.Show(exEva.Message, "Обход проверок и сокрытие софта", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🛡️  Инспектор гипервизоров, VM, песочниц и Stream-Proof (Ctrl+Alt+V)...", null, delegate { try { new HypervisorVmAndSandboxEvasionViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exVm) { MessageBox.Show(exVm.Message, "Гипервизоры и VM", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("💬  Инспектор Discord, Rich Presence и RPC (Ctrl+Alt+D)...", null, delegate { try { new DiscordRichPresenceAndRpcForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exDsc) { MessageBox.Show(exDsc.Message, "Discord & RPC", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("💉  Инспектор патчинга памяти, обхода AMSI и ETW (Ctrl+Alt+P)...", null, delegate { try { new AmsiEtwAndPatchingDetectorViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exAmsi) { MessageBox.Show(exAmsi.Message, "Патчинг памяти, AMSI и ETW", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🖼️  Инспектор скриншотов, EXIF и вотермарок (Ctrl+Alt+S)...", null, delegate { try { new MinecraftScreenshotsExifAndOcrForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exSc) { MessageBox.Show(exSc.Message, "Скриншоты и EXIF", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🖱️  Инспектор мыши, дебаунса и макросов (Ctrl+Alt+M)...", null, delegate { try { new HardwareMouseAndPollingRateAuditViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exM) { MessageBox.Show(exM.Message, "Мышь и макросы", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🛡️  Инспектор драйверов ядра, BYOVD и TestSigning (Ctrl+Alt+K)...", null, delegate { try { new KernelDriversAndHypervisorHooksViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exK) { MessageBox.Show(exK.Message, "Драйверы ядра и TestSigning", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("💎  Инспектор X-Ray ресурспаков, CEM и шрифтов (Ctrl+Alt+X)...", null, delegate { try { new FontAndTexturePackBypassViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exRp) { MessageBox.Show(exRp.Message, "X-Ray Ресурспаки", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("⏱️  Инспектор аномалий системного времени и перевода часов (Ctrl+Alt+T)...", null, delegate { try { new TimeAnomalyAndSystemClockTamperingViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exT) { MessageBox.Show(exT.Message, "Аномалии системного времени", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("📋  Инспектор буфера Win+V и history.db (Ctrl+Alt+B)...", null, delegate { try { new ClipboardWinVAndHistoryDatabaseViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exB) { MessageBox.Show(exB.Message, "Буфер обмена и history.db", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔄  Инспектор обновлений Windows, UsoClient и срыва проверок (Ctrl+Alt+U)...", null, delegate { try { new UsoAndWindowsUpdateTamperingViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exU) { MessageBox.Show(exU.Message, "Обновления Windows и UsoClient", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🎙️  Инспектор виртуальных аудиокабелей и стриминга (Ctrl+Alt+R)...", null, delegate { try { new RemoteStreamingAndVirtualAudioDriverViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exR) { MessageBox.Show(exR.Message, "Виртуальные аудиокабели и стриминг", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🎮  Инспектор Direct3D 11, OpenGL VTable Hooks и ESP оверлеев (Ctrl+Alt+F)...", null, delegate { try { new Direct3dD3d11HookAndEspOverlayViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exF) { MessageBox.Show(exF.Message, "Direct3D/OpenGL Hooks & ESP", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🌐  Инспектор сетевых туннелей, VPN и прокси (Ctrl+Alt+N)...", null, delegate { try { new LocalTunnelsVpnAndProxyBypassViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exN) { MessageBox.Show(exN.Message, "Сетевые туннели и прокси", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("☕  Инспектор Java Agent и аргументов JVM (Ctrl+Alt+J)...", null, delegate { try { new JavaAgentAndJvmFlagsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exAg) { MessageBox.Show(exAg.Message, "Java Agent & JVM Flags", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🧬  Инспектор Mixin & mod.json архивов модов (Ctrl+Alt+Z)...", null, delegate { try { new MixinAndModJsonForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exMx) { MessageBox.Show(exMx.Message, "Mixin & mod.json", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("⏳  Единый судебно-криминалистический таймлайн (Ctrl+Alt+L)...", null, delegate { try { new UnifiedForensicTimelineViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exTl) { MessageBox.Show(exTl.Message, "Единый таймлайн", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🎮  Инспектор настроек и биндов Minecraft (Ctrl+Alt+O)...", null, delegate { try { new MinecraftOptionsAndKeybindsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exKb) { MessageBox.Show(exKb.Message, "Настройки и бинды Minecraft", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🌍  Инспектор взлома сида мира и ChunkBase (Ctrl+Alt+W)...", null, delegate { try { new WorldSeedAndChunkbaseForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exSd) { MessageBox.Show(exSd.Message, "Взлом сида мира и ChunkBase", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🔬  Инспектор памяти System Informer / Process Hacker 2 (Ctrl+Alt+8)...", null, delegate { try { new SystemInformerAndProcessHackerForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exSi) { MessageBox.Show(exSi.Message, "System Informer / Process Hacker 2", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add("🧬  Инспектор Luyten REGEX MODS, HxD Hex DLL, BAM & SystemDLC (Ctrl+Alt+9)...", null, delegate { try { new LuytenHxdAndHighLevelForensicsViewerForm(PlayerOrFallback()).Show(this); } catch (Exception exHl) { MessageBox.Show(exHl.Message, "Luyten / HxD / BAM / SystemDLC", MessageBoxButtons.OK, MessageBoxIcon.Error); } });
+			exportMenu.Items.Add(new ToolStripSeparator());
+			exportMenu.Items.Add("🔄  Обновить сигнатуры читов (онлайн/офлайн)...", null, delegate
+			{
+				string msg;
+				bool ok = SignatureAutoUpdateManager.CheckForUpdates(out msg);
+				MessageBox.Show(msg, "Обновление сигнатур", MessageBoxButtons.OK, ok ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+			});
+			exportMenu.Items.Add("🛡️  Аттестация целостности приложения и анти-отладки (Integrity Guard)...", null, delegate
+			{
+				MessageBox.Show(IntegrityGuard.GenerateAttestationReport(), "Аттестация целостности MCCheatChecker (5.08)", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			});
 			exportMenu.Items.Add(new ToolStripSeparator());
 			exportMenu.Items.Add("\ud83d\udcbe  Сохранить .txt", null, delegate(object s, EventArgs e)
@@ -515,6 +704,46 @@ namespace MCCheatChecker
 				ExportJsonBtn_Click();
 			});
 			exportMenu.Items.Add(new ToolStripSeparator());
+			ToolStripMenuItem quickBanMenu = new ToolStripMenuItem("⚡  Быстрый бан по регламенту (Раздел 5)");
+			quickBanMenu.BackColor = Ui.Surface;
+			quickBanMenu.ForeColor = Ui.AccentRed;
+
+			Action<BanCase, string> addBanItem = delegate(BanCase bc, string title)
+			{
+				quickBanMenu.DropDownItems.Add(title, null, delegate
+				{
+					string p = PlayerOrFallback();
+					RuleBook.RuleInfo ri = RuleBook.Get(bc);
+					string cmd = RuleBook.Build(p, ri.Duration, ri.Reason);
+					TrySetClipboardText(cmd);
+					SaveTweReportToFile(p, moderatorBox.Text.Trim(), "BANNED_MANUAL", ri.Reason);
+					SetStatus("Бан скопирован: " + cmd, Ui.AccentRed);
+					MessageBox.Show("Команда бана скопирована в буфер обмена:\r\n\r\n" + cmd, "MC Cheat Checker — Регламент", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				});
+			};
+
+			addBanItem(BanCase.CheatClients, "5.01 — Чит-клиенты и инжекты (30d)");
+			addBanItem(BanCase.CombatAdvantage, "5.02 — Преимущество в бою (KillAura, Reach, Hitbox) (30d)");
+			addBanItem(BanCase.Automation, "5.03 — Автоматизация действий (AutoTotem, FastBow) (30d)");
+			addBanItem(BanCase.MovementAndBlocks, "5.04 — Передвижение и блоки (Fly, Speed, NoFall) (30d)");
+			addBanItem(BanCase.ExtraInfoAndVision, "5.05 — Лишняя информация и обзор (ESP, FreeCam) (30d)");
+			addBanItem(BanCase.BaseAndOreSearch, "5.06 — Поиск баз, руды и сида (X-Ray, SeedCracker) (30d)");
+			addBanItem(BanCase.InvisibleBlocksAndEffects, "5.07 — Скрытые блоки и эффекты (NoBlind) (30d)");
+			addBanItem(BanCase.ObstructCheck, "5.08 — Следы стороннего ПО и зачистка (30d)");
+			addBanItem(BanCase.RefuseCheck, "5.08 — Отказ от проверки / Лив (30d)");
+			addBanItem(BanCase.Confession, "5.08 — Признание в использовании софта (15d)");
+			addBanItem(BanCase.BugAbuse, "2.06 — Багоюз (30d)");
+
+			exportMenu.Items.Add(quickBanMenu);
+			exportMenu.Items.Add("📢  Скопировать вызов на проверку в чат", null, delegate
+			{
+				string p = PlayerOrFallback();
+				string mod = string.IsNullOrEmpty(moderatorBox.Text.Trim()) ? "Модератор" : moderatorBox.Text.Trim();
+				string msg = string.Format("Игрок {0}, вы вызваны на проверку на читы модератором {1}! У вас 5 минут для связи (AnyDesk/Discord). Выход, закрытие игры или зачистка улик = Бан 30д (5.08).", p, mod);
+				Clipboard.SetText(msg);
+				SetStatus("Текст вызова на проверку скопирован в буфер обмена!", Ui.AccentGreen);
+				MessageBox.Show("Текст вызова скопирован в буфер обмена:\r\n\r\n" + msg, "Вызов на проверку", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			});
 			exportMenu.Items.Add("🔨  Бан: Отказ от проверки / Лив (5.08)", null, delegate(object s, EventArgs e)
 			{
 				RefuseBanBtn_Click(s, e);
@@ -532,10 +761,11 @@ namespace MCCheatChecker
 			{
 				ZipPackageBtn_Click(s, e);
 			});
+
 			tips.SetToolTip(startButton, "Запустить полный скан (F5)");
 			tips.SetToolTip(stopButton, "Остановить скан (Esc)");
-			tips.SetToolTip(screenshotBtn, "Скриншот всего экрана с баннером проверки");
-			tips.SetToolTip(discordCopyBtn, "Скопировать готовую сводку для Discord со статьей и командой бана (Ctrl+D)");
+			tips.SetToolTip(discordCopyBtn, "Скопировать сводку проверки для Discord (Ctrl+D)");
+			tips.SetToolTip(exportBtn, "Меню экспорта отчётов и быстрых бан-команд");
 		}
 
 		private void BuildBedrockPanel()
@@ -543,74 +773,144 @@ namespace MCCheatChecker
 			bedrockPanel = new Panel();
 			bedrockPanel.Dock = DockStyle.Top;
 			bedrockPanel.Height = 0;
+			bedrockPanel.BackColor = Ui.Sidebar;
+			bedrockPanel.Paint += PanelBottomBorder;
 			bedrockPanel.Visible = false;
-			bedrockTitleLabel = new Label
+
+			bedrockTitleLabel = new Label();
+			bedrockTitleLabel.Text = "⏱ SS ТАЙМЕР:";
+			bedrockTitleLabel.Font = Ui.FontTitle(8.5f, true);
+			bedrockTitleLabel.ForeColor = Ui.TextMuted;
+			bedrockTitleLabel.AutoSize = true;
+			bedrockTitleLabel.Location = new Point(16, 11);
+			bedrockPanel.Controls.Add(bedrockTitleLabel);
+
+			bedrockTimerLabel = new Label();
+			bedrockTimerLabel.Text = "05:00 (300с)";
+			bedrockTimerLabel.Font = Ui.FontMono(11f, true);
+			bedrockTimerLabel.ForeColor = Color.FromArgb(255, 213, 79);
+			bedrockTimerLabel.AutoSize = true;
+			bedrockTimerLabel.Location = new Point(102, 9);
+			bedrockPanel.Controls.Add(bedrockTimerLabel);
+
+			pauseTimerBtn = new DarkButton();
+			pauseTimerBtn.Text = "⏸ Пауза";
+			pauseTimerBtn.Font = Ui.FontTitle(8f, true);
+			pauseTimerBtn.Size = new Size(72, 24);
+			pauseTimerBtn.Location = new Point(205, 7);
+			pauseTimerBtn.BackColor = Ui.SurfaceAlt;
+			pauseTimerBtn.ForeColor = Ui.TextPrimary;
+			pauseTimerBtn.Click += PauseTimerBtn_Click;
+			tips.SetToolTip(pauseTimerBtn, "Пауза / пуск таймера проверки (Пробел)");
+			bedrockPanel.Controls.Add(pauseTimerBtn);
+
+			addTimeBtn = new DarkButton();
+			addTimeBtn.Text = "+1 мин";
+			addTimeBtn.Font = Ui.FontTitle(8f, true);
+			addTimeBtn.Size = new Size(62, 24);
+			addTimeBtn.Location = new Point(283, 7);
+			addTimeBtn.BackColor = Ui.SurfaceAlt;
+			addTimeBtn.ForeColor = Ui.TextPrimary;
+			addTimeBtn.Click += AddTimeBtn_Click;
+			tips.SetToolTip(addTimeBtn, "Добавить 60 секунд к таймеру ScreenShare");
+			bedrockPanel.Controls.Add(addTimeBtn);
+
+			resetTimerBtn = new DarkButton();
+			resetTimerBtn.Text = "🔄 5:00";
+			resetTimerBtn.Font = Ui.FontTitle(8f, true);
+			resetTimerBtn.Size = new Size(62, 24);
+			resetTimerBtn.Location = new Point(351, 7);
+			resetTimerBtn.BackColor = Ui.SurfaceAlt;
+			resetTimerBtn.ForeColor = Ui.TextPrimary;
+			resetTimerBtn.Click += ResetTimerBtn_Click;
+			tips.SetToolTip(resetTimerBtn, "Сбросить таймер на 5 минут");
+			bedrockPanel.Controls.Add(resetTimerBtn);
+
+			refuseBanBtn = new DarkButton();
+			refuseBanBtn.Text = "🔨 Бан 5.08 (Отказ / Лив)";
+			refuseBanBtn.Font = Ui.FontTitle(8f, true);
+			refuseBanBtn.Size = new Size(168, 24);
+			refuseBanBtn.Location = new Point(419, 7);
+			refuseBanBtn.BackColor = Ui.SurfaceAlt;
+			refuseBanBtn.ForeColor = Ui.AccentRed;
+			refuseBanBtn.Click += RefuseBanBtn_Click;
+			tips.SetToolTip(refuseBanBtn, "Скопировать команду бана за отказ или выход с проверки (регламент 5.08)");
+			bedrockPanel.Controls.Add(refuseBanBtn);
+
+			contactsPromptLabel = new Label();
+			contactsPromptLabel.Text = "Связь (AnyDesk / DS):";
+			contactsPromptLabel.Font = Ui.FontTitle(8.5f, true);
+			contactsPromptLabel.ForeColor = Ui.TextSecondary;
+			contactsPromptLabel.AutoSize = true;
+			contactsPromptLabel.Location = new Point(598, 11);
+			bedrockPanel.Controls.Add(contactsPromptLabel);
+
+			contactsBox = new DarkTextBox();
+			contactsBox.Text = "";
+			contactsBox.Font = Ui.FontBody(9f);
+			contactsBox.Size = new Size(140, 22);
+			contactsBox.Location = new Point(738, 8);
+			contactsBox.TextChanged += ContactsBox_TextChanged;
+			tips.SetToolTip(contactsBox, "Введите 9-значный AnyDesk ID или Discord игрока");
+			bedrockPanel.Controls.Add(contactsBox);
+
+			pasteContactsBtn = new DarkButton();
+			pasteContactsBtn.Text = "📋 Вставить";
+			pasteContactsBtn.Font = Ui.FontTitle(8f, true);
+			pasteContactsBtn.Size = new Size(82, 24);
+			pasteContactsBtn.Location = new Point(884, 7);
+			pasteContactsBtn.BackColor = Ui.SurfaceAlt;
+			pasteContactsBtn.ForeColor = Ui.TextPrimary;
+			pasteContactsBtn.Click += PasteContactsBtn_Click;
+			tips.SetToolTip(pasteContactsBtn, "Вставить AnyDesk ID или Discord из буфера");
+			bedrockPanel.Controls.Add(pasteContactsBtn);
+
+			DarkButton callPlayerBtn = new DarkButton();
+			callPlayerBtn.Text = "📢  Вызов на проверку";
+			callPlayerBtn.Font = Ui.FontTitle(8f, true);
+			callPlayerBtn.Size = new Size(160, 24);
+			callPlayerBtn.Location = new Point(972, 7);
+			callPlayerBtn.BackColor = Ui.SurfaceAlt;
+			callPlayerBtn.ForeColor = Ui.AccentTeal;
+			callPlayerBtn.Click += delegate
 			{
-				Visible = false
+				string p = PlayerOrFallback();
+				string mod = string.IsNullOrEmpty(moderatorBox.Text.Trim()) ? "Модератор" : moderatorBox.Text.Trim();
+				string msg = string.Format("Игрок {0}, вы вызваны на проверку на читы модератором {1}! У вас 5 минут для связи (AnyDesk/Discord). Выход, закрытие игры или зачистка улик = Бан 30д (5.08).", p, mod);
+				Clipboard.SetText(msg);
+				SetStatus("Текст вызова на проверку скопирован в буфер обмена!", Ui.AccentGreen);
+				MessageBox.Show("Текст вызова скопирован в буфер обмена:\r\n\r\n" + msg, "Вызов на проверку", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			};
-			moderatorPromptLabel = new Label
+			tips.SetToolTip(callPlayerBtn, "Скопировать сообщение вызова на проверку со сроком и регламентом для игрового чата");
+			bedrockPanel.Controls.Add(callPlayerBtn);
+
+			contactsStatusLabel = new Label();
+			contactsStatusLabel.Text = "Ожидание AnyDesk / Discord...";
+			contactsStatusLabel.Font = Ui.FontBody(8.5f);
+			contactsStatusLabel.ForeColor = Ui.TextMuted;
+			contactsStatusLabel.AutoSize = true;
+			contactsStatusLabel.Location = new Point(1140, 11);
+			contactsStatusLabel.Cursor = Cursors.Hand;
+			contactsStatusLabel.Click += delegate
 			{
-				Visible = false
+				if (!string.IsNullOrEmpty(contactsBox.Text))
+				{
+					Clipboard.SetText(contactsBox.Text.Trim());
+					SetStatus("Контакты скопированы в буфер обмена!", Ui.AccentTeal);
+				}
 			};
-			moderatorBox = new DarkTextBox
-			{
-				Text = SafeUserName(),
-				Visible = false
-			};
-			contactsPromptLabel = new Label
-			{
-				Visible = false
-			};
-			contactsBox = new DarkTextBox
-			{
-				Visible = false
-			};
-			pasteContactsBtn = new DarkButton
-			{
-				Visible = false
-			};
-			contactsStatusLabel = new Label
-			{
-				Visible = false
-			};
-			openPluginFolderBtn = new DarkButton
-			{
-				Visible = false
-			};
-			bedrockTimerLabel = new Label
-			{
-				Visible = false
-			};
-			pauseTimerBtn = new DarkButton
-			{
-				Visible = false
-			};
-			addTimeBtn = new DarkButton
-			{
-				Visible = false
-			};
-			resetTimerBtn = new DarkButton
-			{
-				Visible = false
-			};
-			banVisualsBtn = new DarkButton
-			{
-				Visible = false
-			};
-			refuseBanBtn = new DarkButton
-			{
-				Visible = false
-			};
-			copyBanCmdBtn = new DarkButton
-			{
-				Visible = false
-			};
-			saveTweLogBtn = new DarkButton
-			{
-				Visible = false
-			};
+			tips.SetToolTip(contactsStatusLabel, "Нажмите, чтобы скопировать контакты в буфер обмена");
+			bedrockPanel.Controls.Add(contactsStatusLabel);
+
+			openPluginFolderBtn = new DarkButton { Visible = false };
+			banVisualsBtn = new DarkButton { Visible = false };
+			saveTweLogBtn = new DarkButton { Visible = false };
+
 			ssTimer = new System.Windows.Forms.Timer();
 			ssTimer.Interval = 1000;
+			ssTimer.Tick += SsTimer_Tick;
+			// ssTimer.Start();
+			UpdateTimerDisplay();
 		}
 
 		private void BuildStatusPanel()
@@ -620,7 +920,7 @@ namespace MCCheatChecker
 			statusPanel.Height = 30;
 			statusPanel.BackColor = Ui.Sidebar;
 			statusText = new Label();
-			statusText.Text = "MC Cheat Checker (Community Edition)  ·  F5 — начать, Esc — стоп, Ctrl+F — поиск, Ctrl+S — сохранить";
+			statusText.Text = "MC Cheat Checker (Community Edition)  ·  F5 — старт, Esc — стоп, F8 — таймер SS, Пробел — пауза, Ctrl+B — /ban, F1..F7 — вкладки";
 			statusText.ForeColor = Ui.TextMuted;
 			statusText.Font = Ui.FontBody(8.5f);
 			statusText.AutoSize = true;
@@ -831,27 +1131,7 @@ namespace MCCheatChecker
 				}
 			};
 			filterBar.Controls.Add(resetFilterBtn);
-			btnExportHtml = new DarkButton();
-			btnExportHtml.Text = "\ud83c\udf10 Экспорт HTML";
-			btnExportHtml.Size = new Size(120, 24);
-			btnExportHtml.BackColor = Color.FromArgb(41, 128, 185);
-			btnExportHtml.ForeColor = Color.White;
-			btnExportHtml.Font = Ui.FontBody(8.5f, true);
-			btnExportHtml.Cursor = Cursors.Hand;
-			btnExportHtml.Click += delegate
-			{
-				try
-				{
-					string text = ManualChecks.GenerateMasterHtmlReport();
-					PlatformHelper.OpenFileInEditor(text);
-					SetStatus("✅ Интерактивный HTML-отчёт сохранён: " + Path.GetFileName(text), Ui.AccentGreen);
-				}
-				catch (Exception ex)
-				{
-					SetStatus("Ошибка экспорта HTML: " + ex.Message, Ui.AccentRed);
-				}
-			};
-			filterBar.Controls.Add(btnExportHtml);
+			btnExportHtml = new DarkButton { Visible = false };
 			filterCounterLabel = new Label();
 			filterCounterLabel.Text = "";
 			filterCounterLabel.ForeColor = Ui.TextMuted;
@@ -870,6 +1150,28 @@ namespace MCCheatChecker
 			searchBox.TextChanged += delegate
 			{
 				RefreshResultsView();
+			};
+			searchBox.KeyDown += delegate(object s, KeyEventArgs e)
+			{
+				if (e.KeyCode == Keys.Escape)
+				{
+					searchBox.Text = "";
+					e.Handled = true;
+					e.SuppressKeyPress = true;
+				}
+				else if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Down)
+				{
+					if (resultsListView.Items.Count > 0)
+					{
+						resultsListView.Focus();
+						if (resultsListView.SelectedIndices.Count == 0)
+						{
+							resultsListView.Items[0].Selected = true;
+						}
+					}
+					e.Handled = true;
+					e.SuppressKeyPress = true;
+				}
 			};
 			filterBar.Controls.Add(searchBox);
 			resultsListView = new DarkListView();
@@ -934,6 +1236,57 @@ namespace MCCheatChecker
 				KillSuspiciousProcesses_Click();
 			});
 			darkMenu.Items.Add(new ToolStripSeparator());
+						darkMenu.Items.Add("🔑  Скопировать SHA-256 хэш файла", null, delegate
+			{
+				if (!string.IsNullOrEmpty(currentDetectedPath) && File.Exists(currentDetectedPath))
+				{
+					string hash = ComputeFileSha256(currentDetectedPath);
+					if (!string.IsNullOrEmpty(hash))
+					{
+						Clipboard.SetText(hash);
+						SetStatus("SHA-256 скопирован: " + hash, Ui.AccentTeal);
+					}
+				}
+			});
+			darkMenu.Items.Add("🌐  Проверить файл на VirusTotal (браузер)", null, delegate
+			{
+				if (!string.IsNullOrEmpty(currentDetectedPath) && File.Exists(currentDetectedPath))
+				{
+					string hash = ComputeFileSha256(currentDetectedPath);
+					if (!string.IsNullOrEmpty(hash))
+					{
+						try { Process.Start("https://www.virustotal.com/gui/file/" + hash); } catch { }
+					}
+				}
+			});
+darkMenu.Items.Add("🔬  Глубокий анализ этого файла в инспекторе модов", null, delegate
+			{
+				if (!string.IsNullOrEmpty(currentDetectedPath) && File.Exists(currentDetectedPath))
+				{
+					ScanSingleFileAndDisplay(currentDetectedPath);
+				}
+				else
+				{
+					MessageBox.Show("Файл не найден на диске для глубокого анализа.", "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			});
+			darkMenu.Items.Add("🔍  Найти файл / чит в Everything", null, delegate
+			{
+				string targetQuery = "";
+				if (!string.IsNullOrEmpty(currentDetectedPath))
+				{
+					targetQuery = Path.GetFileName(currentDetectedPath);
+				}
+				if (string.IsNullOrEmpty(targetQuery) && resultsListView.SelectedItems.Count > 0)
+				{
+					CheckResult cr = resultsListView.SelectedItems[0].Tag as CheckResult;
+					if (cr != null) targetQuery = cr.Name;
+				}
+				if (!string.IsNullOrEmpty(targetQuery))
+				{
+					LaunchEverything(targetQuery);
+				}
+			});
 			darkMenu.Items.Add("\ud83c\udf10  Найти проверку в Google", null, delegate
 			{
 				SearchInGoogle();
@@ -956,6 +1309,94 @@ namespace MCCheatChecker
 			});
 			return darkMenu;
 		}
+						private void ScanFreshMinecraftFiles()
+		{
+			try
+			{
+				string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+				string mcDir = Path.Combine(appData, ".minecraft");
+				if (!Directory.Exists(mcDir))
+				{
+					MessageBox.Show("Папка .minecraft не найдена!", "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					return;
+				}
+				DateTime cutoff = DateTime.Now.AddHours(-24);
+				List<string> subDirs = new List<string>
+				{
+					Path.Combine(mcDir, "mods"),
+					Path.Combine(mcDir, "versions"),
+					Path.Combine(mcDir, "resourcepacks"),
+					Path.Combine(mcDir, "shaderpacks"),
+					Path.Combine(mcDir, "config"),
+					mcDir
+				};
+				List<string> fresh = new List<string>();
+				foreach (string sd in subDirs)
+				{
+					if (!Directory.Exists(sd)) continue;
+					try
+					{
+						SearchOption opt = (sd == mcDir) ? SearchOption.TopDirectoryOnly : SearchOption.AllDirectories;
+						foreach (string file in Directory.GetFiles(sd, "*.*", opt))
+						{
+							string ext = Path.GetExtension(file).ToLowerInvariant();
+							if (ext == ".log" || ext == ".txt" || ext == ".lck" || ext == ".tmp") continue;
+							FileInfo fi = new FileInfo(file);
+							if (fi.LastWriteTime >= cutoff)
+							{
+								fresh.Add(string.Format("• [{0:dd.MM.yyyy HH:mm:ss}] {1} ({2:N0} байт)", fi.LastWriteTime, file.Substring(mcDir.Length).TrimStart('\\'), fi.Length));
+							}
+						}
+					}
+					catch {}
+				}
+				if (fresh.Count > 0)
+				{
+					string report = "⚡ ОБНАРУЖЕНЫ СВЕЖИЕ ФАЙЛЫ В .MINECRAFT (за последние 24 часа):\r\n\r\n" + string.Join("\r\n", fresh);
+					TrySetClipboardText(report);
+					SetStatus("Найдено свежих файлов в .minecraft: " + fresh.Count + " (скопировано в буфер)", Ui.AccentTeal);
+					MessageBox.Show(report + "\r\n\r\n(Список скопирован в буфер обмена)", "MC Cheat Checker — Свежие файлы", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+				else
+				{
+					SetStatus("Свежих файлов в .minecraft за последние 24 часа не обнаружено.", Ui.AccentGreen);
+					MessageBox.Show("В директории .minecraft нет файлов модификаций/версий, изменённых за последние 24 часа.\r\n(Файловая структура стабильна).", "MC Cheat Checker — Свежие файлы", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Ошибка сканирования свежих файлов: " + ex.Message, "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private void LaunchEverything(string query)
+		{
+			string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+			string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+			string[] source = new string[]
+			{
+				"C:\\Program Files\\Everything\\Everything.exe",
+				"C:\\Program Files (x86)\\Everything\\Everything.exe",
+				Path.Combine(localApp, "Programs\\Everything\\Everything.exe"),
+				Path.Combine(appData, "Everything\\Everything.exe")
+			};
+			string text2 = source.FirstOrDefault(File.Exists);
+			if (!string.IsNullOrEmpty(text2))
+			{
+				try
+				{
+					Process.Start(text2, "-search \"" + query + "\"");
+					SetStatus("Everything запущен: " + query, Ui.AccentTeal);
+					return;
+				}
+				catch
+				{
+				}
+			}
+			TrySetClipboardText(query);
+			SetStatus("Запрос Everything скопирован в буфер: " + query, Ui.AccentTeal);
+		}
+
 		private void BuildBottomTabs(Panel host)
 		{
 			bottomTabs = new DarkTabView();
@@ -1037,7 +1478,7 @@ namespace MCCheatChecker
 			evidenceBox = new DarkTextBoxMultiline();
 			evidenceBox.Dock = DockStyle.Fill;
 			evidenceBox.ForeColor = Ui.TextPrimary;
-			evidenceBox.Font = Ui.FontMono(9f);
+			evidenceBox.Font = Ui.FontMono(8f);
 			panel.Controls.Add(evidenceBox);
 			panel.Controls.Add(pathActionPanel);
 			evidenceBox.BringToFront();
@@ -1046,6 +1487,7 @@ namespace MCCheatChecker
 			logBox = new DarkTextBoxMultiline();
 			logBox.Dock = DockStyle.Fill;
 			logBox.ForeColor = Ui.TextSecondary;
+			logBox.Font = Ui.FontMono(8.5f);
 			panel2.Controls.Add(logBox);
 			Panel content = BuildProcessesTab();
 			Panel content2 = BuildModsTab();
@@ -1055,6 +1497,8 @@ namespace MCCheatChecker
 			bottomTabs.AddPage("⚡  Процессы и RAM", content);
 			bottomTabs.AddPage("\ud83d\udce6  Анализ модов и строк", content2);
 			bottomTabs.AddPage("\ud83c\udf10  Сетевые соединения", content3);
+			Panel content4 = BuildSsToolsTab();
+			bottomTabs.AddPage("🛠️  Ручной аудит и папки (980+)", content4);
 			Panel content5 = BuildExternalSsToolsPanel();
 			bottomTabs.AddPage("\ud83e\uddf0  Внешние чекеры ↗", content5);
 			bottomTabs.SelectedIndexChanged += delegate
@@ -1116,7 +1560,8 @@ namespace MCCheatChecker
 			};
 			panel2.Controls.Add(darkButton2);
 			DarkButton darkButton3 = new DarkButton();
-			darkButton3.Text = "⚡  Снять читы/кликеры";
+			darkButton3.Text = "🛑  Снять отладчики/инжекторы";
+			tips.SetToolTip(darkButton3, "Завершить скрытые CheatEngine, x64dbg, ProcessHacker, Fiddler, Wireshark (кликеры не затрагиваются)");
 			darkButton3.Size = new Size(160, 26);
 			darkButton3.Location = new Point(278, 6);
 			darkButton3.BackColor = Color.FromArgb(183, 28, 28);
@@ -1162,13 +1607,13 @@ namespace MCCheatChecker
 			panel2.Controls.Add(label);
 			DarkTextBox searchMemoryBox = new DarkTextBox();
 			searchMemoryBox.Placeholder = "Строка (celestial, vape, killaura, aimbot, 127.0.0.1)...";
-			searchMemoryBox.Size = new Size(360, 24);
+			searchMemoryBox.Size = new Size(280, 24);
 			searchMemoryBox.Location = new Point(175, 39);
 			panel2.Controls.Add(searchMemoryBox);
 			DarkButton darkButton4 = new DarkButton();
 			darkButton4.Text = "\ud83d\udd0d  Искать в RAM javaw / выбранного PID";
-			darkButton4.Size = new Size(270, 24);
-			darkButton4.Location = new Point(545, 39);
+			darkButton4.Size = new Size(250, 24);
+			darkButton4.Location = new Point(465, 39);
 			darkButton4.BackColor = Color.FromArgb(0, 137, 123);
 			darkButton4.ForeColor = Color.White;
 			darkButton4.Font = Ui.FontBody(8.5f, true);
@@ -1199,7 +1644,7 @@ namespace MCCheatChecker
 						text2 = procsListView.SelectedItems[0].SubItems[1].Text;
 					}
 					SetStatus("Сканирование виртуальной памяти " + text2 + " на строку \"" + text + "\"...", Ui.AccentTeal);
-					List<MemoryRegionHit> list = ProcessMemoryScanner.SearchProcessMemoryForKeyword(result, text);
+					List<MemoryRegionHit> list = (text.StartsWith("(") || text.Contains("|")) ? ProcessMemoryScanner.SearchProcessMemoryWithRegex(result, text) : ProcessMemoryScanner.SearchProcessMemoryForKeyword(result, text);
 					if (list.Count == 0)
 					{
 						MessageBox.Show("В памяти процесса " + text2 + " вхождений строки \"" + text + "\" не обнаружено.", "Результат поиска в RAM", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
@@ -1223,6 +1668,70 @@ namespace MCCheatChecker
 				}
 			};
 			panel2.Controls.Add(darkButton4);
+
+			DarkButton copyPhRegexBtn = new DarkButton();
+			copyPhRegexBtn.Text = "📋 Скопировать Regex PH";
+			copyPhRegexBtn.Size = new Size(185, 24);
+			copyPhRegexBtn.Location = new Point(725, 39);
+			copyPhRegexBtn.BackColor = Ui.SurfaceAlt;
+			copyPhRegexBtn.ForeColor = Ui.TextPrimary;
+			copyPhRegexBtn.Font = Ui.FontBody(8.5f);
+			copyPhRegexBtn.Cursor = Cursors.Hand;
+			copyPhRegexBtn.Click += delegate
+			{
+				try
+				{
+					Clipboard.SetText(ProcessMemoryScanner.ProcessHackerCheatRegex);
+					SetStatus("Regex для Process Hacker / System Informer скопирован в буфер обмена!", Ui.AccentGreen);
+				}
+				catch { }
+			};
+			panel2.Controls.Add(copyPhRegexBtn);
+
+			DarkButton scanPhRegexBtn = new DarkButton();
+			scanPhRegexBtn.Text = "⚡ Скан по Regex PH";
+			scanPhRegexBtn.Size = new Size(175, 24);
+			scanPhRegexBtn.Location = new Point(918, 39);
+			scanPhRegexBtn.BackColor = Color.FromArgb(106, 27, 154);
+			scanPhRegexBtn.ForeColor = Color.White;
+			scanPhRegexBtn.Font = Ui.FontBody(8.5f, true);
+			scanPhRegexBtn.AccentStyle = true;
+			scanPhRegexBtn.Cursor = Cursors.Hand;
+			scanPhRegexBtn.Click += delegate
+			{
+				int result = 0;
+				string text2 = "javaw.exe";
+				if (procsListView.SelectedItems.Count > 0)
+				{
+					int.TryParse(procsListView.SelectedItems[0].SubItems[0].Text, out result);
+					text2 = procsListView.SelectedItems[0].SubItems[1].Text;
+				}
+				SetStatus("Сканирование памяти " + text2 + " по Regex Process Hacker...", Ui.AccentTeal);
+				List<MemoryRegionHit> list = ProcessMemoryScanner.SearchProcessMemoryWithRegex(result, ProcessMemoryScanner.ProcessHackerCheatRegex);
+				if (list.Count == 0)
+				{
+					MessageBox.Show("В памяти процесса " + text2 + " совпадений по Regex Process Hacker не обнаружено (память чиста).", "Скан Process Hacker Regex", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					SetStatus("Совпадений по Regex Process Hacker в памяти не обнаружено.", Ui.AccentGreen);
+				}
+				else
+				{
+					StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.AppendLine(string.Format("=== РЕЗУЛЬТАТЫ СКАНИРОВАНИЯ ПО REGEX PROCESS HACKER ({0} находок) ===", list.Count));
+					stringBuilder.AppendLine("Целевой процесс: " + text2 + ((result > 0) ? (" (PID " + result + ")") : ""));
+					stringBuilder.AppendLine("Regex filter: " + ProcessMemoryScanner.ProcessHackerCheatRegex);
+					stringBuilder.AppendLine();
+					foreach (MemoryRegionHit item in list)
+					{
+						stringBuilder.AppendLine(string.Format("[{0}] Адрес: {1} | {2} | {3}", item.Severity, item.Address, item.Type, item.Detail));
+					}
+					string text3 = Path.Combine(Path.GetTempPath(), "process_hacker_regex_hits.txt");
+					File.WriteAllText(text3, stringBuilder.ToString(), Encoding.UTF8);
+					PlatformHelper.OpenFileInEditor(text3);
+					SetStatus("ОБНАРУЖЕНЫ ЧИТ-СТРОКИ В ПАМЯТИ: " + list.Count + " шт.! Отчёт открыт.", Ui.AccentOrange);
+				}
+			};
+			panel2.Controls.Add(scanPhRegexBtn);
+
 			procsListView = new DarkListView();
 			procsListView.Dock = DockStyle.Fill;
 			procsListView.View = View.Details;
@@ -1472,12 +1981,34 @@ namespace MCCheatChecker
 				RunModsScan();
 			};
 			panel2.Controls.Add(darkButton);
+			DarkButton pickModBtn = new DarkButton();
+			pickModBtn.Text = "📂  Проверить файл...";
+			pickModBtn.Size = new Size(150, 26);
+			pickModBtn.Location = new Point(180, 6);
+			pickModBtn.BackColor = Ui.SurfaceAlt;
+			pickModBtn.ForeColor = Ui.TextPrimary;
+			pickModBtn.Font = Ui.FontBody(8.5f, true);
+			pickModBtn.Cursor = Cursors.Hand;
+			pickModBtn.Click += delegate
+			{
+				using (OpenFileDialog ofd = new OpenFileDialog())
+				{
+					ofd.Title = "Выберите файл для глубокого анализа (.jar, .dll, .exe, .zip)";
+					ofd.Filter = "Файлы для анализа (*.jar;*.dll;*.exe;*.zip)|*.jar;*.dll;*.exe;*.zip|Все файлы (*.*)|*.*";
+					if (ofd.ShowDialog() == DialogResult.OK)
+					{
+						ScanSingleFileAndDisplay(ofd.FileName);
+					}
+				}
+			};
+			panel2.Controls.Add(pickModBtn);
+
 			modsStatsLabel = new Label();
-			modsStatsLabel.Text = "Нажмите для поиска модов и сигнатур Constant Pool";
+			modsStatsLabel.Text = "Перетащите файл в окно (Drag&Drop) или нажмите Проверить";
 			modsStatsLabel.Font = Ui.FontBody(8.5f);
 			modsStatsLabel.ForeColor = Ui.TextSecondary;
 			modsStatsLabel.AutoSize = true;
-			modsStatsLabel.Location = new Point(182, 11);
+			modsStatsLabel.Location = new Point(338, 11);
 			panel2.Controls.Add(modsStatsLabel);
 			searchModsBox = new DarkTextBox();
 			searchModsBox.Placeholder = "Поиск по имени / сигнатуре...";
@@ -1534,6 +2065,11 @@ namespace MCCheatChecker
 				{
 					StringBuilder stringBuilder = new StringBuilder();
 					stringBuilder.AppendLine("Файл: " + internalStringHit.FilePath);
+					if (!string.IsNullOrEmpty(internalStringHit.Sha256))
+					{
+						stringBuilder.AppendLine("SHA-256: " + internalStringHit.Sha256);
+						stringBuilder.AppendLine("MD5:     " + internalStringHit.Md5);
+					}
 					stringBuilder.AppendLine("Угроза: " + internalStringHit.ThreatTitle);
 					stringBuilder.AppendLine("Проверено классов: " + internalStringHit.TotalClassesInspected + " | Извлечено строк: " + internalStringHit.TotalStringsExtracted);
 					stringBuilder.AppendLine();
@@ -1586,6 +2122,17 @@ namespace MCCheatChecker
 					if (internalStringHit != null && !string.IsNullOrEmpty(internalStringHit.FilePath))
 					{
 						Clipboard.SetText(internalStringHit.FilePath);
+					}
+				}
+			});
+			darkMenu.Items.Add("\ud83d\udd0d Найти этот мод в Everything", null, delegate
+			{
+				if (modsListView.SelectedItems.Count > 0)
+				{
+					InternalStringHit internalStringHit = modsListView.SelectedItems[0].Tag as InternalStringHit;
+					if (internalStringHit != null && !string.IsNullOrEmpty(internalStringHit.FileName))
+					{
+						LaunchEverything(internalStringHit.FileName);
 					}
 				}
 			});
@@ -1886,24 +2433,27 @@ namespace MCCheatChecker
 			Panel panel = new Panel();
 			panel.BackColor = Ui.Backdrop;
 			panel.AutoScroll = true;
+
 			Label label = new Label();
-			label.Text = "\ud83d\udee0\ufe0f  БЫСТРЫЙ ДОСТУП К ПАПКАМ И ИНСТРУМЕНТАМ ПРОВЕРКИ (Screenshare SS)";
+			label.Text = "🛠️  БЫСТРЫЙ ДОСТУП К ПАПКАМ И ИНСТРУМЕНТАМ ПРОВЕРКИ (Screenshare SS)";
 			label.Font = Ui.FontTitle(10f, true);
 			label.ForeColor = Ui.AccentTeal;
-			label.Location = new Point(16, 12);
+			label.Location = new Point(16, 10);
 			label.AutoSize = true;
 			panel.Controls.Add(label);
+
 			Label label2 = new Label();
 			label2.Text = "Мгновенное открытие ключевых директорий Minecraft и Windows, запуск Everything с готовыми запросами и системных утилит анализа.";
 			label2.Font = Ui.FontBody(8.5f);
 			label2.ForeColor = Ui.TextMuted;
-			label2.Location = new Point(16, 34);
+			label2.Location = new Point(16, 30);
 			label2.AutoSize = true;
 			panel.Controls.Add(label2);
+
 			DarkButton darkButton = new DarkButton();
-			darkButton.Text = "\ud83d\udcd1 Текстовый отчёт SS (.txt)";
-			darkButton.Size = new Size(240, 36);
-			darkButton.Location = new Point(590, 12);
+			darkButton.Text = "📄 Отчёт (.txt)";
+			darkButton.Size = new Size(130, 30);
+			darkButton.Location = new Point(880, 10);
 			darkButton.BackColor = Color.FromArgb(0, 121, 107);
 			darkButton.ForeColor = Color.White;
 			darkButton.Font = Ui.FontBody(8.5f, true);
@@ -1923,10 +2473,11 @@ namespace MCCheatChecker
 				}
 			};
 			panel.Controls.Add(darkButton);
+
 			DarkButton darkButton2 = new DarkButton();
-			darkButton2.Text = "\ud83c\udf10 Интерактивный HTML-отчёт (.html)";
-			darkButton2.Size = new Size(270, 36);
-			darkButton2.Location = new Point(840, 12);
+			darkButton2.Text = "🌐 HTML-отчёт";
+			darkButton2.Size = new Size(130, 30);
+			darkButton2.Location = new Point(1020, 10);
 			darkButton2.BackColor = Color.FromArgb(41, 128, 185);
 			darkButton2.ForeColor = Color.White;
 			darkButton2.Font = Ui.FontBody(8.5f, true);
@@ -1946,6 +2497,373 @@ namespace MCCheatChecker
 				}
 			};
 			panel.Controls.Add(darkButton2);
+
+			// Toolbar Row 1 at Y=48
+			DarkButton darkButtonChecklist = new DarkButton();
+			darkButtonChecklist.Text = "📋 Чек-лист (Ctrl+K)";
+			darkButtonChecklist.Size = new Size(142, 28);
+			darkButtonChecklist.Location = new Point(16, 48);
+			darkButtonChecklist.BackColor = Color.FromArgb(21, 101, 192);
+			darkButtonChecklist.ForeColor = Color.White;
+			darkButtonChecklist.Font = Ui.FontBody(8.5f, true);
+			darkButtonChecklist.Cursor = Cursors.Hand;
+			darkButtonChecklist.Click += delegate
+			{
+				try
+				{
+					ModeratorChecklistForm clForm = new ModeratorChecklistForm(PlayerOrFallback(), moderatorBox.Text.Trim(),
+						delegate { bottomTabs.SelectedIndex = 3; },
+						delegate { bottomTabs.SelectedIndex = 5; },
+						delegate { bottomTabs.SelectedIndex = 2; RunJavawRamScan(); },
+						delegate { RunBuiltinCheatSearch(); });
+					clForm.Show(this);
+				}
+				catch (Exception exCl)
+				{
+					MessageBox.Show(exCl.Message, "Чек-лист", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonChecklist, "Пошаговый регламент и протокол проведения ScreenShare проверки игрока");
+			panel.Controls.Add(darkButtonChecklist);
+
+			DarkButton darkButtonRules = new DarkButton();
+			darkButtonRules.Text = "📖 Регламент (Ctrl+R)";
+			darkButtonRules.Size = new Size(142, 28);
+			darkButtonRules.Location = new Point(164, 48);
+			darkButtonRules.BackColor = Color.FromArgb(0, 105, 92);
+			darkButtonRules.ForeColor = Color.White;
+			darkButtonRules.Font = Ui.FontBody(8.5f, true);
+			darkButtonRules.Cursor = Cursors.Hand;
+			darkButtonRules.Click += delegate
+			{
+				try
+				{
+					RuleBookViewerForm rulesForm = new RuleBookViewerForm(PlayerOrFallback());
+					rulesForm.Show(this);
+				}
+				catch (Exception exR)
+				{
+					MessageBox.Show("Ошибка открытия регламента: " + exR.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonRules, "Справочник регламента проверок (правила 5.01 - 5.08, белый список, сроки)");
+			panel.Controls.Add(darkButtonRules);
+
+			DarkButton darkButtonActivity = new DarkButton();
+			darkButtonActivity.Text = "🕒 Активность (Ctrl+U)";
+			darkButtonActivity.Size = new Size(150, 28);
+			darkButtonActivity.Location = new Point(312, 48);
+			darkButtonActivity.BackColor = Color.FromArgb(230, 81, 0);
+			darkButtonActivity.ForeColor = Color.White;
+			darkButtonActivity.Font = Ui.FontBody(8.5f, true);
+			darkButtonActivity.Cursor = Cursors.Hand;
+			darkButtonActivity.Click += delegate
+			{
+				try
+				{
+					UserActivityTimelineForm actForm = new UserActivityTimelineForm();
+					actForm.Show(this);
+				}
+				catch (Exception exAct)
+				{
+					MessageBox.Show("Ошибка открытия хронологии активности: " + exAct.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonActivity, "Хронология недавних запусков, загрузок браузеров, мессенджеров, PowerShell и USB");
+			panel.Controls.Add(darkButtonActivity);
+
+			DarkButton darkButtonLogViewer = new DarkButton();
+			darkButtonLogViewer.Text = "📜 Логи (Ctrl+L)";
+			darkButtonLogViewer.Size = new Size(130, 28);
+			darkButtonLogViewer.Location = new Point(468, 48);
+			darkButtonLogViewer.BackColor = Color.FromArgb(142, 68, 173);
+			darkButtonLogViewer.ForeColor = Color.White;
+			darkButtonLogViewer.Font = Ui.FontBody(8.5f, true);
+			darkButtonLogViewer.Cursor = Cursors.Hand;
+			darkButtonLogViewer.Click += delegate
+			{
+				try
+				{
+					MinecraftLogViewerForm logForm = new MinecraftLogViewerForm();
+					logForm.Show(this);
+				}
+				catch (Exception exLog)
+				{
+					MessageBox.Show("Ошибка открытия монитора логов: " + exLog.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonLogViewer, "Интерактивный просмотр и анализ latest.log на чит-команды (.bind, .vape, #goto) и флаги киков");
+			panel.Controls.Add(darkButtonLogViewer);
+
+			DarkButton darkButtonRamViewer = new DarkButton();
+			darkButtonRamViewer.Text = "⚡ RAM (Ctrl+J)";
+			darkButtonRamViewer.Size = new Size(130, 28);
+			darkButtonRamViewer.Location = new Point(604, 48);
+			darkButtonRamViewer.BackColor = Color.FromArgb(183, 28, 28);
+			darkButtonRamViewer.ForeColor = Color.White;
+			darkButtonRamViewer.Font = Ui.FontBody(8.5f, true);
+			darkButtonRamViewer.Cursor = Cursors.Hand;
+			darkButtonRamViewer.Click += delegate
+			{
+				try
+				{
+					JavawRamViewerForm ramForm = new JavawRamViewerForm(PlayerOrFallback());
+					ramForm.Show(this);
+				}
+				catch (Exception exRam)
+				{
+					MessageBox.Show("Ошибка инспектора RAM: " + exRam.Message, "RAM", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonRamViewer, "Глубокое сканирование оперативной памяти javaw на PE-инжекции (MZ) и сигнатуры читов");
+			panel.Controls.Add(darkButtonRamViewer);
+
+			DarkButton darkButtonMacroAudit = new DarkButton();
+			darkButtonMacroAudit.Text = "🖱️ Мыши (Ctrl+M)";
+			darkButtonMacroAudit.Size = new Size(140, 28);
+			darkButtonMacroAudit.Location = new Point(740, 48);
+			darkButtonMacroAudit.BackColor = Color.FromArgb(0, 121, 107);
+			darkButtonMacroAudit.ForeColor = Color.White;
+			darkButtonMacroAudit.Font = Ui.FontBody(8.5f, true);
+			darkButtonMacroAudit.Cursor = Cursors.Hand;
+			darkButtonMacroAudit.Click += delegate
+			{
+				try
+				{
+					PeripheralMacroForensicsForm pForm = new PeripheralMacroForensicsForm();
+					pForm.Show(this);
+				}
+				catch (Exception exP)
+				{
+					MessageBox.Show("Ошибка аудита периферии: " + exP.Message, "Периферия", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonMacroAudit, "Аудит ПО мыши (Logitech Lua, Bloody Oscar, Razer, дебаунс Glorious)");
+			panel.Controls.Add(darkButtonMacroAudit);
+
+			DarkButton darkButtonDnsViewer = new DarkButton();
+			darkButtonDnsViewer.Text = "🌐 DNS (Ctrl+D)";
+			darkButtonDnsViewer.Size = new Size(130, 28);
+			darkButtonDnsViewer.Location = new Point(886, 48);
+			darkButtonDnsViewer.BackColor = Color.FromArgb(0, 105, 92);
+			darkButtonDnsViewer.ForeColor = Color.White;
+			darkButtonDnsViewer.Font = Ui.FontBody(8.5f, true);
+			darkButtonDnsViewer.Cursor = Cursors.Hand;
+			darkButtonDnsViewer.Click += delegate
+			{
+				try
+				{
+					DnsCacheViewerForm dnsForm = new DnsCacheViewerForm(PlayerOrFallback());
+					dnsForm.Show(this);
+				}
+				catch (Exception exDns)
+				{
+					MessageBox.Show("Ошибка инспектора DNS: " + exDns.Message, "DNS Кэш", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonDnsViewer, "Криминалистический анализ DNS-кэша Windows на чит-домены, лоадеры и клинеры");
+			panel.Controls.Add(darkButtonDnsViewer);
+
+			DarkButton darkButtonAntiForensics = new DarkButton();
+			darkButtonAntiForensics.Text = "🛡️ Службы 5.08 (Ctrl+I)";
+			darkButtonAntiForensics.Size = new Size(160, 28);
+			darkButtonAntiForensics.Location = new Point(1022, 48);
+			darkButtonAntiForensics.BackColor = Color.FromArgb(198, 40, 40);
+			darkButtonAntiForensics.ForeColor = Color.White;
+			darkButtonAntiForensics.Font = Ui.FontBody(8.5f, true);
+			darkButtonAntiForensics.Cursor = Cursors.Hand;
+			darkButtonAntiForensics.Click += delegate
+			{
+				try
+				{
+					AntiForensicsViewerForm afForm = new AntiForensicsViewerForm(PlayerOrFallback());
+					afForm.Show(this);
+				}
+				catch (Exception exAf)
+				{
+					MessageBox.Show("Ошибка инспектора сокрытия: " + exAf.Message, "Анти-криминалистика", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonAntiForensics, "Аудит состояния обязательных служб (DPS, SysMain, EventLog), очистки журналов и реестра сокрытия");
+			panel.Controls.Add(darkButtonAntiForensics);
+
+			// Toolbar Row 2 at Y=80
+			DarkButton darkButtonJarViewer = new DarkButton();
+			darkButtonJarViewer.Text = "📦 JAR (Ctrl+O)";
+			darkButtonJarViewer.Size = new Size(140, 28);
+			darkButtonJarViewer.Location = new Point(16, 80);
+			darkButtonJarViewer.BackColor = Color.FromArgb(94, 53, 177);
+			darkButtonJarViewer.ForeColor = Color.White;
+			darkButtonJarViewer.Font = Ui.FontBody(8.5f, true);
+			darkButtonJarViewer.Cursor = Cursors.Hand;
+			darkButtonJarViewer.Click += delegate
+			{
+				try
+				{
+					JarStructureViewerForm jarForm = new JarStructureViewerForm(null, PlayerOrFallback());
+					jarForm.Show(this);
+				}
+				catch (Exception exJ)
+				{
+					MessageBox.Show("Ошибка инспектора JAR: " + exJ.Message, "JAR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonJarViewer, "Инспекция внутренней структуры JAR-модов и декодирование пула констант классов в памяти");
+			panel.Controls.Add(darkButtonJarViewer);
+
+			DarkButton darkButtonDisguised = new DarkButton();
+			darkButtonDisguised.Text = "🎭 Маскировки (Ctrl+G)";
+			darkButtonDisguised.Size = new Size(150, 28);
+			darkButtonDisguised.Location = new Point(160, 80);
+			darkButtonDisguised.BackColor = Color.FromArgb(198, 40, 40);
+			darkButtonDisguised.ForeColor = Color.White;
+			darkButtonDisguised.Font = Ui.FontBody(8.5f, true);
+			darkButtonDisguised.Cursor = Cursors.Hand;
+			darkButtonDisguised.Click += delegate
+			{
+				try
+				{
+					DisguisedFilesViewerForm dForm = new DisguisedFilesViewerForm(PlayerOrFallback());
+					dForm.Show(this);
+				}
+				catch (Exception exD)
+				{
+					MessageBox.Show("Ошибка поиска маскировок: " + exD.Message, "Маскировки", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonDisguised, "Поиск поддельных модов (Fake Sodium/Iris), скрытых исполняемых файлов под видом картинок (MZ) и скрытых JAR");
+			panel.Controls.Add(darkButtonDisguised);
+
+			DarkButton darkButtonFresh = new DarkButton();
+			darkButtonFresh.Text = "⚡ Свежие (24ч)";
+			darkButtonFresh.Size = new Size(135, 28);
+			darkButtonFresh.Location = new Point(314, 80);
+			darkButtonFresh.BackColor = Color.FromArgb(74, 20, 140);
+			darkButtonFresh.ForeColor = Color.White;
+			darkButtonFresh.Font = Ui.FontBody(8.5f, true);
+			darkButtonFresh.Cursor = Cursors.Hand;
+			darkButtonFresh.Click += delegate
+			{
+				ScanFreshMinecraftFiles();
+			};
+			tips.SetToolTip(darkButtonFresh, "Сканировать папки .minecraft на файлы, изменённые за последние 24 часа");
+			panel.Controls.Add(darkButtonFresh);
+
+			DarkButton darkButtonShellbags = new DarkButton();
+			darkButtonShellbags.Text = "📁 ShellBags (Ctrl+B)";
+			darkButtonShellbags.Size = new Size(145, 28);
+			darkButtonShellbags.Location = new Point(453, 80);
+			darkButtonShellbags.BackColor = Color.FromArgb(0, 121, 107);
+			darkButtonShellbags.ForeColor = Color.White;
+			darkButtonShellbags.Font = Ui.FontBody(8.5f, true);
+			darkButtonShellbags.Cursor = Cursors.Hand;
+			darkButtonShellbags.Click += delegate
+			{
+				try
+				{
+					ShellbagsViewerForm sForm = new ShellbagsViewerForm(PlayerOrFallback());
+					sForm.Show(this);
+				}
+				catch (Exception exS)
+				{
+					MessageBox.Show("Ошибка инспектора ShellBags: " + exS.Message, "ShellBags", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonShellbags, "Анализ реестра ShellBags (BagMRU) на открытие папок читов, в т.ч. на удалённых флешках");
+			panel.Controls.Add(darkButtonShellbags);
+
+			DarkButton darkButtonPrefetch = new DarkButton();
+			darkButtonPrefetch.Text = "⚡ Prefetch (Ctrl+E)";
+			darkButtonPrefetch.Size = new Size(145, 28);
+			darkButtonPrefetch.Location = new Point(602, 80);
+			darkButtonPrefetch.BackColor = Color.FromArgb(183, 28, 28);
+			darkButtonPrefetch.ForeColor = Color.White;
+			darkButtonPrefetch.Font = Ui.FontBody(8.5f, true);
+			darkButtonPrefetch.Cursor = Cursors.Hand;
+			darkButtonPrefetch.Click += delegate
+			{
+				try
+				{
+					PrefetchViewerForm pForm = new PrefetchViewerForm(PlayerOrFallback());
+					pForm.Show(this);
+				}
+				catch (Exception exPf)
+				{
+					MessageBox.Show("Ошибка инспектора Prefetch: " + exPf.Message, "Prefetch", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonPrefetch, "Криминалистический анализ C:\\Windows\\Prefetch: учёт количества запусков, история до 8 запусков и загруженные DLL");
+			panel.Controls.Add(darkButtonPrefetch);
+
+			DarkButton darkButtonSockets = new DarkButton();
+			darkButtonSockets.Text = "🔌 Сокеты (Ctrl+N)";
+			darkButtonSockets.Size = new Size(145, 28);
+			darkButtonSockets.Location = new Point(751, 80);
+			darkButtonSockets.BackColor = Color.FromArgb(0, 137, 123);
+			darkButtonSockets.ForeColor = Color.White;
+			darkButtonSockets.Font = Ui.FontBody(8.5f, true);
+			darkButtonSockets.Cursor = Cursors.Hand;
+			darkButtonSockets.Click += delegate
+			{
+				try
+				{
+					ActiveConnectionsViewerForm cForm = new ActiveConnectionsViewerForm(PlayerOrFallback());
+					cForm.Show(this);
+				}
+				catch (Exception exC)
+				{
+					MessageBox.Show("Ошибка инспектора сетевых сокетов: " + exC.Message, "Сокеты", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonSockets, "Инспектор активных сокетов TCP/UDP, localhost IPC и отправка HTTP-зондов для детекта скрытых Web-GUI читов");
+			panel.Controls.Add(darkButtonSockets);
+
+			DarkButton darkButtonUsn = new DarkButton();
+			darkButtonUsn.Text = "🗑️ Журнал USN (Ctrl+T)";
+			darkButtonUsn.Size = new Size(140, 28);
+			darkButtonUsn.Location = new Point(900, 80);
+			darkButtonUsn.BackColor = Color.FromArgb(142, 36, 170);
+			darkButtonUsn.ForeColor = Color.White;
+			darkButtonUsn.Font = Ui.FontBody(8.5f, true);
+			darkButtonUsn.Cursor = Cursors.Hand;
+			darkButtonUsn.Click += delegate
+			{
+				try
+				{
+					UsnJournalViewerForm uForm = new UsnJournalViewerForm(PlayerOrFallback());
+					uForm.Show(this);
+				}
+				catch (Exception exU)
+				{
+					MessageBox.Show("Ошибка инспектора USN: " + exU.Message, "USN Journal", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonUsn, "Трассировка системного журнала NTFS USN на удаление читов перед проверкой и переименования");
+			panel.Controls.Add(darkButtonUsn);
+
+			DarkButton darkButtonShim = new DarkButton();
+			darkButtonShim.Text = "🗄️ ShimCache (Ctrl+Y)";
+			darkButtonShim.Size = new Size(140, 28);
+			darkButtonShim.Location = new Point(1044, 80);
+			darkButtonShim.BackColor = Color.FromArgb(38, 50, 56);
+			darkButtonShim.ForeColor = Color.White;
+			darkButtonShim.Font = Ui.FontBody(8.5f, true);
+			darkButtonShim.Cursor = Cursors.Hand;
+			darkButtonShim.Click += delegate
+			{
+				try
+				{
+					ShimcacheViewerForm sForm = new ShimcacheViewerForm(PlayerOrFallback());
+					sForm.Show(this);
+				}
+				catch (Exception exShim)
+				{
+					MessageBox.Show("Ошибка инспектора ShimCache: " + exShim.Message, "ShimCache", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			};
+			tips.SetToolTip(darkButtonShim, "Аудит кэша ядра AppCompatCache: до 1024 запущенных файлов, включая удалённые и с флешек");
+			panel.Controls.Add(darkButtonShim);
+
 			Action<string, string> openPath = delegate(string path, string name)
 			{
 				try
@@ -1987,8 +2905,8 @@ namespace MCCheatChecker
 			string userProf = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 			string text = Path.Combine(appData, ".minecraft");
 			Panel pnlMc = new Panel();
-			pnlMc.Location = new Point(16, 60);
-			pnlMc.Size = new Size(540, 185);
+			pnlMc.Location = new Point(16, 116);
+			pnlMc.Size = new Size(540, 260);
 			pnlMc.BackColor = Ui.Surface;
 			pnlMc.Paint += delegate(object s, PaintEventArgs e)
 			{
@@ -2005,20 +2923,26 @@ namespace MCCheatChecker
 			label3.Location = new Point(12, 10);
 			label3.AutoSize = true;
 			pnlMc.Controls.Add(label3);
-			Tuple<string, string, string>[] array = new Tuple<string, string, string>[12]
+			Tuple<string, string, string>[] array = new Tuple<string, string, string>[18]
 			{
-				Tuple.Create("\ud83d\udcc2 .minecraft", text, ".minecraft"),
-				Tuple.Create("\ud83e\udde9 mods", Path.Combine(text, "mods"), "mods"),
-				Tuple.Create("\ud83d\udce6 versions", Path.Combine(text, "versions"), "versions"),
-				Tuple.Create("\ud83d\udcdc logs", Path.Combine(text, "logs"), "logs"),
-				Tuple.Create("\ud83d\udca5 crash-reports", Path.Combine(text, "crash-reports"), "crash-reports"),
-				Tuple.Create("\ud83d\udcf7 screenshots", Path.Combine(text, "screenshots"), "screenshots"),
-				Tuple.Create("\ud83c\udfa8 shaderpacks", Path.Combine(text, "shaderpacks"), "shaderpacks"),
-				Tuple.Create("\ud83d\udc8e resourcepacks", Path.Combine(text, "resourcepacks"), "resourcepacks"),
-				Tuple.Create("\ud83c\udfae options.txt", Path.Combine(text, "options.txt"), "options.txt"),
+				Tuple.Create("📁 .minecraft", text, ".minecraft"),
+				Tuple.Create("🧩 mods", Path.Combine(text, "mods"), "mods"),
+				Tuple.Create("📦 versions", Path.Combine(text, "versions"), "versions"),
+				Tuple.Create("📜 logs", Path.Combine(text, "logs"), "logs"),
+				Tuple.Create("💥 crash-reports", Path.Combine(text, "crash-reports"), "crash-reports"),
+				Tuple.Create("📸 screenshots", Path.Combine(text, "screenshots"), "screenshots"),
+				Tuple.Create("🎨 shaderpacks", Path.Combine(text, "shaderpacks"), "shaderpacks"),
+				Tuple.Create("💎 resourcepacks", Path.Combine(text, "resourcepacks"), "resourcepacks"),
+				Tuple.Create("🎮 options.txt", Path.Combine(text, "options.txt"), "options.txt"),
+				Tuple.Create("🚀 .tlauncher", Path.Combine(appData, ".tlauncher"), ".tlauncher"),
+				Tuple.Create("⚡ Modrinth App", Path.Combine(appData, "com.modrinth.theseus", "profiles"), "Modrinth"),
+				Tuple.Create("🔥 CurseForge", Path.Combine(userProf, "curseforge", "minecraft", "Instances"), "CurseForge"),
 				Tuple.Create("🔮 PrismLauncher", Path.Combine(appData, "PrismLauncher", "instances"), "PrismLauncher"),
-				Tuple.Create("\ud83e\udeb6 .feather", Path.Combine(userProf, ".feather"), ".feather"),
-				Tuple.Create("\ud83c\udf19 .lunarclient", Path.Combine(userProf, ".lunarclient"), ".lunarclient")
+				Tuple.Create("⚙️ MultiMC", Path.Combine(appData, "MultiMC", "instances"), "MultiMC"),
+				Tuple.Create("🪶 .feather", Path.Combine(userProf, ".feather"), ".feather"),
+				Tuple.Create("🌙 .lunarclient", Path.Combine(userProf, ".lunarclient"), ".lunarclient"),
+				Tuple.Create("🦁 Badlion Client", Path.Combine(appData, "Badlion Client"), "Badlion"),
+				Tuple.Create("🏛️ Legacy Launcher", Path.Combine(appData, ".tlauncher", "legacy"), "Legacy")
 			};
 			for (int num = 0; num < array.Length; num++)
 			{
@@ -2039,8 +2963,8 @@ namespace MCCheatChecker
 				pnlMc.Controls.Add(darkButton3);
 			}
 			Panel pnlWin = new Panel();
-			pnlWin.Location = new Point(570, 60);
-			pnlWin.Size = new Size(540, 185);
+			pnlWin.Location = new Point(570, 116);
+			pnlWin.Size = new Size(540, 260);
 			pnlWin.BackColor = Ui.Surface;
 			pnlWin.Paint += delegate(object s, PaintEventArgs e)
 			{
@@ -2057,56 +2981,26 @@ namespace MCCheatChecker
 			label4.Location = new Point(12, 10);
 			label4.AutoSize = true;
 			pnlWin.Controls.Add(label4);
-			Tuple<string, Action>[] array2 = new Tuple<string, Action>[12]
+			Tuple<string, Action>[] array2 = new Tuple<string, Action>[18]
 			{
-				Tuple.Create<string, Action>("⚡ Prefetch", delegate
-				{
-					openPath("C:\\Windows\\Prefetch", "Prefetch");
-				}),
-				Tuple.Create<string, Action>("\ud83d\udd52 shell:recent", delegate
-				{
-					openSpecial("shell:recent");
-				}),
-				Tuple.Create<string, Action>("\ud83d\uddd1\ufe0f Корзина ($Recycle.Bin)", delegate
-				{
-					openSpecial("shell:recyclebinfolder");
-				}),
-				Tuple.Create<string, Action>("\ud83d\udcc1 AppData Roaming", delegate
-				{
-					openPath(appData, "AppData Roaming");
-				}),
-				Tuple.Create<string, Action>("\ud83d\udcc1 AppData Local", delegate
-				{
-					openPath(localApp, "AppData Local");
-				}),
-				Tuple.Create<string, Action>("\ud83d\udcc1 Temp", delegate
-				{
-					openPath(Path.GetTempPath(), "Temp");
-				}),
-				Tuple.Create<string, Action>("\ud83d\udce5 Загрузки (Downloads)", delegate
-				{
-					openPath(Path.Combine(userProf, "Downloads"), "Downloads");
-				}),
-				Tuple.Create<string, Action>("\ud83d\udda5\ufe0f Рабочий стол", delegate
-				{
-					openPath(Path.Combine(userProf, "Desktop"), "Desktop");
-				}),
-				Tuple.Create<string, Action>("\ud83d\udccb Windows INF логи", delegate
-				{
-					openPath("C:\\Windows\\INF", "Windows INF");
-				}),
-				Tuple.Create<string, Action>("⚙\ufe0f System32 Tasks", delegate
-				{
-					openPath("C:\\Windows\\System32\\Tasks", "System32 Tasks");
-				}),
-				Tuple.Create<string, Action>("⏱\ufe0f JumpLists", delegate
-				{
-					openPath(Path.Combine(appData, "Microsoft\\Windows\\Recent\\AutomaticDestinations"), "AutomaticDestinations");
-				}),
-				Tuple.Create<string, Action>("📜 PCA логи запусков", delegate
-				{
-					openPath("C:\\Windows\\appcompat\\pca", "PCA Logs");
-				})
+				Tuple.Create<string, Action>("⚡ Prefetch", delegate { openPath("C:\\Windows\\Prefetch", "Prefetch"); }),
+				Tuple.Create<string, Action>("🕒 shell:recent", delegate { openSpecial("shell:recent"); }),
+				Tuple.Create<string, Action>("🗑️ Корзина ($Recycle.Bin)", delegate { openSpecial("shell:recyclebinfolder"); }),
+				Tuple.Create<string, Action>("📁 AppData Roaming", delegate { openPath(appData, "AppData Roaming"); }),
+				Tuple.Create<string, Action>("📁 AppData Local", delegate { openPath(localApp, "AppData Local"); }),
+				Tuple.Create<string, Action>("📁 Temp", delegate { openPath(Path.GetTempPath(), "Temp"); }),
+				Tuple.Create<string, Action>("📥 Загрузки (Downloads)", delegate { openPath(Path.Combine(userProf, "Downloads"), "Downloads"); }),
+				Tuple.Create<string, Action>("🖥️ Рабочий стол", delegate { openPath(Path.Combine(userProf, "Desktop"), "Desktop"); }),
+				Tuple.Create<string, Action>("📋 Windows INF логи", delegate { openPath("C:\\Windows\\INF", "Windows INF"); }),
+				Tuple.Create<string, Action>("⚙️ System32 Tasks", delegate { openPath("C:\\Windows\\System32\\Tasks", "System32 Tasks"); }),
+				Tuple.Create<string, Action>("⏱️ JumpLists", delegate { openPath(Path.Combine(appData, "Microsoft\\Windows\\Recent\\AutomaticDestinations"), "AutomaticDestinations"); }),
+				Tuple.Create<string, Action>("📜 PCA логи запусков", delegate { openPath("C:\\Windows\\appcompat\\pca", "PCA Logs"); }),
+				Tuple.Create<string, Action>("💥 CrashDumps (дампы)", delegate { openPath(Path.Combine(localApp, "CrashDumps"), "CrashDumps"); }),
+				Tuple.Create<string, Action>("📂 Recent LNKs", delegate { openPath(Path.Combine(appData, "Microsoft\\Windows\\Recent"), "Recent LNKs"); }),
+				Tuple.Create<string, Action>("🛡️ WER Отчёты сбоев", delegate { openPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft\\Windows\\WER"), "Windows WER"); }),
+				Tuple.Create<string, Action>("💾 Windows Minidump", delegate { openPath("C:\\Windows\\Minidump", "Windows Minidump"); }),
+				Tuple.Create<string, Action>("🖼️ IconCache", delegate { openPath(Path.Combine(localApp, "Microsoft\\Windows\\Explorer"), "IconCache"); }),
+				Tuple.Create<string, Action>("🔌 Диспетчер устройств", delegate { try { Process.Start("devmgmt.msc"); SetStatus("Открыт Диспетчер устройств (проверка USB)", Ui.AccentGreen); } catch { } })
 			};
 			for (int num4 = 0; num4 < array2.Length; num4++)
 			{
@@ -2127,7 +3021,7 @@ namespace MCCheatChecker
 				pnlWin.Controls.Add(darkButton4);
 			}
 			Panel pnlTools = new Panel();
-			pnlTools.Location = new Point(16, 255);
+			pnlTools.Location = new Point(16, 386);
 			pnlTools.Size = new Size(1094, 435);
 			pnlTools.BackColor = Ui.Surface;
 			pnlTools.AutoScroll = true;
@@ -2224,6 +3118,42 @@ namespace MCCheatChecker
 				SetStatus("Запрос 140 размеров скопирован в буфер обмена!", Ui.AccentTeal);
 			};
 			pnlTools.Controls.Add(darkButton8);
+			DarkButton darkButtonFreshExt = new DarkButton();
+			darkButtonFreshExt.Text = "⚡ Свежие файлы (dm:last48hours)";
+			darkButtonFreshExt.Size = new Size(255, 30);
+			darkButtonFreshExt.Location = new Point(12, 72);
+			darkButtonFreshExt.BackColor = Color.FromArgb(50, 40, 80);
+			darkButtonFreshExt.ForeColor = Color.White;
+			darkButtonFreshExt.Font = Ui.FontBody(8.5f, true);
+			darkButtonFreshExt.Click += delegate { launchEverything("ext:jar;exe dm:last48hours"); };
+			pnlTools.Controls.Add(darkButtonFreshExt);
+			DarkButton darkButtonRecycleExt = new DarkButton();
+			darkButtonRecycleExt.Text = "🗑️ Софты в $Recycle.Bin";
+			darkButtonRecycleExt.Size = new Size(255, 30);
+			darkButtonRecycleExt.Location = new Point(275, 72);
+			darkButtonRecycleExt.BackColor = Color.FromArgb(60, 30, 40);
+			darkButtonRecycleExt.ForeColor = Color.White;
+			darkButtonRecycleExt.Font = Ui.FontBody(8.5f, true);
+			darkButtonRecycleExt.Click += delegate { launchEverything("path:$Recycle.Bin ext:jar;zip;rar;exe"); };
+			pnlTools.Controls.Add(darkButtonRecycleExt);
+			DarkButton darkButtonClickersExt = new DarkButton();
+			darkButtonClickersExt.Text = "🖱️ Поиск кликеров и макросов";
+			darkButtonClickersExt.Size = new Size(255, 30);
+			darkButtonClickersExt.Location = new Point(538, 72);
+			darkButtonClickersExt.BackColor = Color.FromArgb(40, 50, 60);
+			darkButtonClickersExt.ForeColor = Color.White;
+			darkButtonClickersExt.Font = Ui.FontBody(8.5f, true);
+			darkButtonClickersExt.Click += delegate { launchEverything("autoclicker|speedautoclicker|tinytask|clickermann|keyran|macro|x-mouse"); };
+			pnlTools.Controls.Add(darkButtonClickersExt);
+			DarkButton darkButtonBuiltInScan = new DarkButton();
+			darkButtonBuiltInScan.Text = "🔍 Встроенный поиск читов (без Everything)";
+			darkButtonBuiltInScan.Size = new Size(280, 30);
+			darkButtonBuiltInScan.Location = new Point(801, 72);
+			darkButtonBuiltInScan.BackColor = Color.FromArgb(0, 105, 92);
+			darkButtonBuiltInScan.ForeColor = Color.White;
+			darkButtonBuiltInScan.Font = Ui.FontBody(8.5f, true);
+			darkButtonBuiltInScan.Click += delegate { RunBuiltinCheatSearch(); };
+			pnlTools.Controls.Add(darkButtonBuiltInScan);
 			Tuple<string, Action>[] array3 = new Tuple<string, Action>[984]
 			{
 				Tuple.Create<string, Action>("\ud83d\udcca Диспетчер задач", delegate
@@ -26952,7 +27882,7 @@ namespace MCCheatChecker
 				DarkButton darkButton9 = new DarkButton();
 				darkButton9.Text = item3.Item1;
 				darkButton9.Size = new Size(255, 28);
-				darkButton9.Location = new Point(12 + num8 * 265, 78 + num9 * 34);
+				darkButton9.Location = new Point(12 + num8 * 265, 108 + num9 * 34);
 				darkButton9.BackColor = Ui.SurfaceAlt;
 				darkButton9.ForeColor = Ui.TextPrimary;
 				darkButton9.Font = Ui.FontBody(8.5f);
@@ -26977,7 +27907,7 @@ namespace MCCheatChecker
 					{
 						int col = visibleIndex % 4;
 						int row = visibleIndex / 4;
-						btn.Location = new Point(12 + col * 265, 78 + row * 34);
+						btn.Location = new Point(12 + col * 265, 108 + row * 34);
 						visibleIndex++;
 					}
 				}
@@ -27001,7 +27931,7 @@ namespace MCCheatChecker
 			};
 			pnlTools.Controls.Add(searchToolsBox);
 			Panel pnlCps = new Panel();
-			pnlCps.Location = new Point(16, 705);
+			pnlCps.Location = new Point(16, 836);
 			pnlCps.Size = new Size(1094, 215);
 			pnlCps.BackColor = Ui.Surface;
 			pnlCps.Paint += delegate(object s, PaintEventArgs e)
@@ -27168,12 +28098,20 @@ namespace MCCheatChecker
 			pnlVerdictBox.Controls.Add(lblVerdictText);
 			DarkButton darkButton10 = new DarkButton();
 			darkButton10.Text = "\ud83d\udd04 Сброс теста";
-			darkButton10.Size = new Size(340, 32);
+			darkButton10.Size = new Size(165, 32);
 			darkButton10.Location = new Point(740, 160);
 			darkButton10.BackColor = Ui.SurfaceAlt;
 			darkButton10.ForeColor = Ui.TextPrimary;
 			darkButton10.Font = Ui.FontBody(8.5f);
 			pnlCps.Controls.Add(darkButton10);
+			DarkButton darkButtonCopyCps = new DarkButton();
+			darkButtonCopyCps.Text = "📋 Копия";
+			darkButtonCopyCps.Size = new Size(165, 32);
+			darkButtonCopyCps.Location = new Point(915, 160);
+			darkButtonCopyCps.BackColor = Ui.SurfaceAlt;
+			darkButtonCopyCps.ForeColor = Ui.AccentTeal;
+			darkButtonCopyCps.Font = Ui.FontBody(8.5f);
+			pnlCps.Controls.Add(darkButtonCopyCps);
 			List<long> clickTimestamps = new List<long>();
 			List<double> clickDelays = new List<double>();
 			long lastClickTick = 0L;
@@ -27259,7 +28197,166 @@ namespace MCCheatChecker
 				lblVerdictText.ForeColor = Ui.TextSecondary;
 				SetStatus("Тестер кликов и CPS сброшен.", Ui.AccentTeal);
 			};
+			darkButtonCopyCps.Click += delegate
+			{
+				string verdictClean = (lblVerdictText.Text ?? "").Replace("\n", " ");
+				string res = string.Format("[CPS Тест] Игрок: {0} | Кликов: {1} | Текущий: {2} | Пик: {3} | Мин. задержка: {4} | Ср. интервал: {5} | Джиттер: {6} | Вердикт: {7}",
+					PlayerOrFallback(), totalClicks, lblCpsVal.Text, lblPeakVal.Text, lblMinVal.Text, lblAvgVal.Text, lblStdVal.Text, verdictClean);
+				TrySetClipboardText(res);
+				SetStatus("Результат CPS теста скопирован в буфер обмена!", Ui.AccentTeal);
+				MessageBox.Show(res, "MC Cheat Checker — CPS Тест", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			};
 			return panel;
+		}
+
+		private static string ComputeFileSha256(string filePath)
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return null;
+				using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				using (System.Security.Cryptography.SHA256 sha = System.Security.Cryptography.SHA256.Create())
+				{
+					byte[] hash = sha.ComputeHash(fs);
+					StringBuilder sb = new StringBuilder();
+					foreach (byte b in hash) sb.Append(b.ToString("x2"));
+					return sb.ToString();
+				}
+			}
+			catch { return null; }
+		}
+
+		private void RunBuiltinCheatSearch()
+		{
+			try
+			{
+				SetStatus("Открыт быстрый охотник за файлами читов...", Ui.AccentTeal);
+				new FastCheatHunterForm(PlayerOrFallback()).Show(this);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Ошибка открытия встроенного поиска читов: " + ex.Message, "Поиск читов", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private void MainForm_DragEnter(object sender, DragEventArgs e)
+		{
+			if (e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				e.Effect = DragDropEffects.Copy;
+			}
+			else
+			{
+				e.Effect = DragDropEffects.None;
+			}
+		}
+
+		private void MainForm_DragDrop(object sender, DragEventArgs e)
+		{
+			try
+			{
+				if (e.Data == null || !e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+				string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+				if (files == null || files.Length == 0) return;
+
+				if (files.Length == 1)
+				{
+					ScanSingleFileAndDisplay(files[0]);
+				}
+				else
+				{
+					ScanMultipleFilesAndDisplay(files);
+				}
+			}
+			catch (Exception ex)
+			{
+				SetStatus("Ошибка при обработке файлов: " + ex.Message, Ui.AccentRed);
+			}
+		}
+
+		private async void ScanSingleFileAndDisplay(string filePath)
+		{
+			if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return;
+			try
+			{
+				bottomTabs.SelectedIndex = 3;
+				string fname = Path.GetFileName(filePath);
+				SetStatus("Глубокий анализ файла: " + fname + "...", Ui.AccentTeal);
+				InternalStringHit hit = await Task.Run(() => ModStringInspector.ScanFile(filePath));
+				cachedModHits.RemoveAll(x => string.Equals(x.FilePath, hit.FilePath, StringComparison.OrdinalIgnoreCase));
+				cachedModHits.Insert(0, hit);
+				SortModsList();
+				if (modsListView != null && modsListView.Items.Count > 0)
+				{
+					modsListView.Items[0].Selected = true;
+					modsListView.Items[0].EnsureVisible();
+				}
+				if (hit.IsThreat)
+				{
+					try { System.Media.SystemSounds.Exclamation.Play(); } catch { }
+					SetStatus("🚨 УГРОЗА В ФАЙЛЕ: " + hit.ThreatTitle, Ui.AccentRed);
+					MessageBox.Show(string.Format("Обнаружена угроза в файле {0}!\r\nВердикт: {1}\r\nСигнатуры: {2}", hit.FileName, hit.ThreatTitle, hit.GetMatchedStringSummary()), "MC Cheat Checker — Анализ мода", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				}
+				else
+				{
+					SetStatus("✅ Файл чист: " + hit.FileName + " (" + hit.TotalClassesInspected + " классов проверено)", Ui.AccentGreen);
+				}
+			}
+			catch (Exception ex)
+			{
+				SetStatus("Ошибка анализа файла: " + ex.Message, Ui.AccentRed);
+			}
+		}
+
+		private async void ScanMultipleFilesAndDisplay(string[] files)
+		{
+			if (files == null || files.Length == 0) return;
+			try
+			{
+				bottomTabs.SelectedIndex = 3;
+				SetStatus("Пакетный анализ " + files.Length + " файлов...", Ui.AccentTeal);
+				List<InternalStringHit> newHits = new List<InternalStringHit>();
+				await Task.Run(() =>
+				{
+					foreach (string file in files)
+					{
+						if (File.Exists(file))
+						{
+							InternalStringHit hit = ModStringInspector.ScanFile(file);
+							newHits.Add(hit);
+						}
+					}
+				});
+
+				foreach (InternalStringHit hit in newHits)
+				{
+					cachedModHits.RemoveAll(x => string.Equals(x.FilePath, hit.FilePath, StringComparison.OrdinalIgnoreCase));
+					cachedModHits.Insert(0, hit);
+				}
+
+				SortModsList();
+				if (modsListView != null && modsListView.Items.Count > 0)
+				{
+					modsListView.Items[0].Selected = true;
+					modsListView.Items[0].EnsureVisible();
+				}
+
+				int threats = newHits.Count(h => h.IsThreat);
+				if (threats > 0)
+				{
+					try { System.Media.SystemSounds.Exclamation.Play(); } catch { }
+					SetStatus(string.Format("🚨 ВНИМАНИЕ! Обнаружено {0} угроз в перетащенных файлах!", threats), Ui.AccentRed);
+					MessageBox.Show(string.Format("Внимание! При анализе {0} файлов обнаружено угроз: {1}!\r\nРезультаты открыты во вкладке «Анализ модов и строк».", newHits.Count, threats), "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				}
+				else
+				{
+					SetStatus("✅ Проверено файлов: " + newHits.Count + " — угроз не обнаружено.", Ui.AccentGreen);
+				}
+			}
+			catch (Exception ex)
+			{
+				SetStatus("Ошибка пакетного анализа: " + ex.Message, Ui.AccentRed);
+			}
 		}
 
 		private void OpenSelectedSocketWhois()
@@ -27347,7 +28444,7 @@ namespace MCCheatChecker
 			pnlHeader.Controls.Add(lblSub);
 
 			Label lblStatusBadge = new Label();
-			lblStatusBadge.Text = "🟢  GitHub-утилиты (MeowDoomsday, Clean Detecting, SSTool, y_check): АКТИВИРОВАНЫ ВМЕСТЕ С ЧЕКЕРОМ";
+			lblStatusBadge.Text = "🟢  GitHub-утилиты (MeowDoomsday, Clean Detecting, SSTool, y_check): ДЕТЕКТОРЫ АКТИВНЫ (АВТОЗАПУСК ОТКЛЮЧЕН)";
 			lblStatusBadge.Font = Ui.FontBody(8.5f, true);
 			lblStatusBadge.ForeColor = Ui.AccentGreen;
 			lblStatusBadge.Location = new Point(16, 50);
@@ -27355,7 +28452,7 @@ namespace MCCheatChecker
 			pnlHeader.Controls.Add(lblStatusBadge);
 
 			DarkButton btnActivateTools = new DarkButton();
-			btnActivateTools.Text = "⚡  Активировать все утилиты сейчас";
+			btnActivateTools.Text = "⚡  Проверить статус утилит";
 			btnActivateTools.Size = new Size(240, 28);
 			btnActivateTools.Location = new Point(16, 76);
 			btnActivateTools.BackColor = Color.FromArgb(30, 90, 80);
@@ -27916,7 +29013,12 @@ namespace MCCheatChecker
 			int num3 = filterBar.ClientSize.Width;
 			int num4 = pathActionPanel.ClientSize.Width;
 			int width3 = kpiPanel.ClientSize.Width;
-			clockLabel.Location = new Point(Math.Max(0, num - 16 - clockLabel.Width), 22);
+			if (clockLabel != null) clockLabel.Visible = false;
+			if (moderatorBox != null) moderatorBox.Visible = false;
+			if (moderatorPromptLabel != null) moderatorPromptLabel.Visible = false;
+			if (playerNameBox != null) playerNameBox.Visible = false;
+			if (playerPromptLabel != null) playerPromptLabel.Visible = false;
+
 			int num5 = 18;
 			int num6 = 12;
 			startButton.Location = new Point(num5, num6);
@@ -27929,17 +29031,77 @@ namespace MCCheatChecker
 			{
 				discordCopyBtn.Location = new Point(num5, num6);
 				discordCopyBtn.Size = new Size(150, 30);
-				num5 += discordCopyBtn.Width + 18;
+				num5 += discordCopyBtn.Width + 8;
+			}
+			if (exportBtn != null && exportBtn.Visible)
+			{
+				exportBtn.Location = new Point(num5, num6);
+				exportBtn.Size = new Size(160, 30);
+				num5 += exportBtn.Width + 8;
+			}
+			if (ssToggleBtn != null && ssToggleBtn.Visible)
+			{
+				ssToggleBtn.Location = new Point(num5, num6);
+				ssToggleBtn.Size = new Size(115, 30);
+				num5 += ssToggleBtn.Width + 8;
+			}
+			if (hubQuickBtn != null && hubQuickBtn.Visible)
+			{
+				hubQuickBtn.Location = new Point(num5, num6);
+				hubQuickBtn.Size = new Size(195, 30);
+				num5 += hubQuickBtn.Width + 8;
+			}
+			if (triageQuickBtn != null && triageQuickBtn.Visible)
+			{
+				triageQuickBtn.Location = new Point(num5, num6);
+				triageQuickBtn.Size = new Size(165, 30);
+				num5 += triageQuickBtn.Width + 12;
+			}
+			if (dossierQuickBtn != null && dossierQuickBtn.Visible)
+			{
+				dossierQuickBtn.Location = new Point(num5, num6);
+				dossierQuickBtn.Size = new Size(175, 30);
+				num5 += dossierQuickBtn.Width + 12;
+			}
+
+			if (lblIntegrity != null && lblIntegrity.Visible)
+			{
+				lblIntegrity.Location = new Point(num5, num6 + 8);
+				num5 += lblIntegrity.Width + 14;
 			}
 			verdictLabel.Location = new Point(num5, num6 + 7);
 			verdictLabel.Width = Math.Max(120, num - 16 - num5);
+			if (bedrockPanel != null && bedrockPanel.Visible)
+			{
+				bedrockPanel.Height = 38;
+				int bx = 16;
+				if (bedrockTitleLabel != null) { bedrockTitleLabel.Location = new Point(bx, 11); bx += bedrockTitleLabel.Width + 6; }
+				if (bedrockTimerLabel != null) { bedrockTimerLabel.Location = new Point(bx, 9); bx += 80; }
+				if (pauseTimerBtn != null) { pauseTimerBtn.Location = new Point(bx, 7); pauseTimerBtn.Size = new Size(72, 24); bx += pauseTimerBtn.Width + 6; }
+				if (addTimeBtn != null) { addTimeBtn.Location = new Point(bx, 7); addTimeBtn.Size = new Size(62, 24); bx += addTimeBtn.Width + 6; }
+				if (resetTimerBtn != null) { resetTimerBtn.Location = new Point(bx, 7); resetTimerBtn.Size = new Size(62, 24); bx += resetTimerBtn.Width + 8; }
+				if (refuseBanBtn != null) { refuseBanBtn.Location = new Point(bx, 7); refuseBanBtn.Size = new Size(168, 24); bx += refuseBanBtn.Width + 16; }
+				if (contactsPromptLabel != null) { contactsPromptLabel.Location = new Point(bx, 11); bx += contactsPromptLabel.Width + 6; }
+				if (contactsBox != null) { contactsBox.Location = new Point(bx, 8); contactsBox.Size = new Size(130, 22); bx += contactsBox.Width + 6; }
+				if (pasteContactsBtn != null) { pasteContactsBtn.Location = new Point(bx, 7); pasteContactsBtn.Size = new Size(82, 24); bx += pasteContactsBtn.Width + 10; }
+				if (contactsStatusLabel != null)
+				{
+					contactsStatusLabel.Location = new Point(bx, 11);
+					contactsStatusLabel.AutoEllipsis = true;
+					contactsStatusLabel.Width = Math.Max(100, width2 - 16 - bx);
+				}
+			}
+			else if (bedrockPanel != null)
+			{
+				bedrockPanel.Height = 0;
+			}
 			scanProgressBar.Location = new Point(Math.Max(0, num2 - 16 - scanProgressBar.Width), 11);
 			stepProgressLabel.Location = new Point(scanProgressBar.Left - stepProgressLabel.Width - 12, (30 - stepProgressLabel.Height) / 2);
 			int num7 = 14;
 			onlyDetectedCheck.Location = new Point(num7, 8);
 			criticalOnlyCheck.Location = new Point(onlyDetectedCheck.Right + 8, 8);
 			resetFilterBtn.Location = new Point(criticalOnlyCheck.Right + 10, 7);
-			if (btnExportHtml != null)
+			if (btnExportHtml != null && btnExportHtml.Visible)
 			{
 				btnExportHtml.Location = new Point(resetFilterBtn.Right + 10, 7);
 				filterCounterLabel.Location = new Point(btnExportHtml.Right + 12, 11);
@@ -28107,7 +29269,6 @@ namespace MCCheatChecker
 			{
 				return;
 			}
-			AutoActivateGitHubUtilities();
 			string pName = (string.IsNullOrEmpty(playerNameBox.Text.Trim()) ? SafeUserName() : playerNameBox.Text.Trim());
 			isScanning = true;
 			startButton.Enabled = false;
@@ -28214,6 +29375,62 @@ namespace MCCheatChecker
 			}
 		}
 
+		private static bool CategoryMatches(CheckResult r, string sidebarName)
+		{
+			if (sidebarName == "Все") return true;
+			if (sidebarName == "Критические") return r.Detected && r.Severity == CheckSeverity.Critical;
+			if (sidebarName == "Визуалы (Следует проверить)" || sidebarName == "Визуалы (требует проверки)") return r.Detected && r.Severity == CheckSeverity.NeedsCheck;
+			if (sidebarName == "Следы запуска" || sidebarName == "Следы и очистка") return (r.Severity == CheckSeverity.Warning || (r.Category != null && (r.Category.Contains("След") || r.Category.Contains("Запуск"))));
+
+						// Регламент правил 5.01–5.08 (только реальные детекты)
+			if (sidebarName.StartsWith("5."))
+			{
+				if (!r.Detected) return false;
+				BanCase bc = RuleBook.Classify(r.Name + " " + r.Detail + " " + r.Evidence, r.Severity);
+				if (sidebarName.StartsWith("5.01")) return bc == BanCase.CheatClients;
+				if (sidebarName.StartsWith("5.02")) return bc == BanCase.CombatAdvantage;
+				if (sidebarName.StartsWith("5.03")) return bc == BanCase.Automation;
+				if (sidebarName.StartsWith("5.04")) return bc == BanCase.MovementAndBlocks;
+				if (sidebarName.StartsWith("5.05")) return bc == BanCase.ExtraInfoAndVision;
+				if (sidebarName.StartsWith("5.06")) return bc == BanCase.BaseAndOreSearch;
+				if (sidebarName.StartsWith("5.07")) return bc == BanCase.InvisibleBlocksAndEffects;
+				if (sidebarName.StartsWith("5.08")) return bc == BanCase.ObstructCheck || bc == BanCase.CheatTraces || bc == BanCase.CheatStorage || bc == BanCase.ServicesDisabled || bc == BanCase.NetworkRegistry;
+			}
+
+			string cat = r.Category ?? "";
+			if (cat.Equals(sidebarName, StringComparison.OrdinalIgnoreCase)) return true;
+
+			switch (sidebarName)
+			{
+				case "Процессы":
+					return cat.IndexOf("Процесс", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Память", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("RAM", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Реестр":
+					return cat.IndexOf("Реестр", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Registry", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Файлы и папки":
+					return cat.IndexOf("Файл", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Папк", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Корзин", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Загрузк", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Storage", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Удалённые программы":
+					return cat.IndexOf("Удал", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Корзин", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Recycle", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Minecraft":
+					return cat.IndexOf("Minecraft", StringComparison.OrdinalIgnoreCase) >= 0 && cat.IndexOf("Bedrock", StringComparison.OrdinalIgnoreCase) < 0;
+				case "Minecraft Bedrock":
+					return cat.IndexOf("Bedrock", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "История":
+					return cat.IndexOf("Истори", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Журнал", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Recent", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Автокликеры / Макросы":
+					return cat.IndexOf("Автокликер", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Макрос", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Кликер", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Подписки / Лицензии":
+					return cat.IndexOf("Подписк", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Лицензи", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Токен", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Аппаратная часть":
+					return cat.IndexOf("Аппаратн", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Оборудован", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Желез", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("USB", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Присутствие человека":
+					return cat.IndexOf("Присутстви", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Человек", StringComparison.OrdinalIgnoreCase) >= 0;
+				case "Утилиты очистки":
+					return cat.IndexOf("Очистк", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Evasion", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Клинер", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("Затиран", StringComparison.OrdinalIgnoreCase) >= 0;
+				default:
+					return cat.IndexOf(sidebarName, StringComparison.OrdinalIgnoreCase) >= 0;
+			}
+		}
+
 		private void RebuildCategoryList()
 		{
 			if (lastReport == null)
@@ -28231,13 +29448,13 @@ namespace MCCheatChecker
 				else if (name == "Критические") num = lastReport.Results.Count((CheckResult r) => r.Detected && r.Severity == CheckSeverity.Critical);
 				else if (name == "Визуалы (Следует проверить)") num = lastReport.Results.Count((CheckResult r) => r.Detected && r.Severity == CheckSeverity.NeedsCheck);
 				else if (name == "Следы запуска") num = lastReport.Results.Count((CheckResult r) => r.Detected && (r.Severity == CheckSeverity.Warning || r.Category == "Следы запуска"));
-				else num = lastReport.Results.Count((CheckResult r) => r.Category == name && r.Detected);
+				else num = lastReport.Results.Count((CheckResult r) => CategoryMatches(r, name) && r.Detected);
 				ListViewItem listViewItem = new ListViewItem(name);
 				listViewItem.SubItems.Add(num.ToString());
 				listViewItem.Tag = name;
 				if (num > 0)
 				{
-					listViewItem.ForeColor = ((name == "Критические" || name == "Все") ? Ui.AccentRed : ((name == "Визуалы (Следует проверить)") ? Ui.AccentPurple : Ui.AccentOrange));
+					listViewItem.ForeColor = (name.StartsWith("5.") || name == "Критические" || name == "Все") ? Ui.AccentRed : ((name == "Визуалы (Следует проверить)") ? Ui.AccentPurple : Ui.AccentOrange);
 				}
 				else
 				{
@@ -28279,9 +29496,9 @@ namespace MCCheatChecker
 			{
 				source = source.Where((CheckResult r) => r.Detected && (r.Severity == CheckSeverity.Warning || r.Category == "Следы запуска"));
 			}
-			else if (currentCategory != "Все")
+			if (currentCategory != "Все")
 			{
-				source = source.Where((CheckResult r) => r.Category == currentCategory);
+				source = source.Where((CheckResult r) => CategoryMatches(r, currentCategory));
 			}
 			if (criticalOnlyCheck.Checked)
 			{
@@ -28299,11 +29516,11 @@ namespace MCCheatChecker
 					if (r.Category != null && r.Category.ToLower().Contains(q)) return true;
 					if (r.Detail != null && r.Detail.ToLower().Contains(q)) return true;
 					if (r.Evidence != null && r.Evidence.ToLower().Contains(q)) return true;
-					if (q.StartsWith("5.") || q.StartsWith("5"))
+					if (r.Detected)
 					{
-						BanCase bc = RuleBook.Classify(r.Name + " " + r.Detail + " " + r.Evidence);
-						RuleBook.RuleInfo ri = RuleBook.Get(bc);
-						if (ri.Reason.ToLower().Contains(q)) return true;
+						BanCase bc = RuleBook.Classify(r.Name + " " + r.Detail + " " + r.Evidence, r.Severity);
+						string reason = RuleBook.Get(bc).Reason.ToLower();
+						if (reason.Contains(q)) return true;
 					}
 					return false;
 				});
@@ -28316,51 +29533,51 @@ namespace MCCheatChecker
 				resultsListView.Items.Add(BuildRow(item));
 			}
 			resultsListView.EndUpdate();
+			if (resultsListView.Items.Count > 0)
+			{
+				int selIdx = 0;
+				for (int i = 0; i < view.Count; i++)
+				{
+					if (view[i].Detected && view[i].Severity == CheckSeverity.Critical)
+					{
+						selIdx = i;
+						break;
+					}
+					else if (view[i].Detected && selIdx == 0)
+					{
+						selIdx = i;
+					}
+				}
+				resultsListView.Items[selIdx].Selected = true;
+				resultsListView.Items[selIdx].EnsureVisible();
+			}
 			if (filterCounterLabel != null)
 			{
 				filterCounterLabel.Text = "Показано " + view.Count + " из " + lastReport.Results.Count;
 				filterCounterLabel.ForeColor = ((view.Count == 0) ? Ui.AccentOrange : Ui.TextMuted);
-				filterCounterLabel.Location = new Point(((btnExportHtml != null) ? btnExportHtml.Right : resetFilterBtn.Right) + 12, 11);
+				filterCounterLabel.Location = new Point(resetFilterBtn.Right + 12, 11);
 			}
 		}
 
 		private ListViewItem BuildRow(CheckResult r)
 		{
-			string text = "\ud83d\udfe2 ЧИСТО";
-			if (r.Detected)
+			string text;
+			if (!r.Detected)
 			{
-				BanCase bc = RuleBook.Classify(r.Name + " " + r.Detail + " " + r.Evidence);
-				string ruleTag = "";
-				switch (bc)
-				{
-					case BanCase.CheatClients: ruleTag = " [5.01]"; break;
-					case BanCase.CombatAdvantage: ruleTag = " [5.02]"; break;
-					case BanCase.Automation: ruleTag = " [5.03]"; break;
-					case BanCase.MovementAndBlocks: ruleTag = " [5.04]"; break;
-					case BanCase.ExtraInfoAndVision: ruleTag = " [5.05]"; break;
-					case BanCase.BaseAndOreSearch: ruleTag = " [5.06]"; break;
-					case BanCase.InvisibleBlocksAndEffects: ruleTag = " [5.07]"; break;
-					case BanCase.CheatTraces: ruleTag = " [5.01/5.08]"; break;
-					case BanCase.ObstructCheck: ruleTag = " [5.08]"; break;
-					default: ruleTag = " [5.08]"; break;
-				}
-
+				text = "\ud83d\udfe2 ЧИСТО";
+			}
+			else
+			{
+				BanCase bc = RuleBook.Classify(r.Name + " " + r.Detail + " " + r.Evidence, r.Severity);
+				string ruleTag = RuleBook.Get(bc).Reason.Split('-')[0].Trim();
 				if (r.Severity == CheckSeverity.Critical)
-				{
-					text = "\ud83d\udd34 БАН" + ruleTag;
-				}
+					text = "\ud83d\udd34 [" + ruleTag + "] БАН";
 				else if (r.Severity == CheckSeverity.NeedsCheck)
-				{
-					text = "\ud83d\udfe3 ПРОВЕРИТЬ" + ruleTag;
-				}
+					text = "\ud83d\udfe3 [" + ruleTag + "] ПРОВЕРИТЬ";
 				else if (r.Severity == CheckSeverity.Info)
-				{
 					text = "\ud83d\udd35 ИНФО";
-				}
 				else
-				{
-					text = "\ud83d\udfe1 СЛЕД" + ruleTag;
-				}
+					text = "\ud83d\udfe1 [" + ruleTag + "] СЛЕД";
 			}
 			ListViewItem listViewItem = new ListViewItem(text);
 			listViewItem.SubItems.Add(r.Category);
@@ -28454,6 +29671,24 @@ namespace MCCheatChecker
 				resultsListView.Items.Add(BuildRow(item));
 			}
 			resultsListView.EndUpdate();
+			if (resultsListView.Items.Count > 0)
+			{
+				int selIdx = 0;
+				for (int i = 0; i < view.Count; i++)
+				{
+					if (view[i].Detected && view[i].Severity == CheckSeverity.Critical)
+					{
+						selIdx = i;
+						break;
+					}
+					else if (view[i].Detected && selIdx == 0)
+					{
+						selIdx = i;
+					}
+				}
+				resultsListView.Items[selIdx].Selected = true;
+				resultsListView.Items[selIdx].EnsureVisible();
+			}
 		}
 
 		private void CategoryListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -28499,38 +29734,37 @@ namespace MCCheatChecker
 					openFileBtn.Enabled = false;
 				}
 				copyEvidenceBtn.Enabled = true;
-				BanCase bc = RuleBook.Classify(checkResult.Name + " " + checkResult.Detail + " " + checkResult.Evidence);
-				RuleBook.RuleInfo ruleInfo = RuleBook.Get(bc);
-				string recCmd = RuleBook.Build(PlayerOrFallback(), ruleInfo.Duration, ruleInfo.Reason);
-				bool isThreat = checkResult.Detected && checkResult.Severity != CheckSeverity.Info && bc != BanCase.Allowed && !string.IsNullOrEmpty(recCmd);
-				if (copyBanCmdBtn != null) copyBanCmdBtn.Enabled = isThreat;
-
 				StringBuilder stringBuilder = new StringBuilder();
-				stringBuilder.AppendLine("═════════════════════════════════════════════════════════════");
-				stringBuilder.AppendLine("  ДЕТАЛИ И УЛИКИ ПРОВЕРКИ");
-				stringBuilder.AppendLine("═════════════════════════════════════════════════════════════");
-				stringBuilder.AppendLine("  Категория:   " + checkResult.Category);
-				stringBuilder.AppendLine("  Проверка:    " + checkResult.Name);
-				stringBuilder.AppendLine("  Статус:      " + (checkResult.Detected ? string.Concat("ОБНАРУЖЕНО (", checkResult.Severity, ")") : "ЧИСТО"));
-				if (isThreat)
+				BanCase bc = RuleBook.Classify(checkResult.Name + " " + checkResult.Detail + " " + checkResult.Evidence, checkResult.Severity);
+				RuleBook.RuleInfo ri = RuleBook.Get(bc);
+				string ruleTag = ri.Reason.Split('-')[0].Trim();
+				if (copyBanCmdBtn != null)
 				{
-					stringBuilder.AppendLine("  Регламент:   " + ruleInfo.Reason);
-					stringBuilder.AppendLine("  Срок бана:   " + ruleInfo.Duration);
-					stringBuilder.AppendLine("  Команда:     " + recCmd);
+					if (!checkResult.Detected)
+					{
+						copyBanCmdBtn.Enabled = false;
+						copyBanCmdBtn.Text = "🔨  Скопировать /ban";
+						copyBanCmdBtn.ForeColor = Ui.TextMuted;
+					}
+					else if (bc == BanCase.Allowed)
+					{
+						copyBanCmdBtn.Enabled = false;
+						copyBanCmdBtn.Text = "✅  Разрешено (Без бана)";
+						copyBanCmdBtn.ForeColor = Ui.AccentGreen;
+					}
+					else
+					{
+						copyBanCmdBtn.Enabled = true;
+						copyBanCmdBtn.Text = "🔨  Скопировать /ban [" + ruleTag + "]";
+						copyBanCmdBtn.ForeColor = Ui.AccentRed;
+					}
 				}
-				else if (bc == BanCase.Allowed || checkResult.Severity == CheckSeverity.Info)
-				{
-					stringBuilder.AppendLine("  Регламент:   Разрешено регламентом сервера (автокликеры / легитимные утилиты)");
-					stringBuilder.AppendLine("  Срок бана:   Нет бана (Легитимно)");
-					stringBuilder.AppendLine("  Команда:     (Бан не требуется)");
-				}
-				stringBuilder.AppendLine("  Путь:        " + (string.IsNullOrEmpty(text) ? "(нет пути)" : text));
-				stringBuilder.AppendLine("  Описание:    " + checkResult.Detail);
-				stringBuilder.AppendLine();
-				stringBuilder.AppendLine("─────────────────────────────────────────────────────────────");
-				stringBuilder.AppendLine("  ВСЕ ОБНАРУЖЕННЫЕ ПУТИ И УЛИКИ");
-				stringBuilder.AppendLine("─────────────────────────────────────────────────────────────");
-				stringBuilder.AppendLine(string.IsNullOrEmpty(checkResult.Evidence) ? "  (Нет прямых файлов или путей)" : checkResult.Evidence);
+				stringBuilder.AppendLine(string.Format("【{0}】 {1}", ruleTag, checkResult.Name));
+				stringBuilder.AppendLine("Статус: " + (checkResult.Detected ? (checkResult.Severity == CheckSeverity.Critical ? "⛔ БАН (Критический)" : (checkResult.Severity == CheckSeverity.NeedsCheck ? "🟣 Проверить" : "🟡 Предупреждение")) : "🟢 Чисто") + " | Категория: " + checkResult.Category);
+				if (!string.IsNullOrEmpty(text)) stringBuilder.AppendLine("Путь: " + text);
+				stringBuilder.AppendLine("Инфо: " + checkResult.Detail);
+				stringBuilder.AppendLine(new string('─', 50));
+				stringBuilder.AppendLine(string.IsNullOrEmpty(checkResult.Evidence) ? "(Нет прямых файлов или путей)" : checkResult.Evidence);
 				evidenceBox.Text = stringBuilder.ToString();
 				evidenceBox.SelectionStart = 0;
 			}
@@ -28609,7 +29843,22 @@ namespace MCCheatChecker
 			}
 			ssElapsedSeconds++;
 			UpdateTimerDisplay();
-			if (ssMaxSeconds - ssElapsedSeconds > 0)
+			int remaining = ssMaxSeconds - ssElapsedSeconds;
+			if (remaining == 60)
+			{
+				try { System.Media.SystemSounds.Asterisk.Play(); } catch { }
+				SetStatus("⏱ ВНИМАНИЕ: Осталась 1 минута до завершения проверки!", Ui.AccentOrange);
+			}
+			else if (remaining == 30)
+			{
+				try { System.Media.SystemSounds.Asterisk.Play(); } catch { }
+				SetStatus("⏱ ВНИМАНИЕ: Осталось 30 секунд до завершения проверки!", Ui.AccentRed);
+			}
+			else if (remaining <= 5 && remaining > 0)
+			{
+				try { System.Media.SystemSounds.Beep.Play(); } catch { }
+			}
+			if (remaining > 0)
 			{
 				return;
 			}
@@ -28620,6 +29869,15 @@ namespace MCCheatChecker
 			}
 			catch
 			{
+			}
+			string p = PlayerOrFallback();
+			string banCmd = RuleBook.Build(p, RuleBook.Duration(BanCase.RefuseCheck), RuleBook.Reason(BanCase.RefuseCheck));
+			TrySetClipboardText(banCmd);
+			SetStatus("⏱ Время проверки истекло! Скопирована команда бана 5.08: " + banCmd, Ui.AccentRed);
+			if (verdictLabel != null)
+			{
+				verdictLabel.Text = "СТАТУС: ИСТЕКЛО ВРЕМЯ SS — ОТКАЗ ОТ ПРОВЕРКИ (5.08)";
+				verdictLabel.ForeColor = Ui.AccentRed;
 			}
 		}
 
@@ -28722,37 +29980,23 @@ namespace MCCheatChecker
 				string text = CheatDetector.AutoDetectAnyDeskId();
 				if (!string.IsNullOrEmpty(text))
 				{
-					if (string.IsNullOrEmpty(contactsBox.Text) || contactsBox.Text.StartsWith("AnyDesk") || contactsBox.Text.StartsWith("RustDesk"))
+					if (string.IsNullOrEmpty(contactsBox.Text) || contactsBox.Text.StartsWith("AnyDesk"))
 					{
-						contactsBox.Text = text;
+						contactsBox.Text = "AnyDesk: " + text;
 					}
-					contactsStatusLabel.Text = text + " ✅";
+					contactsStatusLabel.Text = "AnyDesk ID определён: " + text + " ✅";
 					contactsStatusLabel.ForeColor = Ui.AccentTeal;
 					return;
 				}
-				if (Process.GetProcessesByName("AnyDesk").Length > 0)
+				Process[] processesByName = Process.GetProcessesByName("AnyDesk");
+				if (processesByName.Length > 0)
 				{
 					contactsStatusLabel.Text = "AnyDesk: запущен ✅";
 					contactsStatusLabel.ForeColor = Color.FromArgb(129, 199, 132);
 				}
-				else if (Process.GetProcessesByName("rustdesk").Length > 0)
-				{
-					contactsStatusLabel.Text = "RustDesk: запущен ✅";
-					contactsStatusLabel.ForeColor = Color.FromArgb(129, 199, 132);
-				}
-				else if (Process.GetProcessesByName("rudesktop").Length > 0)
-				{
-					contactsStatusLabel.Text = "RuDesktop: запущен ✅";
-					contactsStatusLabel.ForeColor = Color.FromArgb(129, 199, 132);
-				}
-				else if (Process.GetProcessesByName("hopetodesk").Length > 0)
-				{
-					contactsStatusLabel.Text = "HopeToDesk: запущен ✅";
-					contactsStatusLabel.ForeColor = Color.FromArgb(129, 199, 132);
-				}
 				else
 				{
-					contactsStatusLabel.Text = "Удалённый доступ: не запущен";
+					contactsStatusLabel.Text = "AnyDesk: не запущен";
 					contactsStatusLabel.ForeColor = Color.FromArgb(255, 183, 77);
 				}
 			}
@@ -28763,17 +30007,69 @@ namespace MCCheatChecker
 
 		private static string GdfRoot()
 		{
-			return Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+			string text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "gdf");
+			try
+			{
+				if (!Directory.Exists(text))
+				{
+					Directory.CreateDirectory(text);
+				}
+			}
+			catch
+			{
+			}
+			return text;
 		}
 
 		private static string GdfDir(string sub)
 		{
-			return Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+			string text = Path.Combine(GdfRoot(), sub);
+			try
+			{
+				if (!Directory.Exists(text))
+				{
+					Directory.CreateDirectory(text);
+				}
+			}
+			catch
+			{
+			}
+			return text;
 		}
 
 		private void SaveScanLogToGdf(string playerName)
 		{
-			// Автоматическое сохранение логов на диск отключено (Zero Data Collection)
+			try
+			{
+				string text = (string.IsNullOrEmpty(playerName) ? "player" : MakeSafeFileName(playerName));
+				string text2 = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+				StringBuilder stringBuilder = new StringBuilder();
+				stringBuilder.AppendLine("MC Cheat Checker — журнал проверки");
+				stringBuilder.AppendLine("Игрок: " + playerName);
+				stringBuilder.AppendLine("Модератор: " + moderatorBox.Text.Trim());
+				stringBuilder.AppendLine("Время: " + DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss"));
+				stringBuilder.AppendLine(new string('-', 70));
+				stringBuilder.AppendLine(logBox.Text);
+				if (lastReport != null)
+				{
+					stringBuilder.AppendLine(new string('-', 70));
+					stringBuilder.AppendLine("ИТОГ: " + lastReport.Verdict);
+					stringBuilder.AppendLine();
+					stringBuilder.AppendLine(CheatDetector.GenerateTextReport(lastReport));
+				}
+				string path = Path.Combine(GdfDir("logs"), "scan_" + text + "_" + text2 + ".log");
+				File.WriteAllText(path, stringBuilder.ToString(), Encoding.UTF8);
+				if (lastReport != null)
+				{
+					string path2 = Path.Combine(GdfDir("reports"), "report_" + text + "_" + text2 + ".txt");
+					File.WriteAllText(path2, CheatDetector.GenerateTextReport(lastReport), Encoding.UTF8);
+					string path3 = Path.Combine(GdfDir("reports"), "report_" + text + "_" + text2 + ".json");
+					File.WriteAllText(path3, CheatDetector.GenerateJsonReport(lastReport, moderatorBox.Text.Trim()), Encoding.UTF8);
+				}
+			}
+			catch
+			{
+			}
 		}
 
 		private static string MakeSafeFileName(string raw)
@@ -28801,8 +30097,49 @@ namespace MCCheatChecker
 
 		private void SaveTweReportToFile(string pName, string mod, string status, string verdict)
 		{
-			// Автоматическая запись TWE на диск отключена для конфиденциальности (Zero Data Collection)
-			SetStatus("Команда скопирована в буфер (режим без сохранения на диск)", Ui.AccentTeal);
+			try
+			{
+				string path = GdfDir("twe");
+				string text = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+				string text2 = MakeSafeFileName(pName) + "_" + text;
+				string text3 = Path.Combine(path, text2 + ".yml");
+				string path2 = Path.Combine(path, text2 + ".txt");
+				StringBuilder stringBuilder = new StringBuilder();
+				stringBuilder.AppendLine("# Atlantis SS TWE Database Record");
+				stringBuilder.AppendLine("player.name: \"" + Esc(pName) + "\"");
+				stringBuilder.AppendLine("moderator.name: \"" + Esc(mod) + "\"");
+				stringBuilder.AppendLine("contacts.provided: \"" + Esc(contactsBox.Text.Trim()) + "\"");
+				stringBuilder.AppendLine("check.date: \"" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "\"");
+				stringBuilder.AppendLine("check.duration_seconds: " + ssElapsedSeconds);
+				stringBuilder.AppendLine("check.status: \"" + Esc(status) + "\"");
+				stringBuilder.AppendLine("check.verdict: \"" + Esc(verdict) + "\"");
+				stringBuilder.AppendLine("check.critical_cheats: " + ((lastReport != null) ? lastReport.CriticalCount : 0));
+				stringBuilder.AppendLine("check.visuals_detected: " + ((lastReport != null) ? lastReport.VisualsCount : 0));
+				stringBuilder.AppendLine("check.warnings_count: " + ((lastReport != null) ? lastReport.WarningCount : 0));
+				stringBuilder.AppendLine();
+				stringBuilder.AppendLine("detections:");
+				if (lastReport != null)
+				{
+					foreach (CheckResult item in lastReport.Results.Where((CheckResult r) => r.Detected))
+					{
+						stringBuilder.AppendLine("  - category: \"" + Esc(item.Category) + "\"");
+						stringBuilder.AppendLine("    check: \"" + Esc(item.Name) + "\"");
+						stringBuilder.AppendLine(string.Concat("    severity: \"", item.Severity, "\""));
+						stringBuilder.AppendLine("    detail: \"" + Esc(OneLine(item.Detail)) + "\"");
+					}
+				}
+				File.WriteAllText(text3, stringBuilder.ToString(), Encoding.UTF8);
+				if (lastReport != null)
+				{
+					File.WriteAllText(path2, CheatDetector.GenerateTextReport(lastReport), Encoding.UTF8);
+				}
+				SetStatus("Запись TWE сохранена: " + Path.GetFileName(text3), Ui.AccentTeal);
+				MessageBox.Show("Отчёт записан в базу Atlantis SS TWE:\r\n" + text3, "MC Cheat Checker — Регламент", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Ошибка сохранения TWE: " + ex.Message, "MC Cheat Checker — Регламент", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+			}
 		}
 
 		private static string Esc(string s)
@@ -28822,54 +30159,50 @@ namespace MCCheatChecker
 			string text3 = RuleBook.Build(text, RuleBook.Duration(BanCase.RefuseCheck), text2);
 			TrySetClipboardText(text3);
 			SaveTweReportToFile(text, moderatorBox.Text.Trim(), "REFUSED_TIMEOUT", text2);
-			MessageBox.Show("Отказ от проверки зафиксирован в базе TWE!\r\n\r\nКоманда бана скопирована в буфер:\r\n" + text3, "MC Cheat Checker — TWE", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+			MessageBox.Show("Отказ от проверки зафиксирован в базе TWE!\r\n\r\nКоманда бана скопирована в буфер:\r\n" + text3, "MC Cheat Checker — Регламент", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 		}
 
 		private void CopyBanCmdBtn_Click(object sender, EventArgs e)
 		{
-			string player = PlayerOrFallback();
-			string banCmd = "";
-
-			CheckResult sel = (resultsListView.SelectedItems.Count > 0) ? (resultsListView.SelectedItems[0].Tag as CheckResult) : null;
-			if (sel != null && sel.Detected && sel.Severity != CheckSeverity.Info)
+			string pName = PlayerOrFallback();
+			CheckResult target = null;
+			if (resultsListView.SelectedItems.Count > 0)
 			{
-				BanCase bc = RuleBook.Classify(sel.Name + " " + sel.Detail + " " + sel.Evidence);
-				if (bc != BanCase.Allowed)
+				target = resultsListView.SelectedItems[0].Tag as CheckResult;
+			}
+			if (target == null && lastReport != null)
+			{
+				target = lastReport.Results.FirstOrDefault(delegate(CheckResult r) {
+					if (!r.Detected) return false;
+					BanCase b = RuleBook.Classify(r.Name + " " + r.Detail + " " + r.Evidence, r.Severity);
+					return r.Severity == CheckSeverity.Critical && b != BanCase.Allowed;
+				});
+				if (target == null)
 				{
-					RuleBook.RuleInfo ri = RuleBook.Get(bc);
-					banCmd = RuleBook.Build(player, ri.Duration, ri.Reason);
+					target = lastReport.Results.FirstOrDefault(delegate(CheckResult r) {
+						if (!r.Detected) return false;
+						BanCase b = RuleBook.Classify(r.Name + " " + r.Detail + " " + r.Evidence, r.Severity);
+						return (r.Severity == CheckSeverity.NeedsCheck || r.Severity == CheckSeverity.Warning) && b != BanCase.Allowed;
+					});
 				}
 			}
-			else if (lastReport != null && lastReport.Results != null)
+			if (target == null)
 			{
-				CheckResult topCrit = null;
-				foreach (CheckResult r in lastReport.Results)
-				{
-					if (r.Detected && r.Severity == CheckSeverity.Critical)
-					{
-						topCrit = r;
-						break;
-					}
-				}
-				if (topCrit != null)
-				{
-					BanCase bc = RuleBook.Classify(topCrit.Name + " " + topCrit.Detail + " " + topCrit.Evidence);
-					RuleBook.RuleInfo ri = RuleBook.Get(bc);
-					banCmd = RuleBook.Build(player, ri.Duration, ri.Reason);
-				}
-				else
-				{
-					banCmd = RuleBook.Command(BanCase.CheatClients, player);
-				}
+				MessageBox.Show("Нарушений для выдачи бана не обнаружено (система чиста).", "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
 			}
-			else
+			BanCase bc = RuleBook.Classify(target.Name + " " + target.Detail + " " + target.Evidence, target.Severity);
+			if (bc == BanCase.Allowed)
 			{
-				banCmd = RuleBook.Command(BanCase.CheatClients, player);
+				MessageBox.Show("Данный пункт разрешён действующим регламентом проверок (бан не предусмотрен).", "MC Cheat Checker — Регламент", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
 			}
-
+			RuleBook.RuleInfo ri = RuleBook.Get(bc);
+			string banCmd = RuleBook.Build(pName, ri.Duration, ri.Reason);
 			TrySetClipboardText(banCmd);
-			SaveTweReportToFile(player, moderatorBox.Text.Trim(), "BANNED_CHEATS", banCmd);
-			MessageBox.Show("Команда бана скопирована в буфер обмена:\r\n\r\n" + banCmd, "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			SaveTweReportToFile(pName, moderatorBox.Text.Trim(), "BANNED", ri.Reason);
+			SetStatus("Бан-команда скопирована: " + banCmd, Ui.AccentRed);
+			MessageBox.Show("Команда бана скопирована в буфер обмена:\r\n\r\n" + banCmd, "MC Cheat Checker — Регламент", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
 		private void SaveTweLogBtn_Click(object sender, EventArgs e)
@@ -29057,6 +30390,121 @@ namespace MCCheatChecker
 			SetStatus("Текстовый отчёт скопирован в буфер", Ui.AccentTeal);
 		}
 
+		private void SendDiscordWebhookBtn_Click(object sender, EventArgs e)
+		{
+			if (lastReport == null)
+			{
+				NeedScan();
+				return;
+			}
+			using (Form prompt = new Form())
+			{
+				prompt.Width = 520;
+				prompt.Height = 225;
+				prompt.FormBorderStyle = FormBorderStyle.FixedDialog;
+				prompt.Text = "Отправка отчёта в Discord Webhook";
+				prompt.StartPosition = FormStartPosition.CenterParent;
+				prompt.BackColor = Ui.Surface;
+				prompt.ForeColor = Ui.TextPrimary;
+
+				Label textLabel = new Label() { Left = 20, Top = 20, Width = 460, Text = "Введите URL вебхука Discord (https://discord.com/api/webhooks/...):", ForeColor = Ui.TextPrimary };
+				TextBox textBox = new TextBox() { Left = 20, Top = 50, Width = 460, Text = memoryWebhookUrl, BackColor = Ui.Backdrop, ForeColor = Ui.TextPrimary };
+				DarkCheckBox attachScreenshotBox = new DarkCheckBox() { Text = "📸 Прикрепить снимок экрана проверки (Embed Image)", Checked = true, Left = 20, Top = 84, Width = 460, ForeColor = Ui.AccentTeal };
+				DarkButton confirmation = new DarkButton() { Text = "Отправить", Left = 350, Width = 130, Top = 125, DialogResult = DialogResult.OK };
+				DarkButton cancel = new DarkButton() { Text = "Отмена", Left = 230, Width = 110, Top = 125, DialogResult = DialogResult.Cancel };
+				DarkButton testPingBtn = new DarkButton() { Text = "🔔 Тест пинг", Left = 100, Width = 120, Top = 125 };
+				testPingBtn.Click += delegate
+				{
+					string testUrl = textBox.Text.Trim();
+					if (string.IsNullOrEmpty(testUrl))
+					{
+						MessageBox.Show("Введите URL вебхука для проверки соединения.", "Тест вебхука", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						return;
+					}
+					try
+					{
+						string json = "{\"content\":\"🔔 **MC Cheat Checker** — тестовый сигнал связи с вебхуком Discord успешен!\",\"username\":\"MC Cheat Checker\"}";
+						byte[] bytes = Encoding.UTF8.GetBytes(json);
+						HttpWebRequest req = (HttpWebRequest)WebRequest.Create(testUrl);
+						req.Method = "POST";
+						req.ContentType = "application/json";
+						using (Stream s = req.GetRequestStream()) s.Write(bytes, 0, bytes.Length);
+						using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
+						{
+							MessageBox.Show("Вебхук успешно подключён! Код ответа сервера: " + (int)resp.StatusCode, "Тест вебхука", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						}
+					}
+					catch (Exception exPing)
+					{
+						MessageBox.Show("Ошибка подключения к вебхуку: " + exPing.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}
+				};
+				prompt.Controls.Add(textLabel);
+				prompt.Controls.Add(textBox);
+				prompt.Controls.Add(attachScreenshotBox);
+				prompt.Controls.Add(testPingBtn);
+				prompt.Controls.Add(confirmation);
+				prompt.Controls.Add(cancel);
+				prompt.AcceptButton = confirmation;
+				prompt.CancelButton = cancel;
+
+				if (prompt.ShowDialog(this) == DialogResult.OK)
+				{
+					string url = textBox.Text.Trim();
+					if (!string.IsNullOrEmpty(url))
+					{
+						memoryWebhookUrl = url;
+						string err;
+						byte[] screenshotBytes = null;
+						if (attachScreenshotBox.Checked)
+						{
+							try
+							{
+								Rectangle virtualScreen = SystemInformation.VirtualScreen;
+								using (Bitmap bitmap = new Bitmap(virtualScreen.Width, virtualScreen.Height))
+								{
+									using (Graphics graphics = Graphics.FromImage(bitmap))
+									{
+										graphics.CopyFromScreen(virtualScreen.Location, Point.Empty, virtualScreen.Size);
+										int bannerH = 40;
+										using (SolidBrush brush = new SolidBrush(Color.FromArgb(220, 15, 18, 25)))
+										{
+											graphics.FillRectangle(brush, 0, virtualScreen.Height - bannerH, virtualScreen.Width, bannerH);
+										}
+										using (Font font = new Font("Segoe UI", 11.5f, FontStyle.Bold))
+										using (SolidBrush brush2 = new SolidBrush(Color.FromArgb(100, 255, 218)))
+										{
+											string s = "MC CHEAT CHECKER | Игрок: " + PlayerOrFallback() + " | Модератор: " + (string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()) + " | " + DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss");
+											graphics.DrawString(s, font, brush2, new PointF(20f, virtualScreen.Height - bannerH + 8));
+										}
+									}
+									using (MemoryStream ms = new MemoryStream())
+									{
+										bitmap.Save(ms, ImageFormat.Png);
+										screenshotBytes = ms.ToArray();
+									}
+								}
+							}
+							catch
+							{
+							}
+						}
+						bool ok = CheatDetector.SendDiscordWebhook(url, lastReport, PlayerOrFallback(), screenshotBytes, out err);
+						if (ok)
+						{
+							SetStatus("Отчёт успешно отправлен в Discord Webhook!", Ui.AccentGreen);
+							MessageBox.Show("Отчёт проверки успешно отправлен в Discord!", "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						}
+						else
+						{
+							SetStatus("Ошибка отправки вебхука: " + err, Ui.AccentRed);
+							MessageBox.Show("Не удалось отправить отчёт: " + err, "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						}
+					}
+				}
+			}
+		}
+
 		private void DiscordReportBtn_Click(object sender, EventArgs e)
 		{
 			if (lastReport == null)
@@ -29066,76 +30514,6 @@ namespace MCCheatChecker
 			}
 			TrySetClipboardText(CheatDetector.GenerateDiscordReport(lastReport, moderatorBox.Text.Trim()));
 			SetStatus("Отчёт для Discord скопирован — вставьте в канал проверок", Ui.AccentTeal);
-		}
-
-		private void SendDiscordWebhookBtn_Click(object sender, EventArgs e)
-		{
-			if (lastReport == null)
-			{
-				NeedScan();
-				return;
-			}
-			string savedUrl = memoryWebhookUrl;
-
-			using (Form prompt = new Form())
-			{
-				prompt.Width = 520;
-				prompt.Height = 180;
-				prompt.FormBorderStyle = FormBorderStyle.FixedDialog;
-				prompt.Text = "Отправка отчёта в Discord Webhook";
-				prompt.StartPosition = FormStartPosition.CenterParent;
-				prompt.MaximizeBox = false;
-				prompt.MinimizeBox = false;
-				prompt.BackColor = Color.FromArgb(24, 25, 29);
-				prompt.ForeColor = Color.White;
-
-				Label textLabel = new Label() { Left = 20, Top = 16, Text = "Введите URL вебхука Discord для канала проверок:", AutoSize = true, Font = Ui.FontBody(9f, true), ForeColor = Color.White };
-				TextBox textBox = new TextBox() { Left = 20, Top = 46, Width = 460, Text = savedUrl, Font = Ui.FontMono(8.5f), BackColor = Color.FromArgb(35, 38, 46), ForeColor = Color.White };
-				DarkButton confirmation = new DarkButton() { Text = "🚀 Отправить", Left = 260, Width = 110, Height = 28, Top = 88, DialogResult = DialogResult.OK };
-				DarkButton cancel = new DarkButton() { Text = "Отмена", Left = 380, Width = 100, Height = 28, Top = 88, DialogResult = DialogResult.Cancel };
-				confirmation.BackColor = Color.FromArgb(46, 204, 113);
-				confirmation.ForeColor = Color.White;
-				cancel.BackColor = Color.FromArgb(60, 60, 60);
-				cancel.ForeColor = Color.White;
-
-				prompt.Controls.Add(textLabel);
-				prompt.Controls.Add(textBox);
-				prompt.Controls.Add(confirmation);
-				prompt.Controls.Add(cancel);
-				prompt.AcceptButton = confirmation;
-				prompt.CancelButton = cancel;
-
-				if (prompt.ShowDialog(this) == DialogResult.OK)
-				{
-					string webhookUrl = textBox.Text.Trim();
-					if (string.IsNullOrEmpty(webhookUrl))
-					{
-						MessageBox.Show("URL вебхука не может быть пустым!", "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-						return;
-					}
-					try
-					{
-						memoryWebhookUrl = webhookUrl;
-					}
-					catch
-					{
-					}
-					Cursor = Cursors.WaitCursor;
-					string errorMessage;
-					bool success = CheatDetector.SendDiscordWebhook(webhookUrl, lastReport, moderatorBox.Text.Trim(), out errorMessage);
-					Cursor = Cursors.Default;
-					if (success)
-					{
-						SetStatus("✅ Отчёт успешно отправлен в Discord!", Ui.AccentGreen);
-						MessageBox.Show("Отчёт по игроку " + lastReport.PlayerName + " успешно отправлен в Discord!", "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Information);
-					}
-					else
-					{
-						SetStatus("Ошибка Discord: " + errorMessage, Ui.AccentRed);
-						MessageBox.Show("Не удалось отправить отчёт в Discord:\r\n" + errorMessage, "MC Cheat Checker", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					}
-				}
-			}
 		}
 
 		private void NeedScan()
@@ -29333,7 +30711,7 @@ namespace MCCheatChecker
 			string[] array = new string[]
 			{
 				"cheatengine", "processhacker", "x64dbg", "x32dbg", "dnspy", "wireshark",
-				"fiddler", "fiddlerclassic", "systeminformer", "glasswire", "netlimiter", "charles", "clumsy"
+				"fiddler", "fiddlerclassic", "ida64", "ida", "ghidra", "httpdebugger", "charles"
 			};
 			int num = 0;
 			List<string> list = new List<string>();
@@ -29390,11 +30768,14 @@ namespace MCCheatChecker
 						{
 							using (SolidBrush brush2 = new SolidBrush(Color.FromArgb(100, 255, 218)))
 							{
-								string s = "MC CHEAT CHECKER (Community Edition) | Игрок: " + text + " | Модератор: " + moderatorBox.Text.Trim() + " | " + DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss");
+								string s = "MC CHEAT CHECKER | Игрок: " + text + " | Модератор: " + moderatorBox.Text.Trim() + " | " + DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss");
 								graphics.DrawString(s, font, brush2, new PointF(20f, virtualScreen.Height - num + 8));
 							}
 						}
 					}
+					string path = GdfDir("screenshots");
+					string text2 = Path.Combine(path, "Screenshot_" + MakeSafeFileName(text) + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png");
+					bitmap.Save(text2, ImageFormat.Png);
 					try
 					{
 						Clipboard.SetImage(bitmap);
@@ -29402,7 +30783,7 @@ namespace MCCheatChecker
 					catch
 					{
 					}
-					SetStatus("✅ Скриншот скопирован в буфер обмена (без сохранения на диск)", Ui.AccentGreen);
+					SetStatus("Скриншот сохранён: " + text2, Ui.AccentTeal);
 				}
 			}
 			catch (Exception ex)
@@ -29429,10 +30810,6 @@ namespace MCCheatChecker
 				{
 					StopButton_Click(this, EventArgs.Empty);
 				}
-				else if (searchBox != null && !string.IsNullOrEmpty(searchBox.Text))
-				{
-					searchBox.Clear();
-				}
 				e.Handled = true;
 			}
 			else if (e.Control && e.KeyCode == Keys.F)
@@ -29456,25 +30833,13 @@ namespace MCCheatChecker
 			}
 			else if (e.Control && e.KeyCode == Keys.J)
 			{
-				ExportJsonBtn_Click();
+				try { new JumpListLnkViewerForm(PlayerOrFallback()).Show(this); } catch { }
 				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
 			else if (e.Control && e.KeyCode == Keys.D)
 			{
 				DiscordReportBtn_Click(this, EventArgs.Empty);
-				e.Handled = true;
-				e.SuppressKeyPress = true;
-			}
-			else if (e.Control && e.KeyCode == Keys.B)
-			{
-				CopyBanCmdBtn_Click(this, EventArgs.Empty);
-				e.Handled = true;
-				e.SuppressKeyPress = true;
-			}
-			else if (e.Control && e.KeyCode == Keys.R)
-			{
-				RefuseBanBtn_Click(this, EventArgs.Empty);
 				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
@@ -29490,48 +30855,570 @@ namespace MCCheatChecker
 				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
-			else if (e.Control && (e.KeyCode == Keys.D1 || e.KeyCode == Keys.NumPad1))
+			else if (e.Control && e.KeyCode == Keys.L)
 			{
-				onlyDetectedCheck.Checked = false;
-				criticalOnlyCheck.Checked = false;
-				currentCategory = "Все";
-				RefreshResultsView();
+				try { new MinecraftLogViewerForm().Show(this); } catch { }
 				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
-			else if (e.Control && (e.KeyCode == Keys.D2 || e.KeyCode == Keys.NumPad2))
+			else if (e.Control && e.KeyCode == Keys.U)
 			{
-				onlyDetectedCheck.Checked = true;
-				criticalOnlyCheck.Checked = false;
-				currentCategory = "Все";
-				RefreshResultsView();
+				try { new UserActivityTimelineForm().Show(this); } catch { }
 				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
-			else if (e.Control && (e.KeyCode == Keys.D3 || e.KeyCode == Keys.NumPad3))
+			else if (e.Control && e.KeyCode == Keys.R)
 			{
-				onlyDetectedCheck.Checked = true;
-				criticalOnlyCheck.Checked = true;
-				currentCategory = "Все";
-				RefreshResultsView();
+				try { new RuleBookViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.K)
+			{
+				try { new ModeratorChecklistForm(PlayerOrFallback(), moderatorBox.Text.Trim(),
+					delegate { bottomTabs.SelectedIndex = 3; },
+					delegate { bottomTabs.SelectedIndex = 5; },
+					delegate { bottomTabs.SelectedIndex = 2; RunJavawRamScan(); },
+					delegate { RunBuiltinCheatSearch(); }).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.E)
+			{
+				try { new PrefetchViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.N)
+			{
+				try { new ActiveConnectionsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.O)
+			{
+				try { new JarStructureViewerForm(null, PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.M)
+			{
+				try { new PeripheralMacroForensicsForm().Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.I)
+			{
+				try { new AntiForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.T)
+			{
+				try { new UsnJournalViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.Y)
+			{
+				try { new ShimcacheViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.G)
+			{
+				try { new DisguisedFilesViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.Q)
+			{
+				try { new FastCheatHunterForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D1)
+			{
+				try { new ThumbcacheAndIconCacheViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D2)
+			{
+				try { new WindowsTimelineAndActivitiesViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D3)
+			{
+				try { new MinecraftLaunchersAndProfilesViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D4)
+			{
+				try { new HwidAndHardwareSpoofingViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D5)
+			{
+				try { new BrowserExtensionsAndWebCheatPanelsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D6)
+			{
+				try { new MinecraftConfigsAndBaritoneForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D7)
+			{
+				try { new MinecraftScreenshotsAndGameDvrViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D8)
+			{
+				try { new PowerShellScriptBlock4104ViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D9)
+			{
+				try { new OpenSaveAndLastVisitedPidlViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D0)
+			{
+				try { new SleepWakeTimeJumpAndRebootViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.M)
+			{
+				try { new JvmInjectionAndProxyDllViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.P)
+			{
+				try { new NamedPipesAndIpcEndpointsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.B)
+			{
+				try { new BamAndAppCompatStoreViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.G)
+			{
+				try { new ScreenCaptureEvasionAndOverlayViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.O)
+			{
+				try { new MinecraftOptionsAndKeybindsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.C)
+			{
+				try { new MinecraftCommandHistoryAndChatLogsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.Y)
+			{
+				try { new ZipSteganographyAndModPayloadViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.Z)
+			{
+				try { new MixinAndModJsonForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.L)
+			{
+				try { new UnifiedForensicTimelineViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.W)
+			{
+				try { new WorldSeedAndChunkbaseForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.I)
+			{
+				try { new SetupApiUsbTimelineViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.Q)
+			{
+				try { new JvmCrashLogsAndHotspotDumpsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.X)
+			{
+				try { new FontAndTexturePackBypassViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.H)
+			{
+				try { new ProcessHollowingAndInjectedMemoryViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.A)
+			{
+				try { new FakeComputerAndRemoteAnyDeskViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.E)
+			{
+				try { new AntiEvasionAndStealthBypassViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.V)
+			{
+				try { new HypervisorVmAndSandboxEvasionViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.D)
+			{
+				try { new DiscordRichPresenceAndRpcForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.P)
+			{
+				try { new AmsiEtwAndPatchingDetectorViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.S)
+			{
+				try { new MinecraftScreenshotsExifAndOcrForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.M)
+			{
+				try { new HardwareMouseAndPollingRateAuditViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.K)
+			{
+				try { new KernelDriversAndHypervisorHooksViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.T)
+			{
+				try { new TimeAnomalyAndSystemClockTamperingViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.B)
+			{
+				try { new ClipboardWinVAndHistoryDatabaseViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.U)
+			{
+				try { new UsoAndWindowsUpdateTamperingViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.R)
+			{
+				try { new RemoteStreamingAndVirtualAudioDriverViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.F)
+			{
+				try { new Direct3dD3d11HookAndEspOverlayViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.N)
+			{
+				try { new LocalTunnelsVpnAndProxyBypassViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && e.KeyCode == Keys.J)
+			{
+				try { new JavaAgentAndJvmFlagsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && (e.KeyCode == Keys.D8 || e.KeyCode == Keys.NumPad8 || e.KeyCode == Keys.F8))
+			{
+				try { new SystemInformerAndProcessHackerForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Alt && (e.KeyCode == Keys.D9 || e.KeyCode == Keys.NumPad9 || e.KeyCode == Keys.F9))
+			{
+				try { new LuytenHxdAndHighLevelForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.J)
+			{
+				try { new NetworkTunnelsAndCertificatesViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.H)
+			{
+				try { new ProcessHandlesViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.W)
+			{
+				try { new WindowsEventLogViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.L)
+			{
+				try { new AuthenticodeSignaturesViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.Q)
+			{
+				try { new VolumeShadowCopiesViewerForm(PlayerOrFallback()).Show(this); } catch { }
 				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
 			else if (e.KeyCode == Keys.F1)
 			{
-				bottomTabs.SelectedIndex = 2;
-				MessageBox.Show(GetHowItWorksText(), "MC Cheat Checker — Инструкция модератора", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				bottomTabs.SelectedIndex = 0;
+				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
 			else if (e.KeyCode == Keys.F2)
+			{
+				bottomTabs.SelectedIndex = 1;
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.F3)
 			{
 				bottomTabs.SelectedIndex = 2;
 				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
-			else if (!flag && e.KeyCode == Keys.Space)
+			else if (e.KeyCode == Keys.F4)
 			{
-				PauseTimerBtn_Click(this, EventArgs.Empty);
+				bottomTabs.SelectedIndex = 3;
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.F6)
+			{
+				bottomTabs.SelectedIndex = 4;
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.F7)
+			{
+				bottomTabs.SelectedIndex = 5;
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.F8)
+			{
+				if (bedrockPanel != null)
+				{
+					// bedrockPanel.Visible = !bedrockPanel.Visible;
+					// ssToggleBtn.AccentStyle = bedrockPanel.Visible;
+					// DoLayout();
+				}
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.F9)
+			{
+				try { new CrashDumpsAndWerInspectorForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.F10)
+			{
+				try { new UserAssistMuiCacheViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.F11)
+			{
+				try { new NetworkBypassViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.F12)
+			{
+				try { new AmcacheRecentDocsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.S)
+			{
+				try { new EvidenceCaptureForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.U)
+			{
+				try { new UsbDeviceForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.D)
+			{
+				try { new KernelDriversServicesViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.B)
+			{
+				try { new BrowserMessengerDownloadsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.R)
+			{
+				try { new RecycleBinForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.C)
+			{
+				try { new ClipboardConsoleHistoryViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.H)
+			{
+				try { new ForensicHubForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.T)
+			{
+				try { new ScheduledTasksStartupViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.N)
+			{
+				try { new WindowsNotificationForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.E)
+			{
+				try { new ExplorerSearchesTypedPathsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.X)
+			{
+				try { new ExpressTriageForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.F)
+			{
+				try { new DefenderExclusionsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.P)
+			{
+				try { new ResourcePacksXrayViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.G)
+			{
+				try { new DirectXShaderCacheViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.Y)
+			{
+				try { new BrowserSearchAndHistoryViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.K)
+			{
+				try { new DnsClientLogViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.I)
+			{
+				try { new BitsTransferForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.V)
+			{
+				try { new VirtualDisksAndSandboxViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.Z)
+			{
+				try { new NtfsAlternateDataStreamsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.O)
+			{
+				try { new ForensicDossierReportGeneratorForm(PlayerOrFallback(), string.IsNullOrEmpty(moderatorBox.Text) ? Environment.UserName : moderatorBox.Text.Trim()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.A)
+			{
+				try { new PcaAppLaunchForensicsViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.Shift && e.KeyCode == Keys.W)
+			{
+				try { new CleanersAndWipingTracesViewerForm(PlayerOrFallback()).Show(this); } catch { }
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.B)
+			{
+				CopyBanCmdBtn_Click(this, EventArgs.Empty);
 				e.Handled = true;
 				e.SuppressKeyPress = true;
 			}
@@ -29539,17 +31426,89 @@ namespace MCCheatChecker
 
 		private void SaveSettings()
 		{
-			// Сохранение настроек на диск отключено (Zero Data Collection)
+			try
+			{
+				string path = SettingsPath();
+				StringBuilder stringBuilder = new StringBuilder();
+				stringBuilder.AppendLine("player=" + playerNameBox.Text.Trim());
+				stringBuilder.AppendLine("moderator=" + moderatorBox.Text.Trim());
+				stringBuilder.AppendLine("contacts=" + contactsBox.Text.Trim());
+				stringBuilder.AppendLine("timer=" + ssMaxSeconds);
+				stringBuilder.AppendLine("onlyDetected=" + onlyDetectedCheck.Checked);
+				if (!string.IsNullOrEmpty(memoryWebhookUrl)) stringBuilder.AppendLine("webhook=" + memoryWebhookUrl);
+				File.WriteAllText(path, stringBuilder.ToString(), Encoding.UTF8);
+			}
+			catch
+			{
+			}
 		}
 
 		private void LoadSettings()
 		{
-			// Чтение настроек с диска отключено (Zero Data Collection)
+			try
+			{
+				string path = SettingsPath();
+				if (!File.Exists(path))
+				{
+					return;
+				}
+				Dictionary<string, string> dictionary = new Dictionary<string, string>();
+				string[] array = File.ReadAllLines(path);
+				foreach (string text in array)
+				{
+					int num = text.IndexOf('=');
+					if (num > 0)
+					{
+						dictionary[text.Substring(0, num)] = text.Substring(num + 1);
+					}
+				}
+				if (dictionary.ContainsKey("player") && dictionary["player"].Length > 0)
+				{
+					playerNameBox.Text = dictionary["player"];
+				}
+				if (dictionary.ContainsKey("moderator") && dictionary["moderator"].Length > 0)
+				{
+					moderatorBox.Text = dictionary["moderator"];
+				}
+				if (dictionary.ContainsKey("contacts") && dictionary["contacts"].Length > 0)
+				{
+					contactsBox.Text = dictionary["contacts"];
+				}
+				if (dictionary.ContainsKey("webhook") && dictionary["webhook"].Length > 0)
+				{
+					memoryWebhookUrl = dictionary["webhook"];
+				}
+				int result;
+				if (dictionary.ContainsKey("timer") && int.TryParse(dictionary["timer"], out result) && result >= 60 && result <= 3600)
+				{
+					ssMaxSeconds = result;
+					UpdateTimerDisplay();
+				}
+				bool result2;
+				if (dictionary.ContainsKey("onlyDetected") && bool.TryParse(dictionary["onlyDetected"], out result2))
+				{
+					onlyDetectedCheck.Checked = result2;
+				}
+			}
+			catch
+			{
+			}
 		}
 
 		private static string SettingsPath()
 		{
-			return "";
+			string text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MCCheatChecker");
+			try
+			{
+				if (!Directory.Exists(text))
+				{
+					Directory.CreateDirectory(text);
+				}
+			}
+			catch
+			{
+			}
+			return Path.Combine(text, "ui.settings");
 		}
 
 		private static string SafeUserName()
@@ -29799,7 +31758,6 @@ namespace MCCheatChecker
 			try
 			{
 				SaveSettings();
-				EnsureZeroDiskFootprint();
 			}
 			catch
 			{

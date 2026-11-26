@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace MCCheatChecker
@@ -14,6 +14,10 @@ namespace MCCheatChecker
 		public long FileSizeBytes { get; set; }
 
 		public string FileSizeString { get; set; }
+
+		public string Sha256 { get; set; }
+
+		public string Md5 { get; set; }
 
 		public CheckSeverity Severity { get; set; }
 

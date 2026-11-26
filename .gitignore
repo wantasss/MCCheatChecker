@@ -1,0 +1,14 @@
+# Visual Studio and build outputs
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+*.log
+*.tmp

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Security.Cryptography;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -170,6 +171,7 @@ namespace MCCheatChecker
 				FileInfo fileInfo = new FileInfo(path);
 				internalStringHit.FileSizeBytes = fileInfo.Length;
 				internalStringHit.FileSizeString = FormatFileSize(fileInfo.Length);
+				ComputeFileHashes(path, internalStringHit);
 				string text = fileInfo.Extension.ToLowerInvariant();
 				switch (text)
 				{
@@ -214,6 +216,32 @@ namespace MCCheatChecker
 				internalStringHit.ThreatTitle = "Ошибка анализа: " + ex.Message;
 			}
 			return internalStringHit;
+		}
+
+		private static void ComputeFileHashes(string filePath, InternalStringHit hit)
+		{
+			try
+			{
+				using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				{
+					using (SHA256 sha = SHA256.Create())
+					{
+						byte[] hash = sha.ComputeHash(fs);
+						StringBuilder sb = new StringBuilder();
+						foreach (byte b in hash) sb.Append(b.ToString("x2"));
+						hit.Sha256 = sb.ToString();
+					}
+					fs.Position = 0;
+					using (MD5 md5 = MD5.Create())
+					{
+						byte[] hash = md5.ComputeHash(fs);
+						StringBuilder sb = new StringBuilder();
+						foreach (byte b in hash) sb.Append(b.ToString("x2"));
+						hit.Md5 = sb.ToString();
+					}
+				}
+			}
+			catch { }
 		}
 
 		private static void ScanJarOrZip(string zipPath, InternalStringHit hit)

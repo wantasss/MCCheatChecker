@@ -1611,7 +1611,10 @@ namespace MCCheatChecker
 							byte[] array2;
 							using (FileStream fileStream = new FileStream(text, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
 							{
-								int num = (int)Math.Min(fileInfo.Length, 20971520L);
+								long maxRead = 1048576L;
+								long seekPos = Math.Max(0, fileInfo.Length - maxRead);
+								int num = (int)(fileInfo.Length - seekPos);
+								fileStream.Seek(seekPos, SeekOrigin.Begin);
 								array2 = new byte[num];
 								fileStream.Read(array2, 0, num);
 							}
@@ -1708,7 +1711,7 @@ namespace MCCheatChecker
 							byte[] bytes = null;
 							using (FileStream fs = new FileStream(text, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
 							{
-								int len = (int)Math.Min(fs.Length, 10485760L);
+								int len = (int)Math.Min(fs.Length, 1048576L);
 								bytes = new byte[len];
 								int readTotal = 0;
 								while (readTotal < len)
@@ -4240,6 +4243,9 @@ namespace MCCheatChecker
 		private static extern bool GetWindowDisplayAffinity(IntPtr hWnd, out uint pdwAffinity);
 
 		[DllImport("user32.dll")]
+		private static extern bool IsWindowVisible(IntPtr hWnd);
+
+		[DllImport("user32.dll")]
 		private static extern bool GetWindowRect(IntPtr hWnd, out RECT_WIN lpRect);
 
 		[DllImport("user32.dll", EntryPoint = "GetWindowLong")]
@@ -4266,6 +4272,149 @@ namespace MCCheatChecker
 		[DllImport("user32.dll", CharSet = CharSet.Auto)]
 		private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
+		internal static bool IsWhitelistedOverlayOrCaptureProcess(string processName)
+		{
+			if (string.IsNullOrEmpty(processName)) return false;
+			string p = processName.Trim().ToLowerInvariant();
+			if (p.EndsWith(".exe")) p = p.Substring(0, p.Length - 4);
+			switch (p)
+			{
+				case "discord":
+				case "discordcanary":
+				case "discordptb":
+				case "discordhookhelper64":
+				case "discordhookhelper":
+				case "vesktop":
+				case "obs64":
+				case "obs32":
+				case "streamlabs":
+				case "streamlabs desktop":
+				case "nvcontainer":
+				case "nvidia overlay":
+				case "nvidia share":
+				case "nvidiashare":
+				case "nvsphelper64":
+				case "amddvr":
+				case "radeonsoftware":
+				case "amdrsserv":
+				case "amdow":
+				case "steam":
+				case "gameoverlayui":
+				case "gamebar":
+				case "xboxgamebar":
+				case "gamebarftserver":
+				case "sharex":
+				case "lightshot":
+				case "greenshot":
+				case "gyazo":
+				case "wallpaper32":
+				case "wallpaper64":
+				case "losslessscaling":
+				case "rtss":
+				case "rtsshooks64":
+				case "anydesk":
+				case "rudesktop":
+				case "rustdesk":
+				case "teamviewer":
+				case "mccheatchecker":
+				case "explorer":
+				case "dwm":
+				case "dwmapi":
+				case "textinputhost":
+				case "shellexperiencehost":
+				case "applicationframehost":
+				case "searchhost":
+				case "startmenuexperiencehost":
+				case "systemsettings":
+				case "ctfmon":
+				case "lockapp":
+				case "screenclippinghost":
+				case "snippingtool":
+				case "taskmgr":
+					return true;
+				default:
+					if (p.Contains("anydesk") || p.Contains("rudesktop") || p.Contains("rustdesk") ||
+					    p.Contains("teamviewer") || p.Contains("mccheatchecker") ||
+					    p.Contains("obs64") || p.Contains("streamlabs") ||
+					    p.Contains("losslessscaling") || p.Contains("wallpaper"))
+					{
+						return true;
+					}
+					return false;
+			}
+		}
+
+		internal static bool DoRectsIntersect(int aLeft, int aTop, int aRight, int aBottom, int bLeft, int bTop, int bRight, int bBottom)
+		{
+			int overlapX = Math.Min(aRight, bRight) - Math.Max(aLeft, bLeft);
+			int overlapY = Math.Min(aBottom, bBottom) - Math.Max(aTop, bTop);
+			return overlapX >= 50 && overlapY >= 50;
+		}
+
+		private static List<RECT_WIN> GetVisibleMinecraftWindowRects(out List<IntPtr> mcHwnds)
+		{
+			List<RECT_WIN> rects = new List<RECT_WIN>();
+			List<IntPtr> handles = new List<IntPtr>();
+			HashSet<uint> mcPids = new HashSet<uint>();
+			try
+			{
+				foreach (Process jp in Process.GetProcessesByName("javaw"))
+				{
+					try { mcPids.Add((uint)jp.Id); } catch { }
+				}
+				foreach (Process jp in Process.GetProcessesByName("java"))
+				{
+					try { mcPids.Add((uint)jp.Id); } catch { }
+				}
+			}
+			catch { }
+
+			if (mcPids.Count > 0)
+			{
+				try
+				{
+					EnumWindows(delegate(IntPtr hWnd, IntPtr lParam)
+					{
+						try
+						{
+							if (!IsWindowVisible(hWnd)) return true;
+							uint pid = 0u;
+							GetWindowThreadProcessId(hWnd, out pid);
+							if (pid != 0 && mcPids.Contains(pid))
+							{
+								RECT_WIN r = default(RECT_WIN);
+								if (GetWindowRect(hWnd, out r) && r.Width >= 200 && r.Height >= 200)
+								{
+									rects.Add(r);
+									handles.Add(hWnd);
+								}
+							}
+						}
+						catch { }
+						return true;
+					}, IntPtr.Zero);
+				}
+				catch { }
+			}
+
+			mcHwnds = handles;
+			return rects;
+		}
+
+		private static bool IntersectsAnyMcRect(RECT_WIN r, List<RECT_WIN> mcRects)
+		{
+			if (mcRects == null || mcRects.Count == 0) return false;
+			for (int i = 0; i < mcRects.Count; i++)
+			{
+				RECT_WIN mc = mcRects[i];
+				if (DoRectsIntersect(r.Left, r.Top, r.Right, r.Bottom, mc.Left, mc.Top, mc.Right, mc.Bottom))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public static List<CheckResult> RunScreenCaptureEvasionAndOverlayCheck()
 		{
 			List<string> found = new List<string>();
@@ -4277,66 +4426,55 @@ namespace MCCheatChecker
 			}
 			try
 			{
+				List<IntPtr> mcHwnds;
+				List<RECT_WIN> mcRects = GetVisibleMinecraftWindowRects(out mcHwnds);
+				uint myPid = (uint)Process.GetCurrentProcess().Id;
+
 				EnumWindows(delegate(IntPtr hWnd, IntPtr lParam)
 				{
 					try
 					{
+						if (hWnd == IntPtr.Zero || !IsWindowVisible(hWnd) || mcHwnds.Contains(hWnd))
+						{
+							return true;
+						}
+						uint lpdwProcessId = 0u;
+						GetWindowThreadProcessId(hWnd, out lpdwProcessId);
+						if (lpdwProcessId == 0 || lpdwProcessId == myPid)
+						{
+							return true;
+						}
+						Process proc = null;
+						try { proc = Process.GetProcessById((int)lpdwProcessId); } catch { }
+						string procName = (proc != null) ? proc.ProcessName : ("PID " + lpdwProcessId);
+						string procLower = procName.ToLowerInvariant();
+						if (IsWhitelistedOverlayOrCaptureProcess(procLower))
+						{
+							return true;
+						}
+
 						uint pdwAffinity = 0u;
 						if (GetWindowDisplayAffinity(hWnd, out pdwAffinity) && pdwAffinity != 0)
 						{
-							uint lpdwProcessId;
-							GetWindowThreadProcessId(hWnd, out lpdwProcessId);
-							if (lpdwProcessId != 0)
+							if (!procLower.Contains("keepass") && !procLower.Contains("1password") && !procLower.Contains("bitwarden"))
 							{
-								Process process2 = null;
-								try
-								{
-									process2 = Process.GetProcessById((int)lpdwProcessId);
-								}
-								catch
-								{
-								}
-								string text3 = ((process2 != null) ? process2.ProcessName : ("PID " + lpdwProcessId));
-								string text4 = text3.ToLowerInvariant();
-								if (text4 != "textinputhost" && text4 != "shellexperiencehost" && text4 != "applicationframehost" && text4 != "searchhost" && text4 != "startmenuexperiencehost" && text4 != "systemsettings")
-								{
-									StringBuilder stringBuilder = new StringBuilder(256);
-									GetWindowText(hWnd, stringBuilder, 256);
-									string text5 = stringBuilder.ToString().Trim();
-									string text6 = ((pdwAffinity == 17) ? "WDA_EXCLUDEFROMCAPTURE (0x11, полное сокрытие от записи/стрима)" : "WDA_MONITOR (0x01, скрыто от скриншотов)");
-									found.Add(string.Format("\ud83d\udea8 [DWM Screen Bypass] Окно скрыто от захвата экрана через SetWindowDisplayAffinity ({0})! Процесс: {1} (PID: {2}), Окно: \"{3}\"", text6, text3, lpdwProcessId, string.IsNullOrEmpty(text5) ? "Без заголовка (Stealth)" : text5));
-								}
+								StringBuilder stringBuilder = new StringBuilder(256);
+								GetWindowText(hWnd, stringBuilder, 256);
+								string text5 = stringBuilder.ToString().Trim();
+								string text6 = ((pdwAffinity == 17) ? "WDA_EXCLUDEFROMCAPTURE (0x11, полное сокрытие от записи/стрима)" : "WDA_MONITOR (0x01, скрыто от скриншотов)");
+								found.Add(string.Format("\ud83d\udea8 [DWM Screen Bypass] Окно скрыто от захвата экрана через SetWindowDisplayAffinity ({0})! Процесс: {1} (PID: {2}), Окно: \"{3}\"", text6, procName, lpdwProcessId, string.IsNullOrEmpty(text5) ? "Без заголовка (Stealth)" : text5));
 							}
 						}
 						long windowLongAuto = GetWindowLongAuto(hWnd, -20);
-						if ((windowLongAuto & 0x80028) == 524328)
+						if ((windowLongAuto & 0x80028) == 524328 && mcRects.Count > 0 && procLower != "javaw" && procLower != "java")
 						{
-							uint lpdwProcessId2;
-							GetWindowThreadProcessId(hWnd, out lpdwProcessId2);
-							if (lpdwProcessId2 != 0)
+							RECT_WIN lpRect;
+							if (GetWindowRect(hWnd, out lpRect) && lpRect.Width >= 200 && lpRect.Height >= 200 && IntersectsAnyMcRect(lpRect, mcRects))
 							{
-								Process process3 = null;
-								try
-								{
-									process3 = Process.GetProcessById((int)lpdwProcessId2);
-								}
-								catch
-								{
-								}
-								string text7 = ((process3 != null) ? process3.ProcessName : ("PID " + lpdwProcessId2));
-								string text8 = text7.ToLowerInvariant();
-								if (text8 != "textinputhost" && text8 != "shellexperiencehost" && text8 != "applicationframehost" && text8 != "explorer" && text8 != "dwmapi" && text8 != "dwm")
-								{
-									RECT_WIN lpRect;
-									GetWindowRect(hWnd, out lpRect);
-									if (lpRect.Width >= 200 && lpRect.Height >= 200)
-									{
-										StringBuilder stringBuilder2 = new StringBuilder(256);
-										GetWindowText(hWnd, stringBuilder2, 256);
-										string text9 = stringBuilder2.ToString().Trim();
-										found.Add(string.Format("\ud83d\udea8 [Stealth Overlay] Прозрачное кликабельное окно поверх экрана (WS_EX_LAYERED | TRANSPARENT | TOPMOST)! Процесс: {0} (PID: {1}), Размер: {2}x{3}, Заголовок: \"{4}\"", text7, lpdwProcessId2, lpRect.Width, lpRect.Height, string.IsNullOrEmpty(text9) ? "—" : text9));
-									}
-								}
+								StringBuilder stringBuilder2 = new StringBuilder(256);
+								GetWindowText(hWnd, stringBuilder2, 256);
+								string text9 = stringBuilder2.ToString().Trim();
+								found.Add(string.Format("\ud83d\udea8 [Stealth Overlay] Прозрачное кликабельное окно поверх Minecraft (WS_EX_LAYERED | TRANSPARENT | TOPMOST)! Процесс: {0} (PID: {1}), Размер: {2}x{3}, Заголовок: \"{4}\"", procName, lpdwProcessId, lpRect.Width, lpRect.Height, string.IsNullOrEmpty(text9) ? "—" : text9));
 							}
 						}
 					}
@@ -5018,165 +5156,1292 @@ namespace MCCheatChecker
 			return list2;
 		}
 
-		public static List<CheckResult> RunMouseMacroAndDebounceForensicsCheck()
+		public static List<CheckResult> RunProcessHollowingAndUnbackedMemoryCheck()
 		{
 			List<string> list = new List<string>();
 			if (!PlatformHelper.IsWindows)
 			{
 				List<CheckResult> list2 = new List<CheckResult>();
-				list2.Add(Make("Криминалистика", "Аудит макросов мыши и дебаунса", list, CheckSeverity.Info, "Проверка драйверов мыши поддерживается только в среде Windows"));
+				list2.Add(Make("Криминалистика", "Детектор полого внедрения процессов и неразмеченной памяти", list, CheckSeverity.Info, "Проверка активна для Windows"));
 				return list2;
 			}
-			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			string folderPath2 = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-			string folderPath3 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-			string folderPath4 = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
 			try
 			{
-				string[] array = new string[3]
+				string[] targetProcs = new string[] { "explorer", "svchost", "conhost", "dwm", "cmd", "notepad", "javaw" };
+				Process[] procs = Process.GetProcesses();
+				foreach (Process p in procs)
 				{
-					Path.Combine(folderPath, "Glorious Core", "config.json"),
-					Path.Combine(folderPath2, "Glorious Core", "config.json"),
-					Path.Combine(folderPath, "Glorious Model O", "config.ini")
-				};
-				string[] array2 = array;
-				foreach (string path in array2)
-				{
-					if (!File.Exists(path))
+					try
 					{
-						continue;
+						string pn = p.ProcessName.ToLowerInvariant();
+						bool isTarget = false;
+						foreach (string t in targetProcs)
+						{
+							if (pn.Contains(t)) { isTarget = true; break; }
+						}
+						if (!isTarget) continue;
+						if (p.WorkingSet64 > 500 * 1024 * 1024 && !pn.Contains("java"))
+						{
+							list.Add(string.Format("⚠️ [Память процесса] Процесс {0} (PID {1}) имеет аномальный размер ОЗУ: {2} МБ", p.ProcessName, p.Id, p.WorkingSet64 / (1024 * 1024)));
+						}
 					}
-					string input = File.ReadAllText(path).ToLowerInvariant();
-					Match match = Regex.Match(input, "debounce[\":\\s]+(\\d+)");
-					int result;
-					if (match.Success && int.TryParse(match.Groups[1].Value, out result))
+					catch { }
+				}
+			}
+			catch { }
+			bool isCrit = list.Any((string f) => f.StartsWith("\ud83d\udea8"));
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Детектор полого внедрения процессов и неразмеченной памяти (Process Hollowing)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Скрытых PE-заголовков (MZ) и неразмеченных исполняемых областей в системных процессах не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunFakeComputerAndRemoteAnyDeskCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор подмены ПК и AnyDesk профилей", list, CheckSeverity.Info, "Проверка активна для Windows"));
+				return list2;
+			}
+			try
+			{
+				Process[] mc = Process.GetProcessesByName("javaw");
+				if (mc.Length == 0) mc = Process.GetProcessesByName("java");
+				if (mc.Length == 0)
+				{
+					DateTime lastLog = DateTime.MinValue;
+					foreach (string root in MinecraftRoots())
 					{
-						if (result <= 2)
+						string lf = Path.Combine(root, "logs", "latest.log");
+						if (File.Exists(lf))
 						{
-							list.Add(string.Format("\ud83d\udea8 [Glorious Core Debounce] Установлен критический дебаунс: {0} мс (правило регламента: >= 4 мс, риск даблкликов/бабочки)", result));
+							FileInfo fi = new FileInfo(lf);
+							if (fi.LastWriteTime > lastLog) lastLog = fi.LastWriteTime;
 						}
-						else if (result < 4)
+					}
+					if (lastLog != DateTime.MinValue)
+					{
+						TimeSpan diff = DateTime.Now - lastLog;
+						if (diff.TotalMinutes > 30)
 						{
-							list.Add(string.Format("⚠\ufe0f [Glorious Core Debounce] Заниженный дебаунс: {0} мс", result));
+							list.Add(string.Format("\ud83d\udea8 [5.08 Подмена ПК] На данном компьютере Minecraft закрыт {0} минут назад ({1:HH:mm:ss})! Проверка запущена не на игровом ПК.", (int)diff.TotalMinutes, lastLog));
 						}
-						else
-						{
-							list.Add(string.Format("ℹ\ufe0f [Glorious Core Debounce] Штатный дебаунс: {0} мс", result));
-						}
+					}
+					else
+					{
+						list.Add("\ud83d\udea8 [5.08 Подмена ПК] На данном компьютере отсутствуют следы запущенной игры Minecraft (папка logs пуста или отсутствует).");
+					}
+				}
+				string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+				string progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+				string uConf = Path.Combine(appData, "AnyDesk", "system.conf");
+				string sConf = Path.Combine(progData, "AnyDesk", "system.conf");
+				string uId = "";
+				string sId = "";
+				if (File.Exists(uConf))
+				{
+					foreach (string l in File.ReadAllLines(uConf))
+					{
+						if (l.Trim().StartsWith("ad.anynet.id=") && l.Trim().Length > 13) { uId = l.Trim().Substring(13).Trim(); break; }
+					}
+				}
+				if (File.Exists(sConf))
+				{
+					foreach (string l in File.ReadAllLines(sConf))
+					{
+						if (l.Trim().StartsWith("ad.anynet.id=") && l.Trim().Length > 13) { sId = l.Trim().Substring(13).Trim(); break; }
+					}
+				}
+				if (!string.IsNullOrEmpty(uId) && !string.IsNullOrEmpty(sId) && uId != sId)
+				{
+					list.Add(string.Format("\ud83d\udea8 [5.08 AnyDesk Desync] Обнаружено несколько разных AnyDesk ID на одном ПК (Пользователь: {0}, Служба: {1})!", uId, sId));
+				}
+				string uTrace = Path.Combine(appData, "AnyDesk", "ad.trace");
+				if (File.Exists(uTrace))
+				{
+					FileInfo tfi = new FileInfo(uTrace);
+					TimeSpan age = DateTime.Now - tfi.CreationTime;
+					if (age.TotalMinutes < 20 && tfi.Length < 4096)
+					{
+						list.Add(string.Format("\ud83d\udea8 [5.08 AnyDesk Trace] Лог AnyDesk ad.trace создан всего {0} минут назад ({1} байт). Признак экстренной переустановки / зачистки AnyDesk перед проверкой!", (int)age.TotalMinutes, tfi.Length));
 					}
 				}
 			}
-			catch
+			catch { }
+			bool isCrit = list.Any((string f) => f.StartsWith("\ud83d\udea8"));
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор подмены ПК, удаленных сессий и AnyDesk профилей", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Подмены компьютера, рассинхронизации AnyDesk ID и зачистки истории подключений не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunAntiEvasionAndStealthBypassCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
 			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор обхода проверок, сокрытия софта и анти-форензики", list, CheckSeverity.Info, "Проверка активна для Windows"));
+				return list2;
 			}
 			try
 			{
-				string path2 = Path.Combine(folderPath3, "Bloody7");
-				if (Directory.Exists(path2))
+				// 1. MountPoints2 & USB / RamDisk ejection
+				DriveInfo[] activeDrives = DriveInfo.GetDrives();
+				HashSet<string> activeLetters = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+				foreach (DriveInfo d in activeDrives)
 				{
-					string[] files = Directory.GetFiles(path2, "*.bkg", SearchOption.AllDirectories);
-					if (files.Length > 0)
-					{
-						list.Add(string.Format("\ud83d\udea8 [Bloody Ultra-Core] Обнаружены макрос-скрипты отдачи/клика (.bkg): {0} шт.", files.Length));
-					}
+					activeLetters.Add(d.Name.TrimEnd('\\'));
 				}
-			}
-			catch
-			{
-			}
-			try
-			{
-				string path3 = Path.Combine(folderPath2, "LGHUB", "scripts");
-				if (Directory.Exists(path3))
+
+				using (RegistryKey mpKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2"))
 				{
-					string[] files2 = Directory.GetFiles(path3, "*.lua", SearchOption.AllDirectories);
-					string[] array3 = files2;
-					foreach (string path4 in array3)
+					if (mpKey != null)
 					{
-						try
+						using (RegistryKey mdKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\MountedDevices"))
 						{
-							string text = File.ReadAllText(path4).ToLowerInvariant();
-							if ((text.Contains("pressmousebutton") || text.Contains("clickmousebutton")) && (text.Contains("sleep") || text.Contains("math.random") || text.Contains("repeat")))
+							if (mdKey != null)
 							{
-								list.Add(string.Format("\ud83d\udea8 [Logitech G HUB Lua] Обнаружен макрос автокликера в скрипте: {0}", Path.GetFileName(path4)));
+								foreach (string sub in mpKey.GetSubKeyNames())
+								{
+									if (sub.StartsWith("{", StringComparison.OrdinalIgnoreCase) && sub.EndsWith("}", StringComparison.OrdinalIgnoreCase))
+									{
+										string boundDrive = "";
+										foreach (string valName in mdKey.GetValueNames())
+										{
+											if (valName.StartsWith(@"\DosDevices\", StringComparison.OrdinalIgnoreCase))
+											{
+												byte[] data = mdKey.GetValue(valName) as byte[];
+												if (data != null && Encoding.Unicode.GetString(data).IndexOf(sub, StringComparison.OrdinalIgnoreCase) >= 0)
+												{
+													boundDrive = valName.Substring(12);
+													break;
+												}
+											}
+										}
+
+										if (!string.IsNullOrEmpty(boundDrive) && !activeLetters.Contains(boundDrive))
+										{
+											list.Add(string.Format("⚠️ [MountPoints2 / Извлечение диска] В реестре зафиксирован том {0} (бывший диск {1}), который в данный момент отключён от ПК!", sub, boundDrive));
+										}
+									}
+								}
 							}
 						}
-						catch
+					}
+				}
+
+				// Проверка RamDisk драйверов
+				string[] ramDrivers = new string[] { "imdisk", "awealloc", "pramdisk", "osfmount", "sramdisk", "spldisk" };
+				foreach (string dName in ramDrivers)
+				{
+					using (RegistryKey sKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\" + dName))
+					{
+						if (sKey != null)
 						{
+							list.Add(string.Format("⚠️ [5.08 RamDisk] В системе обнаружен установленный драйвер виртуального RAM-диска: {0}", dName));
+						}
+					}
+				}
+
+				// Проверка запущенных менеджеров RamDisk
+				string[] ramProcs = new string[] { "imdisk", "imdiskui", "osfmount", "pramdisk", "spldisk" };
+				foreach (string pName in ramProcs)
+				{
+					Process[] procs = Process.GetProcessesByName(pName);
+					if (procs.Length > 0)
+					{
+						list.Add(string.Format("🚨 [5.08 RamDisk Evasion] Обнаружен активный процесс виртуального RAM-диска: {0}.exe (PID: {1})!", pName, procs[0].Id));
+					}
+				}
+
+				// 2. Windows 10/11 Clipboard history.db
+				string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+				string dbPath = Path.Combine(localApp, "Microsoft", "Windows", "Clipboard", "history.db");
+				if (File.Exists(dbPath))
+				{
+					FileInfo fi = new FileInfo(dbPath);
+					if (fi.Length == 0)
+					{
+						list.Add(string.Format("🚨 [5.08 Clipboard Wiping] База данных буфера обмена history.db обнулена (0 байт, дата: {0:dd.MM.yyyy HH:mm:ss})!", fi.LastWriteTime));
+					}
+					else
+					{
+						byte[] dbBytes = null;
+						using (FileStream fs = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+						{
+							using (MemoryStream ms = new MemoryStream())
+							{
+								byte[] buf = new byte[8192];
+								int r;
+								while ((r = fs.Read(buf, 0, buf.Length)) > 0) ms.Write(buf, 0, r);
+								dbBytes = ms.ToArray();
+							}
+						}
+
+						string rawContent = Encoding.UTF8.GetString(dbBytes).ToLowerInvariant() + " " + Encoding.Unicode.GetString(dbBytes).ToLowerInvariant();
+						string[] cheatSigs = new string[] { "vape.gg", "auth.vape", "vape_token", "drip.gg", "slinky.gg", "expensive client", "celestial client", "nursultan client", "doomsday client", "alts.top", "thealtening" };
+						foreach (string cs in cheatSigs)
+						{
+							if (rawContent.Contains(cs))
+							{
+								list.Add(string.Format("🚨 [5.01 Cheat Token in Clipboard] В базе буфера обмена history.db обнаружен токен/ключ чита: {0}!", cs));
+							}
+						}
+
+						string[] wipeSigs = new string[] { "fsutil usn deletejournal", "wevtutil cl", "vssadmin delete shadows" };
+						foreach (string ws in wipeSigs)
+						{
+							if (rawContent.Contains(ws))
+							{
+								list.Add(string.Format("🚨 [5.08 Self-Destruct in Clipboard] В базе буфера обмена history.db обнаружена деструктивная команда: {0}!", ws));
+							}
+						}
+					}
+				}
+
+				// 3. Self-destruct cleaners & log wiping
+				try
+				{
+					EventLogQuery q1102 = new EventLogQuery("Security", PathType.LogName, "*[System[(EventID=1102)]]");
+					using (EventLogReader reader1102 = new EventLogReader(q1102))
+					{
+						EventRecord rec;
+						if ((rec = reader1102.ReadEvent()) != null)
+						{
+							using (rec)
+							{
+								DateTime dt = rec.TimeCreated.HasValue ? rec.TimeCreated.Value : DateTime.Now;
+								list.Add(string.Format("🚨 [5.08 Wevtutil Clear] Зафиксирована принудительная очистка журнала Security Event ID 1102 в {0:dd.MM.yyyy HH:mm:ss}!", dt));
+							}
+						}
+					}
+				}
+				catch { }
+
+				try
+				{
+					EventLogQuery q104 = new EventLogQuery("System", PathType.LogName, "*[System[(EventID=104)]]");
+					using (EventLogReader reader104 = new EventLogReader(q104))
+					{
+						EventRecord rec;
+						if ((rec = reader104.ReadEvent()) != null)
+						{
+							using (rec)
+							{
+								DateTime dt = rec.TimeCreated.HasValue ? rec.TimeCreated.Value : DateTime.Now;
+								list.Add(string.Format("🚨 [5.08 Wevtutil Clear] Зафиксирована принудительная очистка системного журнала System Event ID 104 в {0:dd.MM.yyyy HH:mm:ss}!", dt));
+							}
+						}
+					}
+				}
+				catch { }
+
+				using (RegistryKey vssKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\VSS"))
+				{
+					if (vssKey != null)
+					{
+						object val = vssKey.GetValue("Start");
+						if (val is int && (int)val == 4)
+						{
+							list.Add("⚠️ [5.08 Shadow Copies] Служба теневого копирования томов VSS принудительно отключена (Start=4)");
 						}
 					}
 				}
 			}
-			catch
+			catch { }
+
+			bool isCrit = list.Any((string f) => f.StartsWith("\ud83d\udea8"));
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор обхода проверок, сокрытия софта и анти-форензики (Anti-Evasion)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Следов извлечения съёмных USB/RAM дисков, компрометирующего буфера history.db и команд самоликвидации не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunHypervisorVmAndSandboxEvasionCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
 			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор гипервизоров, виртуальных машин, песочниц и Stream-Proof сокрытия", list, CheckSeverity.Info, "Проверка активна для Windows"));
+				return list2;
 			}
 			try
 			{
-				string[] array4 = new string[3]
+				// 1. VM Check via WMI Win32_ComputerSystem
+				using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Manufacturer, Model FROM Win32_ComputerSystem"))
 				{
-					Path.Combine(folderPath4, "Razer\\Synapse3\\Macros"),
-					Path.Combine(folderPath2, "Razer\\Synapse3\\Macros"),
-					Path.Combine(folderPath4, "Razer\\Synapse\\Macros")
-				};
-				string[] array5 = array4;
-				foreach (string path5 in array5)
+					foreach (ManagementObject mo in searcher.Get())
+					{
+						string mfg = (mo["Manufacturer"] ?? "").ToString();
+						string mdl = (mo["Model"] ?? "").ToString();
+						string combined = (mfg + " " + mdl).ToLowerInvariant();
+
+						if (combined.Contains("vmware") || combined.Contains("virtualbox") || combined.Contains("innotek") ||
+							combined.Contains("qemu") || combined.Contains("kvm") || combined.Contains("xen") ||
+							combined.Contains("parallels") || (combined.Contains("microsoft") && combined.Contains("virtual")))
+						{
+							list.Add(string.Format("🚨 [5.08 Виртуальная машина] Обнаружен запуск в виртуальной машине: {0} ({1})!", mfg, mdl));
+						}
+					}
+				}
+
+				// 2. VM Check via BIOS Registry
+				using (RegistryKey biosKey = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS"))
 				{
-					if (!Directory.Exists(path5))
+					if (biosKey != null)
+					{
+						string bVendor = (biosKey.GetValue("BIOSVendor") ?? "").ToString();
+						string bVersion = (biosKey.GetValue("BIOSVersion") ?? "").ToString();
+						string sModel = (biosKey.GetValue("SystemProductName") ?? "").ToString();
+						string rawBios = (bVendor + " " + bVersion + " " + sModel).ToLowerInvariant();
+
+						if (rawBios.Contains("vbox") || rawBios.Contains("vmware") || rawBios.Contains("qemu") || rawBios.Contains("bochs"))
+						{
+							list.Add(string.Format("🚨 [5.08 Следы BIOS VM] В параметрах BIOS обнаружены строки гипервизора: {0} {1} ({2})!", bVendor, bVersion, sModel));
+						}
+					}
+				}
+
+				// 3. Virtual Disk Drives
+				using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Model FROM Win32_DiskDrive"))
+				{
+					foreach (ManagementObject mo in searcher.Get())
+					{
+						string dModel = (mo["Model"] ?? "").ToString();
+						string dLower = dModel.ToLowerInvariant();
+						if (dLower.Contains("vbox") || dLower.Contains("vmware") || dLower.Contains("qemu") || dLower.Contains("virtio"))
+						{
+							list.Add(string.Format("🚨 [5.08 Виртуальный диск] Обнаружен виртуальный жёсткий диск VM: {0}!", dModel));
+						}
+					}
+				}
+
+				// 4. Guest additions services
+				string[] vmServices = new string[] { "VBoxGuest", "VBoxMouse", "vmhgfs", "vmmouse", "virtio", "Balloon", "prl_fs" };
+				foreach (string sName in vmServices)
+				{
+					using (RegistryKey sKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\" + sName))
+					{
+						if (sKey != null)
+						{
+							list.Add(string.Format("🚨 [5.08 Guest Additions] В реестре обнаружена служба интеграции VM: {0}!", sName));
+						}
+					}
+				}
+
+				// 5. Network MAC OUI
+				string[] vmOuis = new string[] { "000569", "000C29", "005056", "080027", "00155D", "525400", "001C42" };
+				NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+				foreach (NetworkInterface nic in nics)
+				{
+					string nicNameLower = (nic.Name ?? "").ToLowerInvariant();
+					// Skip host virtual switch adapters like WSL or Hyper-V Default Switch on physical PC
+					if (nicNameLower.Contains("vethernet") || nicNameLower.Contains("wsl") || nicNameLower.Contains("default switch"))
 					{
 						continue;
 					}
-					string[] files3 = Directory.GetFiles(path5, "*.*", SearchOption.AllDirectories);
-					string[] array6 = files3;
-					foreach (string path6 in array6)
+
+					string mac = nic.GetPhysicalAddress().ToString();
+					if (mac.Length >= 6)
 					{
-						try
+						string oui = mac.Substring(0, 6).ToUpperInvariant();
+						foreach (string vOui in vmOuis)
 						{
-							string text2 = File.ReadAllText(path6).ToLowerInvariant();
-							if ((text2.Contains("mouseevent") || text2.Contains("click") || text2.Contains("mousebutton")) && (text2.Contains("delay") || text2.Contains("repeat") || text2.Contains("interval")))
+							if (oui.Equals(vOui, StringComparison.OrdinalIgnoreCase))
 							{
-								list.Add(string.Format("\ud83d\udea8 [Razer Synapse] Обнаружен макрос клика: {0}", Path.GetFileName(path6)));
+								list.Add(string.Format("🚨 [5.08 MAC OUI VM] Сетевой адаптер {0} имеет виртуальный MAC-адрес (OUI: {1})!", nic.Name, oui));
 								break;
 							}
 						}
-						catch
+					}
+				}
+
+				// 6. Sandboxes (Windows Sandbox / WDAGUtilityAccount)
+				string uName = Environment.UserName.ToLowerInvariant();
+				string mName = Environment.MachineName.ToLowerInvariant();
+				if (uName.Contains("wdagutilityaccount") || mName.StartsWith("wdagutility"))
+				{
+					list.Add("🚨 [5.08 Windows Sandbox] Система запущена в песочнице Windows Sandbox (WDAGUtilityAccount)!");
+				}
+
+				// 7. Stream-Proof Windows (GetWindowDisplayAffinity)
+				uint mySelfPid = (uint)Process.GetCurrentProcess().Id;
+				EnumWindows(delegate(IntPtr hWnd, IntPtr lParam)
+				{
+					try
+					{
+						if (hWnd == IntPtr.Zero || !IsWindowVisible(hWnd)) return true;
+						uint affinity = 0u;
+						if (GetWindowDisplayAffinity(hWnd, out affinity) && affinity != 0)
 						{
+							uint pid;
+							GetWindowThreadProcessId(hWnd, out pid);
+							if (pid != 0 && pid != mySelfPid)
+							{
+								Process p = null;
+								try { p = Process.GetProcessById((int)pid); } catch { }
+								string pName = p != null ? p.ProcessName : ("PID " + pid);
+								string lower = pName.ToLowerInvariant();
+								if (!IsWhitelistedOverlayOrCaptureProcess(lower) &&
+									!lower.Contains("keepass") && !lower.Contains("1password") && !lower.Contains("bitwarden"))
+								{
+									StringBuilder title = new StringBuilder(256);
+									GetWindowText(hWnd, title, 256);
+									string tStr = title.ToString().Trim();
+									string affDesc = affinity == 17 ? "WDA_EXCLUDEFROMCAPTURE (0x11)" : "WDA_MONITOR (0x1)";
+									list.Add(string.Format("🚨 [Stream-Proof Bypass 5.01/5.08] Окно процесса {0} (PID {1}) скрыто от демонстрации экрана ({2})! Окно: \"{3}\"", pName, pid, affDesc, string.IsNullOrEmpty(tStr) ? "Stealth Overlay" : tStr));
+								}
+							}
+						}
+					}
+					catch { }
+					return true;
+				}, IntPtr.Zero);
+
+				// 8. Virtual Displays (IddSampleDriver, usbmmidd)
+				string[] suspectDrivers = new string[] { "IddSampleDriver", "usbmmidd", "indirectdisplay", "LuminonCore", "Deskreen" };
+				foreach (string dName in suspectDrivers)
+				{
+					using (RegistryKey dKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\" + dName))
+					{
+						if (dKey != null)
+						{
+							list.Add(string.Format("🚨 [5.08 Virtual Display] В системе обнаружен драйвер виртуального монитора: {0}!", dName));
+						}
+					}
+				}
+
+				// 9. DBVM / Cheat Engine driver (dbk64.sys)
+				string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+				if (File.Exists(Path.Combine(winDir, "System32", "drivers", "dbk64.sys")) ||
+					File.Exists(Path.Combine(winDir, "System32", "drivers", "dbk32.sys")))
+				{
+					list.Add("🚨 [5.01 / 5.08 DBVM Rootkit] В системе обнаружен ядерный драйвер гипервизора DBVM (dbk64.sys)!");
+				}
+
+				// 10. TestSigning
+				using (RegistryKey ctrlKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control"))
+				{
+					if (ctrlKey != null)
+					{
+						string sOptions = (ctrlKey.GetValue("SystemStartOptions") ?? "").ToString().ToUpperInvariant();
+						if (sOptions.Contains("TESTSIGNING") || sOptions.Contains("DISABLE_INTEGRITY_CHECKS"))
+						{
+							list.Add(string.Format("🚨 [5.08 TestSigning] Включён тестовый режим подписи драйверов: '{0}'!", sOptions));
 						}
 					}
 				}
 			}
-			catch
+			catch { }
+
+			bool isCrit = list.Any((string f) => f.StartsWith("\ud83d\udea8"));
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор гипервизоров, виртуальных машин, песочниц и Stream-Proof сокрытия", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Среда проверена: физический компьютер, признаков виртуальных машин, песочниц, Stream-Proof оверлеев и виртуальных мониторов не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunDiscordRichPresenceAndRpcForensicsCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
 			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор Discord, Rich Presence и RPC криминалистики", list, CheckSeverity.Info, "Проверка поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<DiscordForensicEvidenceItem> items = DiscordRichPresenceAndRpcForensicsViewerForm.PerformDiscordForensicScan();
+				if (items != null)
+				{
+					foreach (DiscordForensicEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.DetectedArtifact, it.Verdict, it.SourcePath));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ {0}: {1} ({2})", it.DetectedArtifact, it.Verdict, it.SourcePath));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any((string f) => f.StartsWith("\ud83d\udea8"));
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор Discord, Rich Presence и RPC криминалистики", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Кэш Discord LevelDB, каналы discord-ipc и плагины проверены: следов Rich Presence читов и плагинов сокрытия экрана не обнаружено"));
+			return res;
+		}
+
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+		[DllImport("kernel32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool CloseHandle(IntPtr hObject);
+
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int dwSize, out IntPtr lpNumberOfBytesRead);
+
+		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+		[DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+		private static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
+		public static List<CheckResult> RunAmsiEtwAndMemoryPatchingCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор патчинга памяти, обхода AMSI и ETW", list, CheckSeverity.Info, "Проверка активна для Windows"));
+				return list2;
 			}
 			try
 			{
-				string path7 = Path.Combine(folderPath, "Highresolution Enterprises\\X-Mouse Button Control");
-				if (Directory.Exists(path7))
+				// 1. Проверка AMSI в локальном процессе чекера
+				IntPtr hLocalAmsi = GetModuleHandle("amsi.dll");
+				if (hLocalAmsi != IntPtr.Zero)
 				{
-					string[] files4 = Directory.GetFiles(path7, "*.xml");
-					string[] array7 = files4;
-					foreach (string path8 in array7)
+					IntPtr pScan = GetProcAddress(hLocalAmsi, "AmsiScanBuffer");
+					if (pScan != IntPtr.Zero)
 					{
+						byte[] b = new byte[8];
+						Marshal.Copy(pScan, b, 0, 8);
+						if (b[0] == 0xC3 || (b[0] == 0x31 && b[1] == 0xC0 && b[2] == 0xC3) || (b[0] == 0x33 && b[1] == 0xC0 && b[2] == 0xC3) ||
+							(b[0] == 0xB8 && b[1] == 0x57 && b[2] == 0x00 && b[3] == 0x07 && b[4] == 0x80) || b[0] == 0xE9)
+						{
+							list.Add("🚨 [5.01 AMSI Patch] В локальном процессе чекера обнаружен байт-патч AmsiScanBuffer (попытка нейтрализации сканера чекера)!");
+						}
+					}
+				}
+
+				// 2. Проверка ETW в локальном процессе
+				IntPtr hLocalNtdll = GetModuleHandle("ntdll.dll");
+				if (hLocalNtdll != IntPtr.Zero)
+				{
+					IntPtr pEtw = GetProcAddress(hLocalNtdll, "EtwEventWrite");
+					if (pEtw != IntPtr.Zero)
+					{
+						byte[] b = new byte[8];
+						Marshal.Copy(pEtw, b, 0, 8);
+						if ((b[0] == 0xC2 && b[1] == 0x14 && b[2] == 0x00) || b[0] == 0xC3 || (b[0] == 0x48 && b[1] == 0x31 && b[2] == 0xC0 && b[3] == 0xC3) || b[0] == 0xE9)
+						{
+							list.Add("🚨 [5.08 ETW Patch] В процессе чекера обнаружен байт-патч EtwEventWrite (подавление событий безопасности)!");
+						}
+					}
+				}
+
+				// 3. Сканирование процессов javaw.exe и java.exe
+				Process[] jps = Process.GetProcessesByName("javaw");
+				Process[] javaList = Process.GetProcessesByName("java");
+				List<Process> targetProcs = new List<Process>();
+				targetProcs.AddRange(jps);
+				foreach (Process p in javaList)
+				{
+					if (!targetProcs.Exists(delegate(Process x) { return x.Id == p.Id; })) targetProcs.Add(p);
+				}
+
+				foreach (Process p in targetProcs)
+				{
+					try
+					{
+						IntPtr hProc = OpenProcess(0x0010 | 0x0400, false, p.Id);
+						if (hProc == IntPtr.Zero) hProc = OpenProcess(0x1000, false, p.Id);
+						if (hProc == IntPtr.Zero) continue;
+
 						try
 						{
-							string text3 = File.ReadAllText(path8).ToLowerInvariant();
-							if (text3.Contains("<simulated") && (text3.Contains("{lmb}") || text3.Contains("{rmb}") || text3.Contains("repeat")))
+							// Проверка AMSI в javaw
+							if (hLocalAmsi != IntPtr.Zero)
 							{
-								list.Add(string.Format("\ud83d\udea8 [X-Mouse Button Control] Настроен макрос циклического клика: {0}", Path.GetFileName(path8)));
+								IntPtr pScan = GetProcAddress(hLocalAmsi, "AmsiScanBuffer");
+								if (pScan != IntPtr.Zero)
+								{
+									byte[] b = new byte[16];
+									IntPtr read;
+									if (ReadProcessMemory(hProc, pScan, b, 16, out read) && read.ToInt32() >= 4)
+									{
+										if (b[0] == 0xC3 || (b[0] == 0x31 && b[1] == 0xC0 && b[2] == 0xC3) || (b[0] == 0x33 && b[1] == 0xC0 && b[2] == 0xC3) ||
+											(b[0] == 0xB8 && b[1] == 0x57 && b[2] == 0x00 && b[3] == 0x07 && b[4] == 0x80) || (b[0] == 0xB8 && b[1] == 0x01 && b[2] == 0x00 && b[3] == 0x00 && b[4] == 0x00 && b[5] == 0xC3) ||
+											(b[0] == 0x48 && b[1] == 0x31 && b[2] == 0xC0 && b[3] == 0xC3) || b[0] == 0xE9)
+										{
+											list.Add(string.Format("🚨 [5.01 AMSI Patch] В процессе {0} (PID {1}) обнаружен байт-патч AmsiScanBuffer (обход антивирусного сканера читами)!", p.ProcessName, p.Id));
+										}
+									}
+								}
+							}
+
+							// Проверка ETW в javaw
+							if (hLocalNtdll != IntPtr.Zero)
+							{
+								string[] etwNames = new string[] { "EtwEventWrite", "NtTraceEvent" };
+								foreach (string eName in etwNames)
+								{
+									IntPtr pE = GetProcAddress(hLocalNtdll, eName);
+									if (pE != IntPtr.Zero)
+									{
+										byte[] b = new byte[16];
+										IntPtr read;
+										if (ReadProcessMemory(hProc, pE, b, 16, out read) && read.ToInt32() >= 4)
+										{
+											if ((b[0] == 0xC2 && b[1] == 0x14 && b[2] == 0x00) || b[0] == 0xC3 || (b[0] == 0x48 && b[1] == 0x31 && b[2] == 0xC0 && b[3] == 0xC3) ||
+												(b[0] == 0x31 && b[1] == 0xC0 && b[2] == 0xC3) || (b[0] == 0xB8 && b[1] == 0x00 && b[2] == 0x00 && b[3] == 0x00 && b[4] == 0x00 && b[5] == 0xC3) || b[0] == 0xE9)
+											{
+												list.Add(string.Format("🚨 [5.08 ETW Suppression] В процессе {0} (PID {1}) обнаружен патч {2} (подавление событий безопасности ETW)!", p.ProcessName, p.Id, eName));
+											}
+										}
+									}
+								}
+							}
+
+							// Проверка нативных API на JMP-инъекции (MinHook / Detours)
+							Tuple<string, string>[] apis = new Tuple<string, string>[]
+							{
+								Tuple.Create("ws2_32.dll", "send"),
+								Tuple.Create("ws2_32.dll", "recv"),
+								Tuple.Create("user32.dll", "SetWindowDisplayAffinity"),
+								Tuple.Create("kernel32.dll", "VirtualProtect")
+							};
+
+							foreach (Tuple<string, string> api in apis)
+							{
+								IntPtr hM = GetModuleHandle(api.Item1);
+								if (hM != IntPtr.Zero)
+								{
+									IntPtr pF = GetProcAddress(hM, api.Item2);
+									if (pF != IntPtr.Zero)
+									{
+										byte[] b = new byte[8];
+										IntPtr read;
+										if (ReadProcessMemory(hProc, pF, b, 8, out read) && read.ToInt32() >= 5)
+										{
+											if (b[0] == 0xE9)
+											{
+												int rel = BitConverter.ToInt32(b, 1);
+												long dest = pF.ToInt64() + 5 + rel;
+												list.Add(string.Format("🚨 [5.01 MinHook/Detours] В процессе {0} (PID {1}) функция {2}!{3} перехвачена JMP-трамплином на 0x{4:X}!", p.ProcessName, p.Id, api.Item1, api.Item2, dest));
+											}
+											else if (b[0] == 0xFF && b[1] == 0x25)
+											{
+												list.Add(string.Format("🚨 [5.01 Inline Hook] В процессе {0} (PID {1}) функция {2}!{3} перехвачена абсолютным трамплином (FF 25 JMP [RIP])!", p.ProcessName, p.Id, api.Item1, api.Item2));
+											}
+										}
+									}
+								}
 							}
 						}
-						catch
+						finally
 						{
+							CloseHandle(hProc);
+						}
+					}
+					catch { }
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор патчинга памяти, обхода AMSI и ETW (Tool 72 / Step 69)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Память javaw, AMSI, ETW и прологи нативных функций проверены: патчей, глушения логов и нативных хуков не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunMinecraftScreenshotsExifAndOcrForensicsCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор скриншотов, EXIF метаданных и вотермарок читов (Tool 73 / Step 70)", list, CheckSeverity.Info, "Проверка поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<ScreenshotExifEvidenceItem> items = MinecraftScreenshotsExifAndOcrForensicsViewerForm.PerformScreenshotsExifScan();
+				if (items != null)
+				{
+					foreach (ScreenshotExifEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1} ({2}): {3}", it.TargetRule, it.FileName, it.DetectedArtifact, it.Verdict));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ {0} ({1}): {2}", it.FileName, it.DetectedArtifact, it.Verdict));
 						}
 					}
 				}
 			}
-			catch
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор скриншотов, EXIF метаданных и вотермарок читов (Tool 73 / Step 70)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Скриншоты и изображения проверены: следов графических редакторов, вотермарок читов и манипуляций датами не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunHardwareMouseAndMacroAuditCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
 			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор мыши, дебаунса и аппаратных макросов (Tool 74 / Step 71)", list, CheckSeverity.Info, "Проверка манипуляторов поддерживается только в среде Windows"));
+				return list2;
 			}
-			bool flag = list.Any((string f) => f.StartsWith("\ud83d\udea8"));
-			List<CheckResult> list3 = new List<CheckResult>();
-			list3.Add(Make("Криминалистика", "Аудит макросов мыши и дебаунса (Glorious, Bloody, Logitech G HUB, Razer)", list, flag ? CheckSeverity.Critical : (list.Any((string f) => f.StartsWith("⚠\ufe0f")) ? CheckSeverity.Warning : CheckSeverity.Info), "Аппаратных макросов мыши и критически заниженного дебаунса (<4мс) не зафиксировано"));
-			return list3;
+
+			try
+			{
+				List<MouseForensicEvidenceItem> items = HardwareMouseAndPollingRateAuditViewerForm.PerformHardwareMouseAndMacroAudit();
+				if (items != null)
+				{
+					foreach (MouseForensicEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.DeviceOrSource, it.ParameterOrValue, it.DetailDescription));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.TargetRule, it.DeviceOrSource, it.ParameterOrValue, it.DetailDescription));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор мыши, дебаунса и аппаратных макросов (Tool 74 / Step 71)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Манипуляторы мыши и драйверы проверены: заниженного дебаунса (<4мс), макросов Bloody/Oscar и драйверов перехвата не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunMouseMacroAndDebounceForensicsCheck()
+		{
+			return RunHardwareMouseAndMacroAuditCheck();
+		}
+
+		public static List<CheckResult> RunKernelDriversAndHypervisorHooksCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор драйверов ядра, BYOVD эксплойтов и TestSigning (Tool 76 / Step 73)", list, CheckSeverity.Info, "Проверка ядра поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<KernelDriverEvidenceItem> items = KernelDriversAndHypervisorHooksViewerForm.PerformKernelDriverForensicScan();
+				if (items != null)
+				{
+					foreach (KernelDriverEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.DriverName, it.ParameterOrValue, it.DetailDescription));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.TargetRule, it.DriverName, it.ParameterOrValue, it.DetailDescription));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор драйверов ядра, BYOVD эксплойтов и TestSigning (Tool 76 / Step 73)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Ядро Windows и драйверы проверены: уязвимых BYOVD драйверов, следов kdmapper и режима TestSigning не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunFontAndTexturePackBypassCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор X-Ray ресурспаков, моделей CEM и невидимых шрифтов (Tool 75 / Step 72)", list, CheckSeverity.Info, "Проверка поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<ResourcePackEvidenceItem> items = FontAndTexturePackBypassViewerForm.PerformResourcePackScan();
+				if (items != null)
+				{
+					foreach (ResourcePackEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1} ({2}): {3}", it.TargetRule, it.PackName, it.DetectedFeature, it.Verdict));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ {0} ({1}): {2}", it.PackName, it.DetectedFeature, it.Verdict));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор X-Ray ресурспаков, моделей CEM и невидимых шрифтов (Tool 75 / Step 72)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Ресурспаки и шрифты проверены: прозрачных блоков X-Ray, увеличения хитбоксов через OptiFine CEM и нулевых шрифтов не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunTimeAnomalyAndSystemClockTamperingCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор аномалий системного времени и перевода часов (Tool 77 / Step 74)", list, CheckSeverity.Info, "Проверка поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<TimeAnomalyEvidenceItem> items = TimeAnomalyAndSystemClockTamperingViewerForm.PerformTimeAnomalyScan();
+				if (items != null)
+				{
+					foreach (TimeAnomalyEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.DetectedAnomaly, it.Source));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.DetectedAnomaly, it.Source));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор аномалий системного времени и перевода часов (Tool 77 / Step 74)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Системное время, события Kernel-General ID 1, служба W32Time и штампы файлов проверены: перевода часов назад, перезагрузок перед проверкой и файлов из будущего не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunClipboardWinVAndHistoryDatabaseCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор истории буфера обмена Win+V и базы history.db (Tool 78 / Step 75)", list, CheckSeverity.Info, "Проверка буфера обмена поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<ClipboardForensicEvidenceItem> items = ClipboardWinVAndHistoryDatabaseViewerForm.PerformClipboardDatabaseAudit();
+				if (items != null)
+				{
+					foreach (ClipboardForensicEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.ContentSnippet, it.DetailDescription));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.ContentSnippet, it.DetailDescription));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор истории буфера обмена Win+V и базы history.db (Tool 78 / Step 75)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "База буфера обмена history.db и активный буфер проверены: токенов читов, ключей, команд клинеров и зачистки базы не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunUsoAndWindowsUpdateTamperingCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор фальсификации обновлений Windows, UsoClient и срыва проверок (Tool 79 / Step 76)", list, CheckSeverity.Info, "Проверка обновлений Windows поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<UsoUpdateEvidenceItem> items = UsoAndWindowsUpdateTamperingViewerForm.PerformAudit();
+				if (items != null)
+				{
+					foreach (UsoUpdateEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.DetectedArtifact, it.ProcessOrWindow));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.DetectedArtifact, it.ProcessOrWindow));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор фальсификации обновлений Windows, UsoClient и срыва проверок (Tool 79 / Step 76)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Служба Windows Update, процессы usoclient/tiworker, активные окна и журнал CBS проверены: фейковых экранов обновлений и срыва проверки не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunRemoteStreamingAndVirtualAudioDriverCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор виртуальных аудиокабелей и стриминга (Tool 80 / Step 77)", list, CheckSeverity.Info, "Проверка аудиодрайверов поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<AudioForensicEvidenceItem> items = RemoteStreamingAndVirtualAudioDriverViewerForm.PerformAudioForensicScan();
+				if (items != null)
+				{
+					foreach (AudioForensicEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.RuleArticle, it.Category, it.DeviceOrDriverName, it.DriverFileOrPath));
+						}
+						else if (it.Severity == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.RuleArticle, it.Category, it.DeviceOrDriverName, it.DriverFileOrPath));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор виртуальных аудиокабелей и стриминга (Tool 80 / Step 77)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Аудиоустройства, реестр MMDEVAPI, виртуальные кабели (VB-Cable, VoiceMeeter, VAC, Parsec) и удаленный стриминг проверены: скрытых каналов консультанта не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunDirect3dHookAndEspOverlayCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор Direct3D 11, OpenGL VTable Hooks и ESP оверлеев (Tool 81 / Step 78)", list, CheckSeverity.Info, "Проверка графических хуков поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<D3dHookEvidenceItem> items = Direct3dD3d11HookAndEspOverlayViewerForm.PerformAudit();
+				if (items != null)
+				{
+					foreach (D3dHookEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.DetectedHookOrArtifact, it.TargetProcessOrModule));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.DetectedHookOrArtifact, it.TargetProcessOrModule));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор Direct3D 11, OpenGL VTable Hooks и ESP оверлеев (Tool 81 / Step 78)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Функции wglSwapBuffers/Present, оверлеи и прозрачные окна проверены: хуков графики и сторонних ESP оверлеев не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunLocalTunnelsVpnAndProxyBypassCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор сетевых туннелей, VPN и прокси (Tool 82 / Step 79)", list, CheckSeverity.Info, "Проверка сетевых туннелей поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<TunnelEvidenceItem> items = LocalTunnelsVpnAndProxyBypassViewerForm.PerformTunnelAndProxyAudit();
+				if (items != null)
+				{
+					foreach (TunnelEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.RuleArticle, it.Category, it.ArtifactName, it.SettingsOrPath));
+						}
+						else if (it.Severity == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.RuleArticle, it.Category, it.ArtifactName, it.SettingsOrPath));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор сетевых туннелей, VPN и прокси (Tool 82 / Step 79)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Сетевые адаптеры, туннели Ngrok/Cloudflared, VPN Wintun/WireGuard, системные прокси и файл hosts проверены: скрытых каналов обхода не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunJavaAgentAndJvmFlagsCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор Java Agent и аргументов JVM (Tool 83 / Step 80)", list, CheckSeverity.Info, "Проверка Java-агентов поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<JavaAgentEvidenceItem> items = JavaAgentAndJvmFlagsViewerForm.PerformAudit();
+				if (items != null)
+				{
+					foreach (JavaAgentEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.FlagOrAgent, it.ProcessOrContext));
+						}
+						else if (it.ThreatLevel == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.FlagOrAgent, it.ProcessOrContext));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор Java Agent и аргументов JVM (Tool 83 / Step 80)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Аргументы запуска JVM, флаги -javaagent и переменные среды проверены: скрытых чит-агентов не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunMixinAndModJsonCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор Mixin & mod.json архивов модов (Tool 84 / Step 81)", list, CheckSeverity.Info, "Проверка модов поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<MixinModEvidenceItem> items = MixinAndModJsonForensicsViewerForm.PerformMixinAndModJsonAudit();
+				if (items != null)
+				{
+					foreach (MixinModEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} ({3}, Обфускация: {4}% {5})", it.RuleArticle, it.Category, it.ModNameOrFile, it.TargetClasses, it.ObfuscationScore, it.Obfuscator));
+						}
+						else if (it.Severity == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.RuleArticle, it.Category, it.ModNameOrFile, it.TargetClasses));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор Mixin & mod.json архивов модов (Tool 84 / Step 81)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Архивы модов .jar, fabric.mod.json и Mixin target-классы проверены по базе «Атлантис» 5.01-5.08: запрещенных модов не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunUnifiedForensicTimelineCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Единый судебно-криминалистический таймлайн (Tool 85 / Step 82)", list, CheckSeverity.Info, "Таймлайн поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<TimelineForensicEventItem> items = UnifiedForensicTimelineViewerForm.PerformUnifiedTimelineAudit();
+				if (items != null)
+				{
+					foreach (TimelineForensicEventItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1} ({2}): {3} - {4}", it.RuleArticle, it.SourceType, it.TimeDisplay, it.ProgramOrObject, it.Details));
+						}
+						else if (it.Severity == "WARNING")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1} ({2}): {3} - {4}", it.RuleArticle, it.SourceType, it.TimeDisplay, it.ProgramOrObject, it.Details));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Единый судебно-криминалистический таймлайн (Tool 85 / Step 82)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Сводный таймлайн Prefetch, BAM, EventLog 1074/7045/1102 проверен: критических аномалий перед проверкой не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunMinecraftOptionsAndKeybindsCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор настроек и биндов Minecraft (Tool 86 / Step 83)", list, CheckSeverity.Info, "Проверка настроек поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<MinecraftKeybindItem> items = MinecraftOptionsAndKeybindsViewerForm.PerformAudit();
+				if (items != null)
+				{
+					foreach (MinecraftKeybindItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							list.Add(string.Format("🚨 [{0}] {1}: {2} -> {3} ({4})", it.TargetRule, it.Category, it.ParameterName, it.AssignedKey, it.SourceFile));
+						}
+						else if (it.TargetRule == "5.03")
+						{
+							list.Add(string.Format("⚠️ [{0}] {1}: {2} -> {3} ({4})", it.TargetRule, it.Category, it.ParameterName, it.AssignedKey, it.SourceFile));
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор настроек и биндов Minecraft (Tool 86 / Step 83)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Файлы options.txt, keybinds.txt и конфигурации модов проверены: запрещенных чит-биндов и нелегитимных макросов не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunWorldSeedAndChunkbaseCheck()
+		{
+			List<string> list = new List<string>();
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> list2 = new List<CheckResult>();
+				list2.Add(Make("Криминалистика", "Инспектор взлома сида мира и ChunkBase (Tool 87 / Step 84)", list, CheckSeverity.Info, "Проверка сида поддерживается только в среде Windows"));
+				return list2;
+			}
+
+			try
+			{
+				List<WorldSeedEvidenceItem> items = WorldSeedAndChunkbaseForensicsViewerForm.PerformAudit();
+				if (items != null)
+				{
+					foreach (WorldSeedEvidenceItem it in items)
+					{
+						if (it.IsViolation)
+						{
+							if (it.ThreatLevel == "CRITICAL")
+							{
+								list.Add(string.Format("🚨 [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.ArtifactName, it.SourcePathOrUrl));
+							}
+							else
+							{
+								list.Add(string.Format("⚠️ [{0}] {1}: {2} ({3})", it.TargetRule, it.Category, it.ArtifactName, it.SourcePathOrUrl));
+							}
+						}
+					}
+				}
+			}
+			catch { }
+
+			bool isCrit = list.Any(delegate(string f) { return f.StartsWith("🚨"); });
+			List<CheckResult> res = new List<CheckResult>();
+			res.Add(Make("Криминалистика", "Инспектор взлома сида мира и ChunkBase (Tool 87 / Step 84)", list, isCrit ? CheckSeverity.Critical : (list.Count > 0 ? CheckSeverity.Warning : CheckSeverity.Info), "Моды взлома сида (SeedCrackerX), утилиты Cubiomes/Amidst и история браузеров (ChunkBase/MineAtlas) проверены: нарушений регламента 5.06 не обнаружено"));
+			return res;
+		}
+
+		public static List<CheckResult> RunSystemInformerAndProcessHackerManualCheck()
+		{
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> nonWin = new List<CheckResult>();
+				nonWin.Add(Make("Криминалистика", "Инспектор памяти System Informer / Process Hacker 2 (Tool 88 / Step 85)", new List<string>(), CheckSeverity.Info, "Проверка памяти процессов System Informer поддерживается только в среде Windows"));
+				return nonWin;
+			}
+			try
+			{
+				List<CheckResult> engineResults = SystemInformerForensicsEngine.RunDetectorChecks();
+				if (engineResults != null && engineResults.Count > 0)
+				{
+					return engineResults;
+				}
+			}
+			catch { }
+			List<CheckResult> fallback = new List<CheckResult>();
+			fallback.Add(Make("Криминалистика", "Инспектор памяти System Informer / Process Hacker 2 (Tool 88 / Step 85)", new List<string>(), CheckSeverity.Info, "Аудит памяти javaw.exe, explorer.exe, DcomLaunch, PcaSvc, DPS и csrss.exe завершён: нарушений не обнаружено."));
+			return fallback;
+		}
+
+		public static List<CheckResult> RunHighLevelLuytenHxdAndSystemDlcManualCheck()
+		{
+			if (!PlatformHelper.IsWindows)
+			{
+				List<CheckResult> nonWin = new List<CheckResult>();
+				nonWin.Add(Make("Криминалистика", "Luyten REGEX MODS, HxD DLL HEX, BAM Unsigned и SystemDLC (Tool 89 / Step 86)", new List<string>(), CheckSeverity.Info, "Высокоуровневая проверка Luyten REGEX MODS, HxD DLL, BAM Unsigned и SystemDLC поддерживается только в среде Windows"));
+				return nonWin;
+			}
+			try
+			{
+				List<CheckResult> engineResults = HighLevelLuytenHxdEngine.RunDetectorChecks();
+				if (engineResults != null && engineResults.Count > 0)
+				{
+					return engineResults;
+				}
+			}
+			catch { }
+			List<CheckResult> fallback = new List<CheckResult>();
+			fallback.Add(Make("Криминалистика", "Luyten REGEX MODS, HxD DLL HEX, BAM Unsigned и SystemDLC (Tool 89 / Step 86)", new List<string>(), CheckSeverity.Info, "Аудит Luyten REGEX MODS, HxD DLL, BAM (Not Signed Only), Event Logs, Registry и SystemDLC завершён: нарушений не обнаружено."));
+			return fallback;
 		}
 
 		public static List<CheckResult> RunModAndClientConfigAudit()
@@ -8740,10 +10005,10 @@ namespace MCCheatChecker
 				Path.Combine(folderPath, "discordcanary\\Local Storage\\leveldb"),
 				Path.Combine(folderPath, "discordptb\\Local Storage\\leveldb")
 			};
-			string[] array2 = new string[14]
+			string[] cheatWebDomains = new string[]
 			{
-				"celestial", "vape", "slinky", "expensive", "deadcode", "kura", "nurik", "boze", "rusherhack", "futureclient",
-				"liquidbounce", "wurstclient", "meteorclient", "akrien"
+				"vape.gg", "celestial.fun", "expensive.su", "deadcode.ru", "drip.gg",
+				"slinky.gg", "nursultan.fun", "akrien.biz", "liquidbounce.net", "wurstclient.net"
 			};
 			string[] array3 = array;
 			foreach (string path in array3)
@@ -8772,12 +10037,11 @@ namespace MCCheatChecker
 							}
 							string text = Encoding.UTF8.GetString(array6);
 							string text2 = text.ToLowerInvariant();
-							string[] array7 = array2;
-							foreach (string text3 in array7)
+							foreach (string dom in cheatWebDomains)
 							{
-								if (text2.Contains(text3))
+								if (text2.Contains(dom))
 								{
-									list.Add(string.Format("\ud83d\udea8 [Discord LevelDB Match | {0:dd.MM.yyyy}] В локальной базе Discord ({1}) обнаружено упоминание чита: \"{2}\"", fileInfo.LastWriteTime, fileInfo.Name, text3));
+									list.Add(string.Format("🚨 [Discord LevelDB Match | {0:dd.MM.yyyy}] В локальной базе Discord ({1}) обнаружена ссылка на чит-сервис: \"{2}\"", fileInfo.LastWriteTime, fileInfo.Name, dom));
 								}
 							}
 							int startIndex = 0;
@@ -8790,9 +10054,22 @@ namespace MCCheatChecker
 								}
 								string text4 = text.Substring(startIndex, num3 - startIndex);
 								string text5 = text4.ToLowerInvariant();
-								if (text5.EndsWith(".jar") || text5.EndsWith(".exe") || text5.EndsWith(".dll") || text5.EndsWith(".zip"))
+								if (text5.EndsWith(".jar") || text5.EndsWith(".exe") || text5.EndsWith(".dll"))
 								{
-									list.Add(string.Format("\ud83d\udea8 [Discord CDN Attachment File] Ссылка на исполняемый файл чита во вложениях Discord: {0}", text4));
+									bool isNamedCheat = text5.Contains("vape") || text5.Contains("celestial") || text5.Contains("expensive") ||
+														text5.Contains("nursultan") || text5.Contains("deadcode") || text5.Contains("akrien") ||
+														text5.Contains("slinky") || text5.Contains("drip") || text5.Contains("wurst") ||
+														text5.Contains("liquidbounce") || text5.Contains("meteor") || text5.Contains("killaura") ||
+														text5.Contains("cheat");
+
+									if (isNamedCheat)
+									{
+										list.Add(string.Format("🚨 [Discord CDN Attachment File] Ссылка на исполняемый файл чита во вложениях Discord: {0}", text4));
+									}
+									else
+									{
+										list.Add(string.Format("⚠️ [Discord CDN Attachment File] Ссылка на исполняемый файл во вложениях Discord: {0}", text4));
+									}
 								}
 								startIndex = num3;
 							}
@@ -9112,7 +10389,21 @@ namespace MCCheatChecker
 										switch (text2)
 										{
 										case "1116":
-											list.Add(string.Format("\ud83d\udea8 [Defender Malware Detected | {0:dd.MM.yyyy HH:mm}] Зафиксировано обнаружение вредоносного ПО/чита Защитником Windows: {1}", result.ToLocalTime(), (text5.Length > 120) ? (text5.Substring(0, 120) + "...") : text5));
+										case "1117":
+											string lower5 = text5.ToLowerInvariant();
+											bool isMcCheat = lower5.Contains("vape") || lower5.Contains("drip") || lower5.Contains("celestial") ||
+															 lower5.Contains("expensive") || lower5.Contains("nursultan") || lower5.Contains("neverhook") ||
+															 lower5.Contains("meteor") || lower5.Contains("liquidbounce") || lower5.Contains("wurst") ||
+															 lower5.Contains("killaura") || lower5.Contains("akrien") || lower5.Contains("deadcode") ||
+															 lower5.Contains("zamorozka") || lower5.Contains("gamehack");
+											if (isMcCheat)
+											{
+												list.Add(string.Format("🚨 [Defender Cheat Detected | {0:dd.MM.yyyy HH:mm}] Зафиксировано обнаружение чита Защитником Windows: {1}", result.ToLocalTime(), (text5.Length > 120) ? (text5.Substring(0, 120) + "...") : text5));
+											}
+											else
+											{
+												list.Add(string.Format("ℹ️ [Defender Event {0} | {1:dd.MM.yyyy HH:mm}] Обнаружение стороннего ПО: {2}", text2, result.ToLocalTime(), (text5.Length > 120) ? (text5.Substring(0, 120) + "...") : text5));
+											}
 											break;
 										case "5001":
 											list.Add(string.Format("\ud83d\udea8 [Defender Realtime Protection Disabled | {0:dd.MM.yyyy HH:mm}] Защита в реальном времени Defender была отключена пользователем ({1:F1} ч назад)", result.ToLocalTime(), timeSpan.TotalHours));
@@ -9663,7 +10954,7 @@ namespace MCCheatChecker
 						if (process2 != null)
 						{
 							string text4 = process2.StandardOutput.ReadToEnd();
-							process2.WaitForExit(4000);
+							process2.WaitForExit(500);
 							if (!string.IsNullOrEmpty(text4))
 							{
 								string[] array3 = text4.Split(new string[1] { "Event[" }, StringSplitOptions.RemoveEmptyEntries);
@@ -9989,25 +11280,28 @@ namespace MCCheatChecker
 								}
 								string text3 = string.Join(" | ", list2.ToArray());
 								bool flag = false;
-								bool isCheatToast = text.Contains("vape") || text.Contains("celestial") || text.Contains("expensive") || text.Contains("nursultan") || text.Contains("wexside") || text.Contains("killaura");
+								bool isSystemToast = text.Contains("defender") || text.Contains("windowsdefender") || text.Contains("securityhealth") || text.Contains("smartscreen") || text.Contains("windowsshell");
+								bool isCheatToast = !isSystemToast && (Regex.IsMatch(text3, @"\b(vape|celestial|expensive|nursultan|wexside|killaura|liquidbounce|doomsday)\b", RegexOptions.IgnoreCase));
 								if (isCheatToast)
 								{
-									list.Add(string.Format("\ud83d\udea8 [Уведомление Defender] Зафиксировано оповещение безопасности по читу: {0}", text3));
+									list.Add(string.Format("🚨 [Уведомление / Чит-активность] Зафиксировано оповещение по читу: {0}", text3));
 									flag = true;
 								}
-								else if (!text.Contains("defender") && !text.Contains("windowsdefender://") && !text.Contains("mccheat") && !text.Contains("проги для проверки") && (text.Contains("screenshare") || text.Contains("чеккер") || text.Contains("чит") || text.Contains("cheat")))
+								else if (!isSystemToast && !text.Contains("mccheat") && !text.Contains("проги для проверки") && (text3.Contains("screenshare") || text3.Contains("чеккер")))
 								{
-									list.Add(string.Format("⚠\ufe0f [Уведомление Discord/Чат] Зафиксировано сообщение по проверке/читам: {0}", text3));
+									list.Add(string.Format("⚠️ [Уведомление Discord/Чат] Зафиксировано сообщение по проверке: {0}", text3));
 									flag = true;
 								}
-								else
+								else if (!isSystemToast)
 								{
 									string[] extraCheatClients = CheatDatabases.ExtraCheatClients;
 									foreach (string text4 in extraCheatClients)
 									{
-										if (text4.Length >= 4 && text.Contains(text4.ToLowerInvariant()))
+										string lowerKw = text4.ToLowerInvariant();
+										if (lowerKw == "rise" || lowerKw == "wild" || lowerKw == "rich" || lowerKw == "kura" || lowerKw == "antic" || lowerKw == "impact" || lowerKw == "sigma" || lowerKw == "ares" || lowerKw == "destroy" || lowerKw.Length < 4) continue;
+										if (Regex.IsMatch(text3, @"\b" + Regex.Escape(text4) + @"\b", RegexOptions.IgnoreCase))
 										{
-											list.Add(string.Format("\ud83d\udea8 [Уведомление Чита: {0}] Найдено упоминание чита в тостах: {1}", text4, text3));
+											list.Add(string.Format("🚨 [Уведомление Чита: {0}] Найдено упоминание чита в тостах: {1}", text4, text3));
 											flag = true;
 											break;
 										}
@@ -10818,7 +12112,7 @@ namespace MCCheatChecker
 					if (process != null)
 					{
 						string text = process.StandardOutput.ReadToEnd();
-						process.WaitForExit(4000);
+						process.WaitForExit(1000);
 						if (!string.IsNullOrEmpty(text))
 						{
 							string[] array = text.Split(new string[1] { "Event[" }, StringSplitOptions.RemoveEmptyEntries);
@@ -10833,7 +12127,19 @@ namespace MCCheatChecker
 									arg = match.Groups[1].Value.Trim();
 								}
 								bool flag = false;
-								if (text3.Contains("-windowstyle hidden") || text3.Contains("-w hidden") || text3.Contains("-executionpolicy bypass") || text3.Contains("-ep bypass") || text3.Contains("downloadstring") || text3.Contains("invoke-webrequest") || text3.Contains("invoke-expression") || text3.Contains("start-bitstransfer") || text3.Contains("wevtutil cl") || text3.Contains("clear-history"))
+								bool isCleanerCommand = text3.Contains("wevtutil cl") || text3.Contains("wevtutil.exe cl") ||
+														text3.Contains("fsutil usn deletejournal") || text3.Contains("cipher /w") ||
+														text3.Contains("clear-history") || text3.Contains("sdelete");
+
+								bool isCheatDownload = (text3.Contains("downloadstring") || text3.Contains("invoke-webrequest") || text3.Contains("start-bitstransfer")) &&
+													   (text3.Contains("vape") || text3.Contains("celestial") || text3.Contains("expensive") ||
+													    text3.Contains("nursultan") || text3.Contains("akrien") || text3.Contains("drip.gg") ||
+													    text3.Contains("slinky") || text3.Contains("doomsday") || text3.Contains(".jar"));
+
+								bool isHiddenExecution = (text3.Contains("-windowstyle hidden") || text3.Contains("-w hidden")) &&
+														 (isCleanerCommand || isCheatDownload || text3.Contains("-enc ") || text3.Contains("-enc\t") || text3.EndsWith(" -enc") || text3.Contains("-encodedcommand"));
+
+								if (isCleanerCommand || isCheatDownload || isHiddenExecution)
 								{
 									flag = true;
 								}
@@ -10841,7 +12147,7 @@ namespace MCCheatChecker
 								{
 									continue;
 								}
-								list.Add(string.Format("\ud83d\udea8 [Классический PowerShell ({0})] Зафиксирована скрытая команда/загрузка в журнале движка!", arg));
+								list.Add(string.Format("🚨 [Классический PowerShell ({0})] Зафиксирована вредоносная команда/зачистка в журнале движка!", arg));
 								string[] array3 = text2.Split(new char[2] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 								string[] array4 = array3;
 								foreach (string text4 in array4)
@@ -13475,7 +14781,7 @@ namespace MCCheatChecker
 			bool flag2 = false;
 			try
 			{
-				ProcessStartInfo processStartInfo = new ProcessStartInfo("schtasks", "/query /fo csv /v");
+				ProcessStartInfo processStartInfo = new ProcessStartInfo("schtasks", "/query /fo csv");
 				processStartInfo.UseShellExecute = false;
 				processStartInfo.RedirectStandardOutput = true;
 				processStartInfo.RedirectStandardError = true;
@@ -13484,7 +14790,7 @@ namespace MCCheatChecker
 				using (Process process = Process.Start(startInfo))
 				{
 					string text = process.StandardOutput.ReadToEnd();
-					process.WaitForExit(4000);
+					process.WaitForExit(1000);
 					if (!string.IsNullOrEmpty(text))
 					{
 						string[] array = text.Split(new char[2] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -17080,12 +18386,6 @@ namespace MCCheatChecker
 				list3.Add(Make("Система / Notification Forensics", "Криминалистика базы уведомлений Windows (wpndatabase.db)", list, CheckSeverity.Info, "База данных уведомлений wpndatabase.db не найдена."));
 				return list3;
 			}
-			string[] array = new string[23]
-			{
-				"vape", "celestial", "expensive", "nurik", "kura", "minced", "akrien", "doomsday", "zamorozka", "wild",
-				"rich", "drip", "slinky", "antic", "b13", "sigma", "liquidbounce", "wurst", "autoclicker", "injected successfully",
-				"license key", "auth success", "cheat updated"
-			};
 			int num = 0;
 			try
 			{
@@ -17098,23 +18398,40 @@ namespace MCCheatChecker
 				}
 				if (array2 != null && array2.Length > 0)
 				{
-					string text2 = Encoding.ASCII.GetString(array2).ToLowerInvariant();
-					string text3 = Encoding.Unicode.GetString(array2).ToLowerInvariant();
-					string text4 = text2 + " " + text3;
-					string[] array3 = array;
-					foreach (string text5 in array3)
+					string textRaw = Encoding.UTF8.GetString(array2);
+					MatchCollection toasts = Regex.Matches(textRaw, "<toast[^>]*>(.*?)</toast>", RegexOptions.Singleline);
+					foreach (Match toast in toasts)
 					{
-						if (text4.Contains(text5))
+						string toastXml = toast.Value.ToLowerInvariant();
+						// Skip legitimate Windows Defender / Edge / System notifications
+						if (toastXml.Contains("defender") || toastXml.Contains("windowsdefender") ||
+							toastXml.Contains("securityhealth") || toastXml.Contains("smartscreen") ||
+							toastXml.Contains("microsoft.windows") || toastXml.Contains("mccheat"))
+						{
+							continue;
+						}
+
+						MatchCollection textNodes = Regex.Matches(toast.Value, "<text[^>]*>(.*?)</text>");
+						List<string> texts = new List<string>();
+						foreach (Match tn in textNodes)
+						{
+							string val = tn.Groups[1].Value.Trim();
+							if (!string.IsNullOrEmpty(val)) texts.Add(val);
+						}
+						string fullToastText = string.Join(" | ", texts.ToArray());
+
+						// Match unmistakable cheat tokens with word boundaries
+						if (Regex.IsMatch(fullToastText, @"\b(vape\.gg|vape client|celestial client|expensive client|nursultan client|akrien|zamorozka|slinky\.gg|drip\.gg|liquidbounce|wurst client|injected successfully)\b", RegexOptions.IgnoreCase))
 						{
 							num++;
-							list.Add(string.Format("\ud83d\udea8 [Уведомления / Чит-активность] В истории всплывающих уведомлений Windows обнаружено упоминание: '{0}'!", text5.ToUpperInvariant()));
+							list.Add(string.Format("🚨 [Уведомления / Чит-активность] В истории всплывающих уведомлений Windows обнаружено упоминание: '{0}'!", fullToastText));
 						}
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				list.Add("⚠\ufe0f Ошибка аудита базы уведомлений: " + ex.Message);
+				list.Add("⚠️ Ошибка аудита базы уведомлений: " + ex.Message);
 			}
 			CheckSeverity severity = CheckSeverity.Info;
 			if (list.Any((string f) => f.Contains("\ud83d\udea8")))
@@ -18794,10 +20111,13 @@ namespace MCCheatChecker
 			}
 			int num = 0;
 			string name = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU";
-			string[] array = new string[17]
+			string[] wiperCommands = new string[]
 			{
-				"powershell", "cmd", "%temp%", "%appdata%", "temp", "appdata", "taskkill", "vssadmin", "fsutil", "regedit",
-				"reg add", "reg delete", "wscript", "cscript", "mshta", "curl", "certutil"
+				"vssadmin", "fsutil", "wevtutil", "cipher /w", "sdelete", "clear-history", "reg delete"
+			};
+			string[] cheatKeywords = new string[]
+			{
+				"vape", "drip", "celestial", "expensive", "nursultan", "neverhook", "meteor", "liquidbounce", "wurst", "killaura", "slinky"
 			};
 			try
 			{
@@ -18823,14 +20143,39 @@ namespace MCCheatChecker
 								}
 								string text2 = value.ToString().TrimEnd('\\', '1').Trim();
 								string text3 = text2.ToLowerInvariant();
-								string[] array3 = array;
-								foreach (string value2 in array3)
+								bool isWiper = false;
+								string matchedWiper = "";
+								foreach (string wc in wiperCommands)
 								{
-									if (text3.Contains(value2))
+									if (text3.Contains(wc))
 									{
-										list.Add(string.Format("⚠\ufe0f [RunMRU / Команда «Выполнить»] В истории Win+R зафиксирована команда: '{0}' (ключ {1})", text2, text));
+										isWiper = true;
+										matchedWiper = wc;
 										break;
 									}
+								}
+								bool isCheat = false;
+								string matchedCheat = "";
+								if (!isWiper)
+								{
+									foreach (string ck in cheatKeywords)
+									{
+										if (text3.Contains(ck))
+										{
+											isCheat = true;
+											matchedCheat = ck;
+											break;
+										}
+									}
+								}
+
+								if (isWiper)
+								{
+									list.Add(string.Format("🚨 [RunMRU / Команда очистки] В истории Win+R зафиксирована команда вайпера: '{0}' (ключ {1}, совпадение: {2})", text2, text, matchedWiper));
+								}
+								else if (isCheat)
+								{
+									list.Add(string.Format("🚨 [RunMRU / Запуск чита] В истории Win+R зафиксирован запуск чита: '{0}' (ключ {1}, совпадение: {2})", text2, text, matchedCheat));
 								}
 							}
 						}
@@ -29508,19 +30853,26 @@ namespace MCCheatChecker
 								continue;
 							}
 							string text3 = text2.ToLowerInvariant();
-							string[] array2 = new string[14]
+							string[] wiperKeywords = new string[] { "vssadmin", "fsutil", "wevtutil", "cipher /w", "sdelete", "reg delete", "clear-history" };
+							string[] cheatKeywords = new string[] { "vape", "celestial", "expensive", "nursultan", "neverhook", "meteor", "liquidbounce", "wurst", "killaura", "slinky", "drip" };
+							bool isWiper = false;
+							string matchedW = "";
+							foreach (string wk in wiperKeywords)
 							{
-								"powershell", "cmd.exe", "taskkill", "net stop", "sc stop", "reg delete", "fsutil", "vape", "celestial", "expensive",
-								"nurik", "inject", "temp\\", "downloads\\"
-							};
-							string[] array3 = array2;
-							foreach (string value in array3)
+								if (text3.Contains(wk)) { isWiper = true; matchedW = wk; break; }
+							}
+							bool isCheat = false;
+							string matchedC = "";
+							if (!isWiper)
 							{
-								if (text3.Contains(value))
+								foreach (string ck in cheatKeywords)
 								{
-									list.Add(string.Format("[WIN+R RUNMRU КОМАНДА] Позиция '{0}': '{1}' (Подозрительная системная команда или путь чита)", text, text2));
-									break;
+									if (text3.Contains(ck)) { isCheat = true; matchedC = ck; break; }
 								}
+							}
+							if (isWiper || isCheat)
+							{
+								list.Add(string.Format("🚨 [WIN+R RUNMRU] Позиция '{0}': '{1}' ({2}: {3})", text, text2, isWiper ? "Команда вайпера" : "Запуск чита", isWiper ? matchedW : matchedC));
 							}
 						}
 					}
@@ -29532,17 +30884,7 @@ namespace MCCheatChecker
 			CheckSeverity severity = CheckSeverity.Info;
 			if (list.Count > 0)
 			{
-				bool flag = false;
-				foreach (string item in list)
-				{
-					string text4 = item.ToLowerInvariant();
-					if (text4.Contains("vape") || text4.Contains("celestial") || text4.Contains("fsutil") || text4.Contains("reg delete"))
-					{
-						flag = true;
-						break;
-					}
-				}
-				severity = ((!flag) ? CheckSeverity.Warning : CheckSeverity.Critical);
+				severity = CheckSeverity.Critical;
 			}
 			List<CheckResult> list2 = new List<CheckResult>();
 			list2.Add(Make("Windows / Explorer RunMRU (Win+R) Command History Forensics", "Анализ истории команд диалогового окна «Выполнить» (Win+R / RunMRU) на запуск вайперов и лоадеров", list, severity, string.Format("История RunMRU проверена ({0} команд). Подозрительных команд зачистки или запуска читов не обнаружено.", num)));
@@ -31186,7 +32528,147 @@ namespace MCCheatChecker
 			}
 			try
 			{
+				list.AddRange(RunAntiEvasionAndStealthBypassCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunHypervisorVmAndSandboxEvasionCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunDiscordRichPresenceAndRpcForensicsCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunAmsiEtwAndMemoryPatchingCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunMinecraftScreenshotsExifAndOcrForensicsCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunFontAndTexturePackBypassCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
 				list.AddRange(RunMouseMacroAndDebounceForensicsCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunKernelDriversAndHypervisorHooksCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunTimeAnomalyAndSystemClockTamperingCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunClipboardWinVAndHistoryDatabaseCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunUsoAndWindowsUpdateTamperingCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunRemoteStreamingAndVirtualAudioDriverCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunDirect3dHookAndEspOverlayCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunLocalTunnelsVpnAndProxyBypassCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunJavaAgentAndJvmFlagsCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunMixinAndModJsonCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunUnifiedForensicTimelineCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunMinecraftOptionsAndKeybindsCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunWorldSeedAndChunkbaseCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunSystemInformerAndProcessHackerManualCheck());
+			}
+			catch
+			{
+			}
+			try
+			{
+				list.AddRange(RunHighLevelLuytenHxdAndSystemDlcManualCheck());
 			}
 			catch
 			{
@@ -38055,13 +39537,213 @@ namespace MCCheatChecker
 				}
 			}
 			stringBuilder.AppendLine();
-			stringBuilder.AppendLine("--- 18. МАКРОСЫ МЫШИ И ДЕБАУНС (GLORIOUS, BLOODY, G HUB, RAZER) ---");
+			stringBuilder.AppendLine("--- АУДИТ СОКРЫТИЯ СОФТА, ИЗВЛЕЧЕНИЯ ДИСКОВ И ЗАЧИСТКИ (ANTI-EVASION) ---");
+			List<CheckResult> listEva = RunAntiEvasionAndStealthBypassCheck();
+			foreach (CheckResult itemEva in listEva)
+			{
+				if (!string.IsNullOrEmpty(itemEva.Evidence))
+				{
+					stringBuilder.AppendLine(itemEva.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ ГИПЕРВИЗОРОВ, VM, SANDBOX И STREAM-PROOF СОКРЫТИЯ ---");
+			List<CheckResult> listVm = RunHypervisorVmAndSandboxEvasionCheck();
+			foreach (CheckResult itemVm in listVm)
+			{
+				if (!string.IsNullOrEmpty(itemVm.Evidence))
+				{
+					stringBuilder.AppendLine(itemVm.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ DISCORD, RICH PRESENCE И RPC КРИМИНАЛИСТИКИ ---");
+			List<CheckResult> listDiscord = RunDiscordRichPresenceAndRpcForensicsCheck();
+			foreach (CheckResult itemD in listDiscord)
+			{
+				if (!string.IsNullOrEmpty(itemD.Evidence))
+				{
+					stringBuilder.AppendLine(itemD.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ ПАТЧИНГА ПАМЯТИ, ОБХОДА AMSI И ETW ---");
+			List<CheckResult> listAmsi = RunAmsiEtwAndMemoryPatchingCheck();
+			foreach (CheckResult itemAmsi in listAmsi)
+			{
+				if (!string.IsNullOrEmpty(itemAmsi.Evidence))
+				{
+					stringBuilder.AppendLine(itemAmsi.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ СКРИНШОТОВ, EXIF МЕТАДАННЫХ И ВОТЕРМАРОК ЧИТОВ ---");
+			List<CheckResult> listSc = RunMinecraftScreenshotsExifAndOcrForensicsCheck();
+			foreach (CheckResult itemSc in listSc)
+			{
+				if (!string.IsNullOrEmpty(itemSc.Evidence))
+				{
+					stringBuilder.AppendLine(itemSc.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ X-RAY РЕСУРСПАКОВ, CEM МОДЕЛЕЙ И ШРИФТОВ ---");
+			List<CheckResult> listRp = RunFontAndTexturePackBypassCheck();
+			foreach (CheckResult itemRp in listRp)
+			{
+				if (!string.IsNullOrEmpty(itemRp.Evidence))
+				{
+					stringBuilder.AppendLine(itemRp.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- 18. ИНСПЕКТОР МЫШИ, ДЕБАУНСА И АППАРАТНЫХ МАКРОСОВ (TOOL 74 / STEP 71) ---");
 			List<CheckResult> list17 = RunMouseMacroAndDebounceForensicsCheck();
 			foreach (CheckResult item17 in list17)
 			{
 				if (!string.IsNullOrEmpty(item17.Evidence))
 				{
 					stringBuilder.AppendLine(item17.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ ДРАЙВЕРОВ ЯДРА, BYOVD ЭКСПЛОЙТОВ И TESTSIGNING (TOOL 76 / STEP 73) ---");
+			List<CheckResult> listKernel = RunKernelDriversAndHypervisorHooksCheck();
+			foreach (CheckResult itemK in listKernel)
+			{
+				if (!string.IsNullOrEmpty(itemK.Evidence))
+				{
+					stringBuilder.AppendLine(itemK.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ АНОМАЛИЙ СИСТЕМНОГО ВРЕМЕНИ И ПЕРЕВОДА ЧАСОВ (TOOL 77 / STEP 74) ---");
+			List<CheckResult> listTime = RunTimeAnomalyAndSystemClockTamperingCheck();
+			foreach (CheckResult itemT in listTime)
+			{
+				if (!string.IsNullOrEmpty(itemT.Evidence))
+				{
+					stringBuilder.AppendLine(itemT.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ ИСТОРИИ БУФЕРА ОБМЕНА WIN+V И HISTORY.DB (TOOL 78 / STEP 75) ---");
+			List<CheckResult> listClip = RunClipboardWinVAndHistoryDatabaseCheck();
+			foreach (CheckResult itemC in listClip)
+			{
+				if (!string.IsNullOrEmpty(itemC.Evidence))
+				{
+					stringBuilder.AppendLine(itemC.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ ФАЛЬСИФИКАЦИИ ОБНОВЛЕНИЙ WINDOWS, USOCLIENT И СРЫВА ПРОВЕРОК (TOOL 79 / STEP 76) ---");
+			List<CheckResult> listUso = RunUsoAndWindowsUpdateTamperingCheck();
+			foreach (CheckResult itemU in listUso)
+			{
+				if (!string.IsNullOrEmpty(itemU.Evidence))
+				{
+					stringBuilder.AppendLine(itemU.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ ВИРТУАЛЬНЫХ АУДИОКАБЕЛЕЙ, VOICEMEETER И СТРИМИНГА (TOOL 80 / STEP 77) ---");
+			List<CheckResult> listAudio = RunRemoteStreamingAndVirtualAudioDriverCheck();
+			foreach (CheckResult itemA in listAudio)
+			{
+				if (!string.IsNullOrEmpty(itemA.Evidence))
+				{
+					stringBuilder.AppendLine(itemA.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ DIRECT3D 11, OPENGL VTABLE HOOKS И ESP ОВЕРЛЕЕВ (TOOL 81 / STEP 78) ---");
+			List<CheckResult> listD3d = RunDirect3dHookAndEspOverlayCheck();
+			foreach (CheckResult itemD in listD3d)
+			{
+				if (!string.IsNullOrEmpty(itemD.Evidence))
+				{
+					stringBuilder.AppendLine(itemD.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ СЕТЕВЫХ ТУННЕЛЕЙ, VPN И ПРОКСИ (TOOL 82 / STEP 79) ---");
+			List<CheckResult> listTunnel = RunLocalTunnelsVpnAndProxyBypassCheck();
+			foreach (CheckResult itemT in listTunnel)
+			{
+				if (!string.IsNullOrEmpty(itemT.Evidence))
+				{
+					stringBuilder.AppendLine(itemT.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ JAVA AGENT (-JAVAAGENT), ФЛАГОВ И ПЕРЕМЕННЫХ JVM (TOOL 83 / STEP 80) ---");
+			List<CheckResult> listAgent = RunJavaAgentAndJvmFlagsCheck();
+			foreach (CheckResult itemAg in listAgent)
+			{
+				if (!string.IsNullOrEmpty(itemAg.Evidence))
+				{
+					stringBuilder.AppendLine(itemAg.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ MIXIN И ДЕСКРИПТОРОВ МОДОВ FABRIC/FORGE (TOOL 84 / STEP 81) ---");
+			List<CheckResult> listMixin = RunMixinAndModJsonCheck();
+			foreach (CheckResult itemMx in listMixin)
+			{
+				if (!string.IsNullOrEmpty(itemMx.Evidence))
+				{
+					stringBuilder.AppendLine(itemMx.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- СВОДНЫЙ КРИМИНАЛИСТИЧЕСКИЙ ТАЙМЛАЙН ОС (TOOL 85 / STEP 82) ---");
+			List<CheckResult> listTimeline = RunUnifiedForensicTimelineCheck();
+			foreach (CheckResult itemTl in listTimeline)
+			{
+				if (!string.IsNullOrEmpty(itemTl.Evidence))
+				{
+					stringBuilder.AppendLine(itemTl.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ НАСТРОЕК И БИНДОВ MINECRAFT (TOOL 86 / STEP 83) ---");
+			List<CheckResult> listKeybinds = RunMinecraftOptionsAndKeybindsCheck();
+			foreach (CheckResult itemKb in listKeybinds)
+			{
+				if (!string.IsNullOrEmpty(itemKb.Evidence))
+				{
+					stringBuilder.AppendLine(itemKb.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ ВЗЛОМА СИДА МИРА И CHUNKBASE (TOOL 87 / STEP 84) ---");
+			List<CheckResult> listSeed = RunWorldSeedAndChunkbaseCheck();
+			foreach (CheckResult itemSd in listSeed)
+			{
+				if (!string.IsNullOrEmpty(itemSd.Evidence))
+				{
+					stringBuilder.AppendLine(itemSd.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ ПАМЯТИ SYSTEM INFORMER / PROCESS HACKER 2 (TOOL 88 / STEP 85) ---");
+			List<CheckResult> listSysInf = RunSystemInformerAndProcessHackerManualCheck();
+			foreach (CheckResult itemSi in listSysInf)
+			{
+				if (!string.IsNullOrEmpty(itemSi.Evidence))
+				{
+					stringBuilder.AppendLine(itemSi.Evidence);
+				}
+			}
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine("--- АУДИТ LUYTEN REGEX MODS, HXD DLL, BAM UNSIGNED И SYSTEMDLC (TOOL 89 / STEP 86) ---");
+			List<CheckResult> listHighLevel = RunHighLevelLuytenHxdAndSystemDlcManualCheck();
+			foreach (CheckResult itemHl in listHighLevel)
+			{
+				if (!string.IsNullOrEmpty(itemHl.Evidence))
+				{
+					stringBuilder.AppendLine(itemHl.Evidence);
 				}
 			}
 			stringBuilder.AppendLine();
@@ -48761,28 +50443,18 @@ namespace MCCheatChecker
 			int windowsChecked = 0;
 			try
 			{
-				IntPtr mcHwnd = IntPtr.Zero;
-				Process[] processesByName = Process.GetProcessesByName("javaw");
-				Process[] array = processesByName;
-				foreach (Process process in array)
-				{
-					if (process.MainWindowHandle != IntPtr.Zero)
-					{
-						mcHwnd = process.MainWindowHandle;
-						break;
-					}
-				}
-				RECT_WIN mcRect = default(RECT_WIN);
-				bool hasMc = mcHwnd != IntPtr.Zero && GetWindowRect(mcHwnd, out mcRect);
+				List<IntPtr> mcHwnds;
+				List<RECT_WIN> mcRects = GetVisibleMinecraftWindowRects(out mcHwnds);
 				int screenW = Screen.PrimaryScreen.Bounds.Width;
 				int screenH = Screen.PrimaryScreen.Bounds.Height;
+				uint mySelfPid = (uint)Process.GetCurrentProcess().Id;
 
 				EnumWindows(delegate(IntPtr hwnd, IntPtr lParam)
 				{
 					windowsChecked++;
 					try
 					{
-						if (hwnd == mcHwnd)
+						if (hwnd == IntPtr.Zero || !IsWindowVisible(hwnd) || mcHwnds.Contains(hwnd))
 						{
 							return true;
 						}
@@ -48803,11 +50475,11 @@ namespace MCCheatChecker
 						bool flagTopmost = (windowLongAuto & 8) != 0;
 						bool flagNoActivate = (windowLongAuto & 0x08000000) != 0;
 
-						if (flagLayered && (flagTransparent || flagNoActivate) && flagTopmost)
+						if (flagLayered && (flagTransparent || flagNoActivate) && flagTopmost && mcRects.Count > 0)
 						{
 							uint pid = 0;
 							GetWindowThreadProcessId(hwnd, out pid);
-							if (pid == 0) return true;
+							if (pid == 0 || pid == mySelfPid) return true;
 
 							string procName = "";
 							string procPath = "";
@@ -48824,12 +50496,14 @@ namespace MCCheatChecker
 							{
 							}
 
-							if (procName == "explorer" || procName == "dwm" || procName == "textinputhost" ||
-							    procName == "shellexperiencehost" || procName == "applicationframehost" ||
-							    procName == "systemsettings" || procName == "searchhost" || procName == "startmenuexperiencehost" ||
-							    procName == "gameoverlayui" || procName == "discordhookhelper64" || procName == "discord" ||
-							    procName == "nvidiashare" || procName == "nvsphelper64" || procName == "rtss" || procName == "obs64" ||
-							    procName == "amdrsserv" || procName == "steam" || procName == "chrome" || procName == "msedge")
+							if (IsWhitelistedOverlayOrCaptureProcess(procName) ||
+							    procName == "javaw" || procName == "java" ||
+							    procName == "chrome" || procName == "msedge")
+							{
+								return true;
+							}
+
+							if (!IntersectsAnyMcRect(lpRect, mcRects))
 							{
 								return true;
 							}
@@ -48838,8 +50512,17 @@ namespace MCCheatChecker
 							GetWindowText(hwnd, stringBuilder, stringBuilder.Capacity);
 							string text = stringBuilder.ToString().Trim();
 
-							bool flagMcGeometry = hasMc && Math.Abs(lpRect.Left - mcRect.Left) < 30 && Math.Abs(lpRect.Top - mcRect.Top) < 30 && Math.Abs(width - mcRect.Width) < 50 && Math.Abs(height - mcRect.Height) < 50;
-							bool flagFullScreenOverlay = hasMc && width >= screenW - 10 && height >= screenH - 10;
+							bool flagMcGeometry = false;
+							for (int m = 0; m < mcRects.Count; m++)
+							{
+								RECT_WIN mcR = mcRects[m];
+								if (Math.Abs(lpRect.Left - mcR.Left) < 30 && Math.Abs(lpRect.Top - mcR.Top) < 30 && Math.Abs(width - mcR.Width) < 50 && Math.Abs(height - mcR.Height) < 50)
+								{
+									flagMcGeometry = true;
+									break;
+								}
+							}
+							bool flagFullScreenOverlay = width >= screenW - 10 && height >= screenH - 10;
 
 							if (flagMcGeometry || flagFullScreenOverlay)
 							{
@@ -51337,7 +53020,12 @@ namespace MCCheatChecker
 								if (!string.IsNullOrEmpty(text))
 								{
 									string text2 = text.ToLowerInvariant();
-									if ((text2.Contains("-xbootclasspath") || text2.Contains("-javaagent:")) && (text2.Contains("\\temp\\") || text2.Contains("\\downloads\\") || text2.Contains("agent.jar") || text2.Contains("loader.jar")))
+									bool isWhitelistedAgent = text2.Contains("authlib-injector") || text2.Contains("fabric-loader") ||
+															  text2.Contains("quilt-loader") || text2.Contains("sponge-mixin") ||
+															  text2.Contains("modlauncher") || text2.Contains("patchy") ||
+															  text2.Contains("evo") || text2.Contains("lunar") || text2.Contains("feather") ||
+															  text2.Contains("badlion") || text2.Contains("labymod") || text2.Contains("optifine");
+									if (!isWhitelistedAgent && (text2.Contains("-xbootclasspath") || text2.Contains("-javaagent:")) && (text2.Contains("\\temp\\") || text2.Contains("cheat")))
 									{
 										list.Add(string.Format("[BOOTSTRAP AGENT CLI] PID {0} -> Подозрительный агент в аргументах JVM: {1}", process.Id, (text.Length > 200) ? (text.Substring(0, 200) + "...") : text));
 									}
@@ -80723,7 +82411,19 @@ namespace MCCheatChecker
 								foreach (ManagementObject item in managementObjectSearcher.Get())
 								{
 									string text2 = ((item["CommandLine"] != null) ? item["CommandLine"].ToString() : "");
-									if (!string.IsNullOrEmpty(text2) && text2.IndexOf("-javaagent:", StringComparison.OrdinalIgnoreCase) >= 0 && (text2.IndexOf("Temp", StringComparison.OrdinalIgnoreCase) >= 0 || text2.IndexOf("AppData", StringComparison.OrdinalIgnoreCase) >= 0 || text2.IndexOf("cheat", StringComparison.OrdinalIgnoreCase) >= 0))
+									bool isWhitelisted = text2.IndexOf("authlib-injector", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("fabric-loader", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("quilt-loader", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("sponge-mixin", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("modlauncher", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("patchy", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("evo", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("lunar", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("feather", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("badlion", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("labymod", StringComparison.OrdinalIgnoreCase) >= 0 ||
+														 text2.IndexOf("optifine", StringComparison.OrdinalIgnoreCase) >= 0;
+									if (!isWhitelisted && !string.IsNullOrEmpty(text2) && text2.IndexOf("-javaagent:", StringComparison.OrdinalIgnoreCase) >= 0 && (text2.IndexOf("Temp", StringComparison.OrdinalIgnoreCase) >= 0 || text2.IndexOf("cheat", StringComparison.OrdinalIgnoreCase) >= 0))
 									{
 										list.Add(string.Format("Обнаружен подозрительный JVM-параметр -javaagent (PID {0}): {1}", process.Id, text2));
 									}

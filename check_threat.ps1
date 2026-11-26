@@ -1,0 +1,1 @@
+Get-MpThreat | Select-Object ThreatID, ThreatName | Format-Table -AutoSize

@@ -1,4 +1,4 @@
-namespace MCCheatChecker
+﻿namespace MCCheatChecker
 {
 	public enum PlatformOS
 	{

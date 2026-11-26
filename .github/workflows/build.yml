@@ -1,0 +1,28 @@
+name: Build MCCheatChecker
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build Solution
+      run: msbuild MCCheatChecker.sln /p:Configuration=Release /p:Platform="Any CPU"
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MCCheatChecker-Release
+        path: MCCheatChecker/bin/MCCheatChecker.exe

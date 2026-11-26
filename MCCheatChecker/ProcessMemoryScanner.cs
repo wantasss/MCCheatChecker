@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MCCheatChecker
 {
@@ -82,32 +83,55 @@ namespace MCCheatChecker
 			"reghax", "celestial", "expensive", "akrien", "nurik", "deltaclient", "wildclient", "richclient", "fluger",
 			"excellent", "impact", "wurstclient", "liquidbounce", "meteorclient", "aristois", "vape", "driplite", "entropy", "kura",
 			"doomsday", "bozeclient", "rusherhack", "futureclient", "nursultan", "neverhook", "zamorozka", "minced", "wexside", "deadcode",
-			"bebraware", "rynware", "neverware", "jigsaw", "salhack", "ares", "wolfram", "wwe", "bleachhack", "matix",
+			"bebraware", "rynware", "neverware", "salhack", "wolfram", "wweclient", "bleachhack", "matixclient",
 			"pivoclient", "gish", "eternity", "richpremium", "boberware", "emortality", "dreampool", "clowdy", "rasty", "pyro",
 			"flauncher", "exloader", "vegaline", "koid", "journaltrace", "usnjrnl", "dmc", "mango",
 			"interception", "kmbox", "vjoy",
 			"thunderhack", "slinky", "seedcracker", "seedcrackerx", "dreamclient", "rockstarclient", "avalone", "kion", "xorek",
-			"raven", "ravenb4", "ravenbplus", "abyss", "whiterabbit", "flint", "catlavan", "cellent", "bape", "whiteout", "itami", "coffeeclient", "pandora", "archware", "exhibition", "cattyn", "spirthack", "memesense", "neverlose"
+			"raven", "ravenb4", "ravenbplus", "abyss", "whiterabbit", "flint", "catlavan", "cellent", "bape", "whiteout", "itami", "coffeeclient", "pandora", "archware", "exhibition", "cattyn", "spirthack", "memesense", "neverlose", "systemdlc", "sysdlc"
 		};
 
 		private static readonly string[] RamCheatSignatures = new string[]
 		{
-			"Celestial", "Expensive", "Akrien", "Nurik", "DeltaClient", "WildClient", "RichClient", "Fluger", "ExcellentClient", "LiquidBounce",
+			"Celestial", "ExpensiveClient", "Akrien", "Nurik", "DeltaClient", "WildClient", "RichClient", "Fluger", "ExcellentClient", "LiquidBounce",
 			"WurstClient", "MeteorClient", "Aristois", "VapeClient", "DripLite", "EntropyClient", "KuraClient", "HitBox", "KillAura",
 			"TriggerBot", "ReachMod", "VelocityMod", "NoFallMod", "JesusMod", "SpeedHack", "FastPlace", "TimerMod", "ChestESP", "PlayerESP",
 			"TracersMod", "Baritone", "Nursultan", "NeverHook", "Zamorozka", "Minced", "Wexside", "DeadCode", "BebraWare", "RynWare",
-			"Neverware", "Jigsaw", "Salhack", "Ares", "Wolfram", "WWE", "BleachHack", "Matix", "PivoClient", "Cabaletta",
-			"Gish", "Eternity", "RichPremium", "R3D", "BoberWare", "Nurik", "Celka", "Ponos", "Emortality", "DreamPool",
-			"Clowdy", "Rasty", "DiamondSim", "AutoAttack", "TopkaAutoBuy", "AutoBuy", "ElytraSwap", "ArmorHotSwap", "GoProne", "Autofish",
-			"PYRO", "Impact", "RusherHack", "SquadClient", "Destroy", "ArchWare", "VegaLine", "SelfDistruct", "DekoClient", "Carbonara",
-			"Meriada", "Swaper", "ShiftTap", "AutoLeave", "ClickPerl", "AttackAura", "CleanCut", "FreeCam", "AimBot",
+			"Neverware", "Salhack", "Wolfram", "WWEClient", "BleachHack", "MatixClient", "PivoClient", "Cabaletta",
+			"Gish", "Eternity", "RichPremium", "BoberWare", "Nurik", "Celka", "Ponos", "Emortality", "DreamPool",
+			"Clowdy", "Rasty", "DiamondSim", "AutoAttack", "TopkaAutoBuy", "AutoBuy", "ElytraSwap", "ArmorHotSwap", "Autofish",
+			"PYRO", "Impact", "RusherHack", "SquadClient", "ArchWare", "VegaLine", "SelfDistruct", "DekoClient", "Carbonara",
+			"Meriada", "Swaper", "ShiftTap", "AutoLeave", "ClickPerl", "AttackAura", "FreeCam", "AimBot",
 			"HitBoxes", "AutoTotem", "InvMove", "ThunderHack", "Boze", "Abyss", "RavenB4", "RavenBPlus",
 			"Slinky", "DreamClient", "RockstarClient", "AvaloneClient", "KionClient", "ShitClient", "MERCU", "NIOBIUM", "XorekAutoBuy", "XorekAutoMyst",
 			"TopkaAutoSell", "TopkaCasino", "DiamondGen", "AutoAuction", "AuctionHelper", "AutoPearl", "AutoArmor", "FastBow", "AntiDebuff", "AutoPotion",
 			"MiddleClickPearl", "BowAimbot", "SilentAimbot", "TargetStrafe", "NoSlowDown", "FlyMod", "ThunderHack-Recode", "NursultanRecode",
 			"SeedCrackerX", "DoomsdayClient", "AutoAnchor", "AnchorAura", "Criticals", "TimerHack", "FastMine", "SilentAim", "PacketFly", "BoatFly", "NursultanClient", "CelestialPremium", "FlugerClient", "WildClientPremium", "ThunderHack-Recode", "NursultanRecode", "DeadCodeClient", "ExpensiveClient", "BoberWareClient", "AkrienAntiBot", "VapeV4", "VapeLite", "DripLiteV2", "SlinkyClient", "DreamClientV2", "RockstarClientV2", "AvaloneClientV2", "KionClientV2", "AutoTotemSlot", "SilentAimbotTarget", "MiddleClickPearlAction", "CriticalsPacket", "TargetStrafeRange", "TimerHackSpeed", "FastMineSpeed", "AnchorAuraTarget", "Catlavan", "Cellent", "FlintClient", "KuraClient", "ArchWare", "BoberWare", "Whiteout", "Itami", "CoffeeClient", "Exhibition", "Pandora", "Neverlose", "GameSense", "Desync", "TargetStrafe", "CustomHitbox", "AnchorAuraTarget",
-			"CatLavan", "ExLoader", "WhiteRabbit", "AimAssist", "AutoPot", "EagleMod", "InventoryMove", "FastEat", "AntiKnockback", "AutoGapple", "BedFucker", "FastBreak", "Scaffold", "SafeWalk", "NoSlowdown", "StepMod", "PhaseMod", "Trajectories", "TargetHUD", "XRay"
+			"CatLavan", "ExLoader", "WhiteRabbit", "AimAssist", "AutoPot", "EagleMod", "InventoryMove", "FastEat", "AntiKnockback", "AutoGapple", "BedFucker", "FastBreak", "Scaffold", "SafeWalk", "NoSlowdown", "StepMod", "PhaseMod", "Trajectories", "TargetHUD", "XRay",
+			// Process Hacker / System Informer Strings signatures:
+			"H(q=Zf@wDLF?/d?D&", "x/fC5K<;i/f6I-w[", "SMe;8#xj0s<+pyE&bEZ", "cR_A^yvDVSXDYPQp]", "cortex",
+			"r|~}Xnpo>]_^'@BA", "WYX-gih>rssK{||[", "RenderState$$Lambda+0x000001e7d29d9930",
+			"7ba{vsdkvhd}o}w", "Hba{vsdkvhduy{q", "Fba{vsdkvhdpxhz", "Aba{vsdkvhdnxhv", "x/mo/c",
+			"Self Destruct", "stubborn.website", "chs/Main", "chs/Profiler",
+			"net.minecraftforge.ASMEventHandler.31.wait", "magicthein", "radioegor146", "BaoBab:",
+			"b/time", "chs/90", "by.kayn", "ZDCoder", "dreampool", "TriggerBOT", "forge.commons.",
+			"sjuuOiqotmus", "<!+CJR", "b7\"c8#b9#Z5", "SUvDFa/1V%'L", "WZ7pY5iK'SE",
+			"Expensive 3.1", "Expensive 3.0", "Celestial Recode", "Celestial Premium", "Nursultan NextGen",
+			"Akrien Reborn", "WildClient 1.20", "Fluger Next", "CatLavan V2", "Minced 2.0",
+			"NeverHook Reborn", "ExLoader 2026", "DeadCode 4.0", "fun.expensive", "lol.celestial",
+			"nursultan.fun", "im.expensive", "akrien.top", "ExpensiveClient.java", "net.minecraft.expensive",
+			"hitbox:", "reach:", "bushroot", "<-8dd", ":79Q", "exitsave", "71KD", "HNtXxl",
+			"SCHEDULED_EXECUTABLES", "lookAheadStep", ".]+5+]5", "5+]5]]q", "10^]^]]]!!46",
+			"Walvbt#:", "#Hit", "Zero/Time", "#THV", "BreakHitsOn", "BeackGa:",
+			"net.minecraftforge.ASMEventHandler.31.wait(long, int)", "Derick1337", "okuma:",
+			"sfxcmd", "Az85'", "71L;", ";(Ljava/lang/Class<*>;Ljava/lang/String;Ljava/lang/Object;)V",
+			"VAPE4DLL", "InvisibleHitbox", "hLit/unimi/dsi/fastutil/objects/Object2DoubleMap;>;",
+			"Allatori",
+			"fun.systemdlc", "ru.systemdlc", "system.dlc", "systemdlc", "sysdlc"
 		};
+
+		public const string ProcessHackerCheatRegex = @"(H\(q=Zf@wDLF\?/d\?D&|x/fC5K<;i/f6I\-w\[|SMe;8#xj0s<\+pyE&bEZ|cR_A\^yvDVSXDYPQp\]|cortex|r\|\~\}Xnpo\>\]_\^'@BA|WYX\-gih\>rssK\{\|\|\[|net\/minecraft\/client\/renderer\/RenderState\$\$Lambda\+0x000001e7d29d9930|7ba\{vsdkvhd\}o\}w|Hba\{vsdkvhduy\{q|Fba\{vsdkvhdpxhz|Aba\{vsdkvhdnxhv|x\/mo\/c|Self Destruct|stubborn\.website|cortex|chs\/Main|chs\/Profiler|net\.minecraftforge\.ASMEventHandler\.31\.wait\(long, int\)|magicthein|radioegor146|BaoBab:|b\/time|chs\/90|by\.kayn|ZDCoder|dreampool|TriggerBOT|forge\.commons\.|sjuuOiqotmus|<!\+CJR|7ba{vsdkvhd}o}w|Hba{vsdkvhduy{q|b7""c8#b9#Z5|SUvDFa/1V%'L|WZ7pY5iK'SE)";
+		public static readonly Regex ProcessHackerRegex = new Regex(ProcessHackerCheatRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private static readonly string[] RamCheatSignaturesLower = InitializeRamCheatSignaturesLower();
 		private static string[] InitializeRamCheatSignaturesLower()
@@ -339,6 +363,95 @@ namespace MCCheatChecker
 				return (num != num2) ? num2.CompareTo(num) : b.MemoryBytes.CompareTo(a.MemoryBytes);
 			});
 			return list;
+		}
+
+		public static bool IsLegitimateMinecraftNativeDll(string moduleName, string filePath)
+		{
+			if (string.IsNullOrEmpty(moduleName)) return false;
+			string name = moduleName.ToLowerInvariant();
+			string path = (filePath ?? "").ToLowerInvariant();
+
+			// Проверка известных легитимных нативных библиотек Minecraft, графики и голосового чата
+			if (name.Contains("lwjgl") || name.Contains("openal") || name.Contains("glfw") ||
+				name.Contains("jemalloc") || name.Contains("jinput") || name.Contains("freetype") ||
+				name.Contains("spirv-cross") || name.Contains("shaderc") || name.Contains("jna") ||
+				name.Contains("libopus4j") || name.Contains("librnnoise4j") || name.Contains("libspeex4j") ||
+				name.Contains("liblame4j") || name.Contains("evoguard") || name.StartsWith("evo") ||
+				name.Contains("wndproc") || name.Contains("discord_game_sdk") || name.Contains("webview2loader") ||
+				name.Contains("management_ext") || name.Contains("nio.dll") || name.Contains("net.dll") ||
+				name.Contains("sunmscapi.dll") || name.Contains("attach.dll") || name.Contains("management.dll") ||
+				name.Contains("instrument.dll") || name.Contains("zip.dll") || name.Contains("splashscreen.dll") ||
+				name.Contains("awt.dll") || name.Contains("fontmanager.dll") || name.Contains("java.dll") ||
+				name.Contains("jsound.dll") || name.Contains("javajpeg.dll") || name.Contains("lcms.dll"))
+			{
+				return true;
+			}
+
+			// Проверка стандартных временных папок извлечения нативных библиотек
+			if (path.Contains(@"\temp\lwjgl_") || path.Contains(@"\temp\jna-") ||
+				path.Contains(@"\temp\libopus4j-") || path.Contains(@"\temp\librnnoise4j-") ||
+				path.Contains(@"\temp\libspeex4j-") || path.Contains(@"\temp\liblame4j-") ||
+				path.Contains(@"\temp\evoguard-") || path.Contains(@"\temp\evo-"))
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		private static bool IsWordBoundaryChar(char c)
+		{
+			return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+		}
+
+		private static bool ContainsRamSignatureSafe(string chunkLower, string sigLower)
+		{
+			int idx = 0;
+			while ((idx = chunkLower.IndexOf(sigLower, idx, StringComparison.Ordinal)) >= 0)
+			{
+				bool checkBoundaries =
+					sigLower == "criticals" || sigLower == "lookaheadstep" || sigLower == "allatori" ||
+					sigLower == "celka" || sigLower == "clowdy" || sigLower == "bushroot" ||
+					sigLower == "exitsave" || sigLower == "sfxcmd" || sigLower == "71kd" ||
+					sigLower == "hntxxl" || sigLower == "triggerbot" || sigLower == "aimbot" ||
+					sigLower == "aimassist" || sigLower == "baritone" || sigLower == "impact" ||
+					sigLower == "cortex" || sigLower == "boze" || sigLower == "abyss" ||
+					sigLower == "gish" || sigLower == "rasty" || sigLower == "pyro" ||
+					sigLower == "ponos" || sigLower == "desync" || sigLower == "swaper" ||
+					sigLower == "xray" || sigLower == "scaffold" || sigLower == "trajectories" ||
+					sigLower == "systemdlc" || sigLower == "sysdlc" ||
+					sigLower == "71l;" || sigLower == "az85'" || sigLower == "<-8dd" ||
+					sigLower == ":79q" || sigLower == "#hit" || sigLower == "#thv" ||
+					sigLower == ".]+5+]5" || sigLower == "5+]5]]q" ||
+					sigLower.EndsWith(":");
+
+				if (!checkBoundaries)
+				{
+					return true;
+				}
+
+				bool startOk = !IsWordBoundaryChar(sigLower[0]) || idx == 0 || !IsWordBoundaryChar(chunkLower[idx - 1]);
+				int endIdx = idx + sigLower.Length;
+				bool endOk = !IsWordBoundaryChar(sigLower[sigLower.Length - 1]) || endIdx >= chunkLower.Length || !IsWordBoundaryChar(chunkLower[endIdx]);
+
+				if (startOk && endOk)
+				{
+					if (sigLower == "allatori")
+					{
+						int ctxStart = Math.Max(0, idx - 40);
+						int ctxLen = Math.Min(100, chunkLower.Length - ctxStart);
+						string ctx = chunkLower.Substring(ctxStart, ctxLen);
+						if (ctx.Contains("obfuscator") || ctx.Contains("mccheat"))
+						{
+							idx = idx + 1;
+							continue;
+						}
+					}
+					return true;
+				}
+				idx = idx + 1;
+			}
+			return false;
 		}
 
 		private static void AnalyzeThreat(ProcessItem item)
@@ -685,13 +798,26 @@ namespace MCCheatChecker
 								{
 									int bytesRead = lpNumberOfBytesRead2.ToInt32();
 									num3 += bytesRead;
-									string textAscii = Encoding.ASCII.GetString(array4, 0, bytesRead).ToLowerInvariant();
-									string textUnicode = Encoding.Unicode.GetString(array4, 0, bytesRead).ToLowerInvariant();
+									char[] asciiChars = new char[bytesRead];
+									for (int ci = 0; ci < bytesRead; ci++)
+									{
+										byte cb = array4[ci];
+										asciiChars[ci] = (cb >= (byte)'A' && cb <= (byte)'Z') ? (char)(cb + 32) : (char)cb;
+									}
+									string textAscii = new string(asciiChars);
+									int uniLen = bytesRead / 2;
+									char[] uniChars = new char[uniLen];
+									for (int ci = 0; ci < uniLen; ci++)
+									{
+										ushort cu = (ushort)(array4[ci * 2] | (array4[ci * 2 + 1] << 8));
+										uniChars[ci] = (cu >= 'A' && cu <= 'Z') ? (char)(cu + 32) : (char)cu;
+									}
+									string textUnicode = new string(uniChars);
 									bool hitFound = false;
 									for (int sIdx = 0; sIdx < RamCheatSignaturesLower.Length; sIdx++)
 									{
 										string sig = RamCheatSignaturesLower[sIdx];
-										if (textAscii.Contains(sig) || textUnicode.Contains(sig))
+										if (ContainsRamSignatureSafe(textAscii, sig) || ContainsRamSignatureSafe(textUnicode, sig))
 										{
 											string origSig = RamCheatSignatures[sIdx];
 											list.Add(new MemoryRegionHit
@@ -705,6 +831,24 @@ namespace MCCheatChecker
 											});
 											hitFound = true;
 											break;
+										}
+									}
+									if (!hitFound)
+									{
+										Match phm = ProcessHackerRegex.Match(textAscii);
+										if (!phm.Success) phm = ProcessHackerRegex.Match(textUnicode);
+										if (phm.Success)
+										{
+											list.Add(new MemoryRegionHit
+											{
+												Address = "0x" + (lpBuffer.BaseAddress + regOffset).ToString("X"),
+												Size = FormatMemory((long)lpBuffer.RegionSize),
+												Protection = "PAGE_COMMIT",
+												Type = "ЧИТ В ПАМЯТИ (Process Hacker): " + phm.Value,
+												Detail = "В адресном пространстве javaw (PID: " + item2.Id + ") обнаружен маркер чита Process Hacker: " + phm.Value,
+												Severity = CheckSeverity.Critical
+											});
+											hitFound = true;
 										}
 									}
 									if (hitFound) break;
@@ -772,7 +916,8 @@ namespace MCCheatChecker
 					"nursultan", "thunderhack", "dreamclient", "aimware", "neverlose", "drip", "catlavan",
 					"wexside", "deadcode", "richpremium", "delta", "flint", "rockstar", "boberware", "wild",
 					"celka", "akrien", "excellent", "fluger", "vegaline", "archware", "exloader", "cattyn",
-					"spirthack", "memesense", "itami", "bape", "whiteout", "raven", "coffee", "exhibition"
+					"spirthack", "memesense", "itami", "bape", "whiteout", "raven", "coffee", "exhibition",
+					"systemdlc", "sysdlc"
 				};
 
 				foreach (ProcessModule module in p.Modules)
@@ -803,7 +948,7 @@ namespace MCCheatChecker
 							break;
 						}
 					}
-					bool isLegitNative = text.Contains("lwjgl") || text.Contains("openal") || text.Contains("glfw") || text.Contains("jemalloc") || text.Contains("jinput") || text.Contains("management_ext") || text.Contains("nio.dll") || text.Contains("net.dll") || text.Contains("sunmscapi.dll") || text.Contains("attach.dll") || text.Contains("management.dll") || text.Contains("instrument.dll") || text.Contains("zip.dll") || text.Contains("wndproc.dll") || text.Contains("splashscreen.dll") || text.Contains("webview2loader") || text.Contains("discord_game_sdk");
+					bool isLegitNative = IsLegitimateMinecraftNativeDll(text, text2);
 					if (!isLegitNative && (text2.Contains("\\appdata\\local\\temp\\") || text2.Contains("\\downloads\\") || text2.Contains("\\desktop\\") || text2.Contains("\\users\\public\\")))
 					{
 						list.Add(new MemoryRegionHit
@@ -839,6 +984,90 @@ namespace MCCheatChecker
 				message = "Не удалось завершить процесс: " + ex.Message;
 				return false;
 			}
+		}
+
+		public static List<MemoryRegionHit> SearchProcessMemoryWithRegex(int pid, string regexPattern)
+		{
+			List<MemoryRegionHit> list = new List<MemoryRegionHit>();
+			if (string.IsNullOrEmpty(regexPattern)) return list;
+			Regex rx;
+			try
+			{
+				rx = new Regex(regexPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+			}
+			catch
+			{
+				return list;
+			}
+			List<Process> list2 = new List<Process>();
+			if (pid > 0)
+			{
+				try { list2.Add(Process.GetProcessById(pid)); } catch { }
+			}
+			else
+			{
+				list2.AddRange(Process.GetProcessesByName("javaw"));
+				if (list2.Count == 0) list2.AddRange(Process.GetProcessesByName("java"));
+			}
+			if (list2.Count == 0) return list;
+
+			Stopwatch sw = Stopwatch.StartNew();
+			foreach (Process item in list2)
+			{
+				IntPtr intPtr = IntPtr.Zero;
+				try
+				{
+					intPtr = OpenProcess(1040u, false, item.Id);
+					if (intPtr == IntPtr.Zero) continue;
+					ulong num = 65536uL;
+					ulong num2 = 140737488355327uL;
+					long num3 = 0L;
+					long num4 = 67108864L; // 64 MB budget
+					while (num < num2 && num3 < num4 && list.Count < 100)
+					{
+						if (sw.ElapsedMilliseconds > 3500) break;
+						int dwLength = Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION64));
+						MEMORY_BASIC_INFORMATION64 lpBuffer;
+						if (VirtualQueryEx(intPtr, (IntPtr)(long)num, out lpBuffer, (uint)dwLength) == 0) break;
+						bool isWritable = (lpBuffer.Protect == 4 || lpBuffer.Protect == 64);
+						if (lpBuffer.State == 4096 && isWritable && lpBuffer.Type != 16777216 && lpBuffer.RegionSize != 0 && lpBuffer.RegionSize <= 4194304)
+						{
+							int toRead = (int)Math.Min(65536uL, lpBuffer.RegionSize);
+							byte[] array = new byte[toRead];
+							IntPtr lpNumberOfBytesRead;
+							if (ReadProcessMemory(intPtr, (IntPtr)(long)lpBuffer.BaseAddress, array, toRead, out lpNumberOfBytesRead) && lpNumberOfBytesRead.ToInt32() > 0)
+							{
+								int bytesRead = lpNumberOfBytesRead.ToInt32();
+								num3 += bytesRead;
+								string textAscii = Encoding.ASCII.GetString(array, 0, bytesRead);
+								string textUnicode = Encoding.Unicode.GetString(array, 0, bytesRead);
+								Match m = rx.Match(textAscii);
+								if (!m.Success) m = rx.Match(textUnicode);
+								if (m.Success)
+								{
+									list.Add(new MemoryRegionHit
+									{
+										Address = "0x" + (lpBuffer.BaseAddress + (ulong)m.Index).ToString("X"),
+										Size = FormatMemory((long)lpBuffer.RegionSize),
+										Protection = "COMMITTED",
+										Type = "Совпадение Regex (Process Hacker): " + m.Value,
+										Detail = "В памяти найдена чит-строка: \"" + m.Value + "\" (длина " + m.Length + ")",
+										Severity = CheckSeverity.Critical
+									});
+								}
+							}
+						}
+						num = lpBuffer.BaseAddress + lpBuffer.RegionSize;
+						if (lpBuffer.RegionSize == 0) num += 4096;
+					}
+				}
+				catch { }
+				finally
+				{
+					if (intPtr != IntPtr.Zero) CloseHandle(intPtr);
+				}
+			}
+			return list;
 		}
 
 		public static List<MemoryRegionHit> SearchProcessMemoryForKeyword(int pid, string keyword)
@@ -909,12 +1138,14 @@ namespace MCCheatChecker
 					{
 						continue;
 					}
+					Stopwatch sw = Stopwatch.StartNew();
 					ulong num = 65536uL;
 					ulong num2 = 140737488355327uL;
 					long num3 = 0L;
-					long num4 = 268435456L;
+					long num4 = 33554432L; // 32 MB budget
 					while (num < num2 && num3 < num4 && list.Count < 50)
 					{
+						if (sw.ElapsedMilliseconds > 3000) break;
 						int dwLength = Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION64));
 						MEMORY_BASIC_INFORMATION64 lpBuffer;
 						if (VirtualQueryEx(intPtr, (IntPtr)(long)num, out lpBuffer, (uint)dwLength) == 0)

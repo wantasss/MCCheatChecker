@@ -106,6 +106,15 @@ namespace MCCheatChecker
 			return checkResult;
 		}
 
+		private static bool IsAuthorizedScreenShareTool(string name)
+		{
+			if (string.IsNullOrEmpty(name)) return false;
+			string lower = name.ToLowerInvariant();
+			return lower.Contains("anydesk") || lower.Contains("rudesktop") || lower.Contains("ru desktop") ||
+				   lower.Contains("rustdesk") || lower.Contains("teamviewer") || lower.Contains("zoom") ||
+				   lower.Contains("teams") || lower.Contains("skype") || lower.Contains("screenshare");
+		}
+
 		private static CheckResult CheckRemoteAccessRunning()
 		{
 			CheckResult checkResult = NewResult("Присутствие человека", "Запущенные программы удалённого доступа");
@@ -120,7 +129,14 @@ namespace MCCheatChecker
 				{
 					if (text.IndexOf(value, StringComparison.Ordinal) >= 0)
 					{
-						list.Add("Запущен: " + process.ProcessName + " (PID " + process.Id + ", RAM " + process.WorkingSet64 / 1024 + " КБ)");
+						if (IsAuthorizedScreenShareTool(text))
+						{
+							info.Add("Легитимный сеанс ScreenShare: " + process.ProcessName + " (PID " + process.Id + ")");
+						}
+						else
+						{
+							list.Add("Запущен: " + process.ProcessName + " (PID " + process.Id + ", RAM " + process.WorkingSet64 / 1024 + " КБ)");
+						}
 						break;
 					}
 				}
@@ -140,7 +156,14 @@ namespace MCCheatChecker
 					{
 						if (text2.IndexOf(value2, StringComparison.Ordinal) >= 0)
 						{
-							list.Add("Открыто окно: \"" + text2 + "\" (PID " + process2.Id + ")");
+							if (IsAuthorizedScreenShareTool(text2))
+							{
+								info.Add("Окно ScreenShare: \"" + text2 + "\" (PID " + process2.Id + ")");
+							}
+							else
+							{
+								list.Add("Открыто окно: \"" + text2 + "\" (PID " + process2.Id + ")");
+							}
 							break;
 						}
 					}
@@ -149,7 +172,7 @@ namespace MCCheatChecker
 				{
 				}
 			}
-			checkResult.Detail = ((list.Count > 0) ? ("Обнаружены программы удалённого доступа: " + list.Count) : "Программ удалённого доступа не обнаружено");
+			checkResult.Detail = ((list.Count > 0) ? ("Обнаружены подозрительные программы удалённого доступа: " + list.Count) : ((info.Count > 0) ? ("Активен сеанс ScreenShare (" + info.Count + ")") : "Программ удалённого доступа не обнаружено"));
 			checkResult.Detected = list.Count > 0;
 			checkResult.Severity = ((list.Count > 0) ? CheckSeverity.Warning : CheckSeverity.Info);
 			checkResult.Evidence = Join(info, list);

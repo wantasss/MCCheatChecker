@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -209,7 +209,30 @@ namespace MCCheatChecker
 				Title = "System Informer",
 				Url = "https://systeminformer.sourceforge.io/",
 				Description = "System Informer (Process Hacker 3) — продвинутый аудит процессов, потоков, памяти и дескрипторов",
-				ExePatterns = new string[] { "SystemInformer.exe", "ProcessHacker.exe" }
+				ExePatterns = new string[] { "SystemInformer.exe", "ProcessHacker.exe" },
+				CustomAction = delegate
+				{
+					try
+					{
+						Clipboard.SetText(ProcessMemoryScanner.ProcessHackerCheatRegex);
+					}
+					catch { }
+					MessageBox.Show(
+						"Регулярное выражение (Regex) для поиска читов в памяти Process Hacker успешно скопировано в буфер обмена!\n\n" +
+						"📋 Скопированный Regex:\n" + ProcessMemoryScanner.ProcessHackerCheatRegex + "\n\n" +
+						"📌 Инструкция по проверке:\n" +
+						"1. В Process Hacker / System Informer дважды кликните на процесс javaw.exe (Minecraft)\n" +
+						"2. Перейдите во вкладку «Memory»\n" +
+						"3. Нажмите кнопку «Strings...»\n" +
+						"4. В окне настроек Strings отметьте галочки «Image» и «Mapped», минимальная длина 4\n" +
+						"5. Нажмите OK\n" +
+						"6. В окне результатов поиска отметьте чекбокс «Regex» и нажмите Filter\n" +
+						"7. Вставьте скопированную строку (Ctrl+V) в поле поиска\n" +
+						"8. Любые совпадения являются прямым доказательством наличия инжекта / чит-модуля в памяти!",
+						"Process Hacker — Regex скопирован в буфер обмена",
+						MessageBoxButtons.OK,
+						MessageBoxIcon.Information);
+				}
 			});
 
 			// 4. Shellbag Analyzer
@@ -919,31 +942,27 @@ namespace MCCheatChecker
 				t.Id == "system_informer"
 			).ToList();
 
-			int launched = 0;
+			int installedCount = 0;
+			List<string> installedNames = new List<string>();
 			foreach (SsToolDefinition t in tools)
 			{
 				string exe = t.FindExecutable();
 				if (!string.IsNullOrEmpty(exe) && File.Exists(exe))
 				{
-					try
-					{
-						Process.Start(exe);
-						launched++;
-						if (setStatus != null) setStatus("🚀 Запущена внешняя утилита: " + t.Title + " (" + Path.GetFileName(exe) + ")");
-					}
-					catch { }
+					installedCount++;
+					installedNames.Add(t.Title);
 				}
 			}
 
 			if (setStatus != null)
 			{
-				if (launched > 0)
+				if (installedCount > 0)
 				{
-					setStatus(string.Format("⚡ GitHub-утилиты активированы: запущено {0} внешних процессов, детекторы MeowDoomsday, Clean Detecting, SSTool, y_check подключены к проверке!", launched));
+					setStatus(string.Format("⚡ [GitHub Модули] Обнаружено {0} установленных утилит ({1}). Автозапуск отключен. Встроенные детекторы артефактов активны!", installedCount, string.Join(", ", installedNames.ToArray())));
 				}
 				else
 				{
-					setStatus("⚡ [GitHub Модули] Детекторы MeowDoomsdayFucker, Clean Detecting, SSTool, y_check успешно активированы вместе с чекером!");
+					setStatus("⚡ [GitHub Модули] Внешние утилиты не обнаружены. Встроенные детекторы артефактов MeowDoomsday, Clean Detecting, SSTool, y_check активны!");
 				}
 			}
 		}

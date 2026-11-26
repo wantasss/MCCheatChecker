@@ -88,7 +88,7 @@ namespace MCCheatChecker
 			"customparticles", "blockoutline", "itemphysic", "soundphysics", "presencefootsteps",
 			"ambientenvironment", "chunksfadein", "berdinskiybear", "antighost", "topkatags",
 			"itemlocks", "durabilityviewer", "minihud", "exitlag", "customfov", "connectedglass",
-			"tweakeroo", "malilib", "litematica", "waila", "hwyla", "jade", "theoneprobe", "rei", "roughlyenoughitems",
+			"malilib", "litematica", "waila", "hwyla", "jade", "theoneprobe", "rei", "roughlyenoughitems",
 			"jei", "justenoughitems", "emi", "betterpingdisplay", "pingdisplay", "itemmodelcondenser", "modelgapfix",
 			"animfix", "itemphysiclite", "particlecore", "particlecustomizer", "betterparticles", "extrapolations",
 			"lowshieldplus", "armorstatus", "statuseffects", "simplearmorstatus", "simpledurability", "bountifulhud",
@@ -204,8 +204,35 @@ namespace MCCheatChecker
 			"deadcode5", "deadcodeclient", "d3adcode", "d3adc0de",
 			"richrecode", "richpremiun",
 			"catlavanclient", "catleanclient",
+			// 2025-2026 Latest Cheat Clients & Process Hacker Signatures
+			"expensive 3.1", "expensive 4.0", "expensive 5.0", "expensive recode", "exp 4.0", "exp 5.0",
+			"nursultan recode", "nursultan next", "nursultan client", "nurik next",
+			"celestial recode", "celestial next", "celestial client",
+			"delta v3", "deltaclient", "delta client",
+			"catlavan", "catlavanclient", "catlean", "catleanclient",
+			"doomsday client", "doomsday", "doomsdayfucker",
+			"zeroday", "moon", "nightx", "envy", "ambush",
+			"minced 2.0", "minced", "mincedclient", "mincedrecode",
+			"wildgrief 2.0", "wildgrief", "wildgriefclient",
+			"thunderhack recode", "thunderhack", "thunderhackclient",
+			"meteor client", "meteor", "blackout", "trouser-streak", "banana+",
+			"boze", "boze client", "bozeclient",
+			"slinky", "slinky client", "slinkyclient", "slinkycrack",
+			"drip lite", "driplite", "drip client", "drip",
+			"vape v4", "vape 4.10", "vape 4.11", "vape client", "vapelite",
+			"deadcode 5", "deadcode 6", "deadcode", "d3adcode",
+			"systemdlc", "system-dlc", "zamorozka", "richclient", "fluger",
+			// Process Hacker Signatures (User Request 3)
+			"stubborn.website", "cortex", "chs/main", "chs/profiler", "chs/90",
+			"asmeventhandler.31.wait", "magicthein", "radioegor146", "baobab:",
+			"b/time", "by.kayn", "zdcoder", "dreampool", "triggerbot", "forge.commons.",
+			"sjuuoiqotmus", "<!+cjr", "gui blur", "self destruct",
+			"renderstatelambda+0x000001e7d29d9930",
+			"7ba{vsdkvhd}o}w", "hba{vsdkvhduy{q", "fba{vsdkvhdpxhz", "aba{vsdkvhdnxhv",
+			"x/mo/c", "b7\"c8#b9#z5", "suvdfa/1v%'l", "wz7py5ik'se",
 			"delta", "deltaclient", "deltac", "deltacclient",
 			"doomsdayclient", "doomsdayfucker",
+			"zeroday", "moon", "nightx", "envy", "ambush",
 			"kuraclient",
 			"system-dlc",
 			"thunderhackrecoded", "thunderhackclient",
@@ -213,6 +240,7 @@ namespace MCCheatChecker
 			"cellent", "flavour", "flugerclient", "neverhook",
 			"pandora", "gamesense", "zenware", "clowdy",
 			"rasty", "rastyclient", "rastylegit", "dreampool", "dreampoolhack",
+			"cortex", "stubborn", "radioegor146", "by.kayn", "zdcoder", "magicthein", "baobab", "forge.commons",
 			"auroraclient",
 			"pivoclient", "troxil", "extremeclient", "babahack",
 			"slavehack", "chipware", "zamorozka",
@@ -310,7 +338,8 @@ namespace MCCheatChecker
 			new BanRule("5.01", "Catlavan Client", CheckSeverity.Critical, "catlavanclient"),
 			new BanRule("5.01", "Celestial Client", CheckSeverity.Critical, "calestial", "celestialrecode"),
 			new BanRule("5.01", "Delta Client", CheckSeverity.Critical, "deltaclient", "delta", "deltac", "deltacclient"),
-			new BanRule("5.01", "DoomsDay Client", CheckSeverity.Critical, "doomsdayfucker", "doomsdayclient"),
+			new BanRule("5.01", "DoomsDay Client", CheckSeverity.Critical, "doomsdayfucker",
+			"zeroday", "moon", "nightx", "envy", "ambush", "doomsdayclient"),
 			new BanRule("5.01", "Drip Client", CheckSeverity.Critical, "drip", "dripware", "dripclient", "driplite"),
 			new BanRule("5.01", "ExLoader", CheckSeverity.Critical, "ex-loader"),
 			new BanRule("5.01", "Expensive Client", CheckSeverity.Critical, "expensiverecode", "expensive3", "expensive4"),
@@ -367,7 +396,7 @@ namespace MCCheatChecker
 			new BanRule("5.04", "Nuker", CheckSeverity.Critical, "fastbreak"),
 			new BanRule("5.04", "Scaffold", CheckSeverity.Critical, "scaffold", "autobridge"),
 			new BanRule("5.04", "Speed / Spider / Timer", CheckSeverity.Critical, "speedhack", "spider", "timermod"),
-			new BanRule("5.04", "Tweakeroo", CheckSeverity.NeedsCheck, "tweakeroo", "tweaksclient"),
+			new BanRule("5.04", "Tweakeroo", CheckSeverity.NeedsCheck, "tweaksclient"),
 
 			// 5.05. Лишняя информация и обзор (15d)
 			new BanRule("5.05", "ArmorIndicator", CheckSeverity.NeedsCheck, "armorindicator", "armorhud"),
@@ -425,7 +454,10 @@ namespace MCCheatChecker
 			".t ", ".killaura", ".aura", ".esp", ".fly", ".step", ".speed", ".reach", ".hitbox", ".aim",
 			".noclip", ".vclip", ".hclip", ".akr", ".wex", ".rich", ".load", ".save",
 			".spammer", ".fakelag", ".target", ".macro", ".autoclicker", ".drop", ".inventory",
-			".thunder", ".slinky", ".b4", ".boze", ".seed", ".xray"
+			".thunder", ".slinky", ".b4", ".boze", ".seed", ".xray", ".ka", ".bhop", ".scaffold", ".jesus",
+			".nofall", ".criticals", ".wtap", ".triggerbot", ".autototem", ".freecam", ".blink", ".timer",
+			".derp", ".antiknockback", ".velocity", ".fastplace", ".fastbreak", ".cheststealer", ".autoarmor",
+			"#goto", "#mine", "#tunnel", "#follow", "#path", "#stop", "#set", "#baritone", "#explore"
 		};
 
 		public static readonly string[] PrefetchExternalCheatKeywords = new string[]
@@ -525,7 +557,7 @@ namespace MCCheatChecker
 
 			if (text.Contains("проги для проверки") || text.Contains("проверка") || text.Contains("проверки") ||
 			    text.Contains("screenshare") || text.Contains("mccheat") || text.Contains("sstools") ||
-			    text.Contains("\\packages") || text.Contains("appdata\\local\\packages") ||
+			    text.Contains("packages") || text.Contains("appdata\\local\\packages") ||
 			    text.Contains("autoclicker") || text.Contains("clicker") || text.Contains("tinytask") ||
 			    text.Contains("opautoclicker") || text.Contains("speedautoclicker") || text.Contains("x-mouse") ||
 			    text.Contains("xmouse") || text.Contains("keyran") || text.Contains("botmek") ||
